@@ -1,120 +1,97 @@
-
 # check the specs of the model args
 
-check_wig_args <- function(wig_args) {
-  # check WIG arguments
-  if (is.null(wig_args$group_time))
-    wig_args$group_time <- "months"
-  if (is.null(wig_args$svd_method))
-    wig_args$svd_method <- "topics"
-  if (is.null(wig_args$standardize))
-    wig_args$standardize <- TRUE
+# TODO: check all the argument names are valid!
 
-  wig_args
+#' @export
+wdl_specs <- function(
+  wdl_control = list(
+    embed_dim = 10,
+    num_topics = 4,
+    batch_size = 64,
+    epochs = 2,
+    shuffle = TRUE,
+    verbose = FALSE
+  ),
+  tokenizer_control = list(),
+  word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
+  barycenter_control = list(
+    reg = .1,
+    with_grad = TRUE,
+    method = "auto",
+    threshold = .1,
+    max_iter = 20,
+    zero_tol = 1e-6
+  ),
+  optimizer_control = list(
+    optimizer = "adamw",
+    lr = .005,
+    decay = .01,
+    beta1 = .9,
+    beta2 = .999,
+    eps = 1e-8
+  )
+) {
+  # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
+  barycenter_control <- check_barycenter_args(barycenter_control)
+  barycenter_control$with_grad <- TRUE
+
+  # return the list of arguments
+  list(
+    wdl_control = check_wdl_args(wdl_control),
+    tokenizer_control = check_tok_args(tokenizer_control),
+    word2vec_control = check_w2v_args(word2vec_control),
+    barycenter_control = barycenter_control,
+    optimizer_control = check_opt_args(optimizer_control)
+  )
 }
 
+#' @export
+wig_specs <- function(
+  wig_control = list(
+    group_time = "months",
+    svd_method = "docs",
+    standardize = TRUE
+  ),
+  wdl_control = list(
+    embed_dim = 10,
+    num_topics = 4,
+    batch_size = 64,
+    epochs = 2,
+    rng_seed = 123,
+    verbose = 0
+  ),
+  tokenizer_control = list(),
+  word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
+  barycenter_control = list(
+    reg = .1,
+    with_grad = TRUE,
+    method = "auto",
+    threshold = .1,
+    max_iter = 20,
+    zero_tol = 1e-6
+  ),
+  optimizer_control = list(
+    optimizer = "adamw",
+    lr = .005,
+    decay = .01,
+    beta1 = .9,
+    beta2 = .999,
+    eps = 1e-8
+  )
+) {
+  # check if the must-have default parameters are there
+  # fill them if needed
 
-check_wdl_args <- function(wdl_args) {
-  # check WDL arguments: hyper-parameters
-  if (is.null(wdl_args$num_topics))
-    wdl_args$num_topics <- 4
-  if (is.null(wdl_args$batch_size))
-    wdl_args$batch_size <- 64
-  if (is.null(wdl_args$epochs))
-    wdl_args$epochs <- 2
-  if (is.null(wdl_args$rng_seed))
-    wdl_args$rng_seed <- 123L
-  if (is.null(wdl_args$verbose))
-    wdl_args$verbose <- FALSE
+  # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
+  barycenter_control <- check_barycenter_args(barycenter_control)
+  barycenter_control$with_grad <- TRUE
 
-  # if `verbose` is NA, abort!
-  if (is.na(wdl_args$verbose)) stop("`verbose` argument cannot be NA!")
-
-  # # map verbose into integer
-  # if (wdl_args$verbose) {
-  #   wdl_args$verbose_int <- 1L
-  # } else {
-  #   wdl_args$verbose_int <- 0L
-  # }
-
-  wdl_args
-}
-
-check_tok_args <- function(tok_args) {
-  # check tokenizer arguments: m
-  # if (is.null(tok_args$stopwords))
-  #   tok_args$stopwords <- stopwords::stopwords()
-
-  tok_args
-}
-
-check_w2v_args <- function(w2v_args) {
-  # check word2vec arguments: must-have: embedding depths
-  if (is.null(w2v_args$dim)) # embedding depth: hyper-parameters
-    w2v_args$dim <- 10
-  if (is.null(w2v_args$min_count))
-    w2v_args$min_count <- 5
-  if (is.null(w2v_args$type))
-    w2v_args$type <- "cbow"
-  # if (is.null(w2v_args$stopwords))
-  #   w2v_args$stopwords <- stopwords::stopwords()
-
-  w2v_args
-}
-
-check_skh_args <- function(skh_args) {
-  # check the parameters for Sinkhorn (Barycenter) algorithm
-  if (is.null(skh_args$regularizer))
-    skh_args$regularizer <- .1
-  if (is.null(skh_args$sinkhorn_mode))
-    skh_args$sinkhorn_mode <- "auto"
-  if (is.null(skh_args$sinkhorn_mode_threshold))
-    skh_args$sinkhorn_mode_threshold <- .1
-  if (is.null(skh_args$max_iter))
-    skh_args$max_iter <- 1000
-  if (is.null(skh_args$zero_tol))
-    skh_args$zero_tol <- 1e-6
-
-  # map sinkhorn algo type from character to integer
-  if (skh_args$sinkhorn_mode == "auto") {
-    skh_args$sinkhorn_mode_int <- 0L
-  } else if (skh_args$sinkhorn_mode == "parallel") {
-    skh_args$sinkhorn_mode_int <- 1L
-  } else if (skh_args$sinkhorn_mode == "log") {
-    skh_args$sinkhorn_mode_int <- 2L
-  } else {
-    stop("sinkhorn_mode must be from: \"auto\", \"parallel\", or \"log\"")
-  }
-
-  skh_args
-}
-
-check_opt_args <- function(opt_args) {
-
-  # check the parameters for the optimizer
-  if (is.null(opt_args$lr))
-    opt_args$lr <- .005
-  if (is.null(opt_args$decay))
-    opt_args$decay <- .01
-  if (is.null(opt_args$beta1))
-    opt_args$beta1 <- .9
-  if (is.null(opt_args$beta2))
-    opt_args$beta2 <- .999
-  if (is.null(opt_args$eps))
-    opt_args$eps <- 1e-8
-  if (is.null(opt_args$optimizer))
-    opt_args$optimizer <- "adamw"
-
-  # map optimizer from character to int
-  if (opt_args$optimizer == "sgd") {
-    opt_args$optimizer_int <- 0L
-  } else if (opt_args$optimizer == "adam") {
-    opt_args$optimizer_int <- 1L
-  } else if (opt_args$optimizer == "adamw") {
-    opt_args$optimizer_int <- 2L
-  } else {
-    stop("optimizer must be from: \"sgd\", \"adam\", \"adamw\"")
-  }
-
-  opt_args
+  list(
+    wig_control = check_wig_args(wig_control),
+    wdl_control = check_wdl_args(wdl_control),
+    tokenizer_control = check_tok_args(tokenizer_control),
+    word2vec_control = check_w2v_args(word2vec_control),
+    barycenter_control = barycenter_control,
+    optimizer_control = check_opt_args(optimizer_control)
+  )
 }

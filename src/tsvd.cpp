@@ -1,13 +1,18 @@
 
 // implement the tsvd algorithm in c++
 
-#include <cpp11.hpp>
-#include <cpp11armadillo.hpp>
-using namespace arma;
+#define ARMA_DONT_USE_OPENMP
 
-[[cpp11::register]]
-cpp11::doubles_matrix<> tsvd_cpp(const doubles_matrix<>& MR,
-                                 const int k, const int flip_sign) {
+// #include <cpp11.hpp>
+// #include <cpp11armadillo.hpp>
+// using namespace arma;
+
+#include <RcppArmadillo/Lightest>
+// [[Rcpp::depends(RcppArmadillo)]]
+
+// [[Rcpp::export]]
+arma::mat tsvd_cpp(const arma::mat& M,
+                   const int k, const int flip_sign) {
   // flip_sign: how to determine the sign of the vectors
   // flip_sign = 0, auto
   // flip_sign = 1, sklearn
@@ -25,19 +30,19 @@ cpp11::doubles_matrix<> tsvd_cpp(const doubles_matrix<>& MR,
   // https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/utils/extmath.py#L433
 
   // convert input
-  mat M = as_Mat(MR);
+  // mat M = as_Mat(MR);
 
   // output
-  mat Msvd = mat(arma::size(M), fill::zeros);
+  arma::mat Msvd{arma::mat(arma::size(M), arma::fill::zeros)};
 
   // first do the full SVD
-  mat U, V;
-  vec s;
-  svd(U, s, V, M);
+  arma::mat U, V;
+  arma::vec s;
+  arma::svd(U, s, V, M);
 
   if (flip_sign == 0) {
     // auto mode
-    mat Y = M - U.cols(0,k-1) * diagmat(s.rows(0,k-1)) * (V.cols(0,k-1)).t();
+    arma::mat Y = M - U.cols(0,k-1) * diagmat(s.rows(0,k-1)) * (V.cols(0,k-1)).t();
     double sk_left, sk_right;
     double uTy = 0.;
     double vTy = 0.;
@@ -46,14 +51,14 @@ cpp11::doubles_matrix<> tsvd_cpp(const doubles_matrix<>& MR,
 
       sk_left = 0.;
       for (size_t j = 0; j < Y.n_cols; ++j) {
-        uTy = accu(U.col(K) % Y.col(j));
-        sk_left += sign(uTy) * pow(uTy, 2);
+        uTy = arma::accu(U.col(K) % Y.col(j));
+        sk_left += arma::sign(uTy) * pow(uTy, 2);
       }
 
       sk_right = 0.;
       for (size_t i = 0; i < Y.n_rows; ++i) {
-        vTy = accu(V.col(K) % Y.row(i).t());
-        sk_right += sign(vTy) * pow(vTy, 2);
+        vTy = arma::accu(V.col(K) % Y.row(i).t());
+        sk_right += arma::sign(vTy) * pow(vTy, 2);
       }
 
       if (sk_left * sk_right < 0) {
@@ -64,8 +69,8 @@ cpp11::doubles_matrix<> tsvd_cpp(const doubles_matrix<>& MR,
         }
       }
 
-      U.col(K) *= sign(sk_left);
-      V.col(K) *= sign(sk_right);
+      U.col(K) *= arma::sign(sk_left);
+      V.col(K) *= arma::sign(sk_right);
     }
     Msvd = U.cols(0,k-1) * diagmat(s.rows(0,k-1));
 
@@ -80,5 +85,6 @@ cpp11::doubles_matrix<> tsvd_cpp(const doubles_matrix<>& MR,
   } else {
     Msvd = U.cols(0,k-1) * diagmat(s.rows(0,k-1));
   }
-  return as_doubles_matrix(Msvd);
+  // return as_doubles_matrix(Msvd);
+  return Msvd;
 }

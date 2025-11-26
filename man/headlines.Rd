@@ -5,7 +5,17 @@
 \alias{headlines}
 \title{NYT headlines by economic policy uncertainty}
 \format{
-An object of class \code{data.frame} with 11934 rows and 2 columns.
+\subsection{headlines}{
+
+A data frame with 18,507 rows and 2 columns:
+\describe{
+\item{headline}{Headline of the NYT News}
+\item{ref_date}{Date of the News}
+}
+}
+}
+\source{
+www.nytimes.com
 }
 \usage{
 headlines

@@ -1,52 +1,78 @@
-# Wasserstein Dictionary Learning
-# TODO: shuffle the input docs
-
-#' @export
-wdl_spec <- function(
-    wdl.control = list(
-      embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2,
-      verbose = FALSE, rng_seed = 123
-    ),
-    tokenizer.control = list(),
-    word2vec.control = list(type = "cbow", dim = 10, min_count = 5),
-    sinkhorn.control = list(
-      regularizer = .1, sinkhorn_mode = "auto", sinkhorn_mode_threshold = .1,
-      max_iter = 1000, zero_tol = 1e-6
-    ),
-    optimizer.control = list(
-      optimizer = "adamw", lr = .005, decay = .01,
-      beta1 = .9, beta2 = .999, eps = 1e-8
-    )
-) {
-  list(
-    wdl.control = check_wdl_args(wdl.control),
-    tokenizer.control = check_tok_args(tokenizer.control),
-    word2vec.control = check_w2v_args(word2vec.control),
-    sinkhorn.control = check_skh_args(sinkhorn.control),
-    optimizer.control = check_opt_args(optimizer.control)
-  )
-}
-
+#' Wasserstein Dictionary Learning model
+#'
+#' @description
+#' Wasserstein Dictionary Learning (WDL) model for topic modeling
+#'
+#' @details
+#' This is the re-implementation of WDL model from ground up,
+#' and it calls the \code{\link{barycenter()}} under the hood
+#' (to be precise directly calling the underlying C++ routine
+#' for \code{\link{barycenter()}})
+#'
+#' @references
+#'
+#' Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport:
+#' With Applications to Data Science.
+#' *Foundations and Trends® in Machine Learning*, 11(5–6), 355–607.
+#' https://doi.org/10.1561/2200000073
+#'
+#' Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D.,
+#' Cuturi, M., Peyré, G., & Starck, J.-L. (2018).
+#' Wasserstein dictionary learning:
+#' Optimal transport-based unsupervised nonlinear dictionary learning.
+#' *SIAM Journal on Imaging Sciences*, 11(1), 643–678.
+#' https://doi.org/10.1137/17M1140431
+#'
+#' Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
+#' Transport Algorithms (No. arXiv:2504.08722). *arXiv*.
+#' https://doi.org/10.48550/arXiv.2504.08722
+#'
+#' @param docs character vector, sentences to be analyzed
+#' @param spec list, model specification for the WDL
+#' see \code{\link{wdl_spec()}} for reference
+#' @param verbose bool, whether to print useful info
+#'
+#' @returns topics and weights computed from the WDL given the input data
+#'
+#' @examples
+#' # simple WDL example
+#' sentences <- c("this is a sentence", "this is another one")
+#' wdl_fit <- wdl(sentences)
+#'
+#'
+#' @importFrom Rcpp evalCpp
 #' @export
 wdl <- function(docs, ...) {
-  if (!is.character(docs)) stop("docs should be Character Vector")
+  if (!is.character(docs)) {
+    stop("docs should be Character Vector")
+  }
   UseMethod("wdl")
 }
 
+#' @rdname wdl
+#' @importFrom Rcpp evalCpp
 #' @export
-wdl.character <- function(docs, specs = wdl_spec()) {
-
+wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE) {
   # unpack the arguments for the model
-  wdl_args <- specs$wdl.control
-  tok_args <- specs$tokenizer.control
-  w2v_args <- specs$word2vec.control
-  skh_args <- specs$sinkhorn.control
-  opt_args <- specs$optimizer.control
+  wdl_args <- specs$wdl_control
+  tok_args <- specs$tokenizer_control
+  w2v_args <- specs$word2vec_control
+  brc_args <- specs$barycenter_control
+  opt_args <- specs$optimizer_control
+
+  if (wdl_args$verbose) {
+    message("Preprocessing the data...")
+    message("Running tokenizer on the sentences...")
+  }
 
   # docs: character vector of input docs
   # first tokenize and embed
   tok_args <- append(list(x = docs), tok_args)
   toks <- do.call(tokenizers::tokenize_words, args = tok_args)
+
+  if (wdl_args$verbose) {
+    message("Running Word2Vec for the embeddings and distance matrix...")
+  }
 
   w2v_args <- append(list(x = toks), w2v_args)
   model <- do.call(word2vec::word2vec, args = w2v_args)
@@ -60,55 +86,54 @@ wdl.character <- function(docs, specs = wdl_spec()) {
     ))
   }
 
-  if (wdl_args$verbose) cat("Preprocessing the data\n")
-
   # get distance matrix C and docs in dist Y
   distmat <- euclidean(emb)
   docdist <- doc2dist(toks, rownames(emb))
 
-  browser()
-  # test the performance of different algos?
-  sinkhorn_log(docdist[,1], docdist[,2], distmat, .1) |> bench::mark()
-  sinkhorn_log(docdist[,1], docdist[,2], distmat, .1, withgrad = TRUE) |> length()
-  sinkhorn_parallel(docdist[,1:2], docdist[,3:4], distmat, .1) |> bench::mark()
-  sinkhorn_parallel(docdist[,1:2], docdist[,3:4], distmat, .1, withgrad = TRUE) |> bench::mark()
-  sol <- sinkhorn_parallel(docdist[,1:2], docdist[,3:4], distmat, .1)
-  sol$iter
-  sol$err
-  A <- docdist[,1:4]
-  C <- distmat
-  sol1 <- barycenter_parallel(A, C, rep(.25, 4), .1)
-  sol2 <- barycenter_log(A, C, rep(.25, 4), .1)
-  sum(sol1$b - sol$b)
-  tictoc::tic()
-  sol1 <- barycenter_parallel(A, C, rep(.25, 4), .1)
-  tictoc::toc()
+  # shuffle the input docs
+  if (wdl_args$shuffle) {
+    shuffled_ids <- sample.int(ncol(docdist), ncol(docdist))
+    docdist <- docdist[, shuffled_ids]
+  }
 
-  tictoc::tic()
-  sol2 <- barycenter_log(A, C, rep(.25, 4), .1, withjac = TRUE)
-  tictoc::toc()
+  # browser()
+  k1 <- exp(-min(distmat) / brc_args$reg)
+  k2 <- exp(-max(distmat) / brc_args$reg)
 
+  # dispatch the barycenter method if "auto"
+  if (brc_args$method_int == 0) {
+    if (min(k1, k2) < brc_args$threshold) {
+      brc_args$method_int <- 2 # log
 
+      if (verbose) message("`method` is automatically switched to \"log\"")
+    } else {
+      brc_args$method_int <- 1 # parallel
 
-  # TODO: maybe add checks in the algo?
+      if (verbose) message("`method` is automatically switched to \"parallel\"")
+    }
+  }
+
+  # running the WDL model here
   res <- wdl_cpp(
-    docdist, distmat,
-    skh_args$regularizer,              # reg
-    wdl_args$num_topics,               # S
-    wdl_args$batch_size,               # batch_size
-    wdl_args$epochs,                   # epochs
-    skh_args$sinkhorn_mode_int,        # sinkhorn_mode
-    skh_args$sinkhorn_mode_threshold,  # sinkhorn_mode_threshold
-    skh_args$max_iter,                 # maxIter of Sinkhorn
-    skh_args$zero_tol,                 # zeroTol of Sinkhorn
-    opt_args$optimizer_int,            # optimizer
-    opt_args$lr,                       # eta: learning rate
-    opt_args$decay,                    # gamma: decay
-    opt_args$beta1,                    # beta1: used in Adam/AdamW
-    opt_args$beta2,                    # beta2: used in Adam/AdamW
-    opt_args$eps,                      # eps: used in Adam/AdamW
-    wdl_args$rng_seed,                 # rng_seed: seed for reproducibility
-    wdl_args$verbose                   # verbose: print information in wdl
+    docdist,
+    distmat,
+    brc_args$reg, # reg
+    wdl_args$num_topics, # S
+    wdl_args$n_threads, # num of threads
+    wdl_args$batch_size, # batch_size
+    wdl_args$epochs, # epochs
+    # brc_args$method, # sinkhorn_mode
+    brc_args$method_int, # sinkhorn_mode_threshold
+    brc_args$max_iter, # maxIter of Sinkhorn
+    brc_args$zero_tol, # zeroTol of Sinkhorn
+    opt_args$optimizer_int, # optimizer
+    opt_args$lr, # eta: learning rate
+    opt_args$decay, # gamma: decay
+    opt_args$beta1, # beta1: used in Adam/AdamW
+    opt_args$beta2, # beta2: used in Adam/AdamW
+    opt_args$eps, # eps: used in Adam/AdamW
+    # wdl_args$rng_seed, # rng_seed: seed for reproducibility
+    wdl_args$verbose # verbose: print information in wdl
   )
   topics <- res$A
   weights <- res$W
@@ -129,26 +154,34 @@ wdl.character <- function(docs, specs = wdl_spec()) {
     docs_pred = res$Yhat,
     topics = topics,
     weights = weights,
-    wdl.control = wdl_args,
-    sinkhorn.control = skh_args,
-    optimizer.control = opt_args
+    wdl_control = wdl_args,
+    barycenter_control = brc_args,
+    optimizer_control = opt_args
   )
   class(out) <- "wdl"
   out
 }
 
-# #' @rdname wdl
+#' @rdname wdl
+#'
+#' @param topic int, number of topic to be printed
+#' @param token_per_topic int, number of tokens to be printed
+#'
 #' @export
 print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
   # `topic`: which topic to list (default all)
   # `token_per_topic`: number of tokens shown per topic
 
+  cat("WDL model topics:\n\n")
+
   print_topic <- function(topic) {
     cat(sprintf("Topic %s:\n", topic))
     print.default(
       summary.wdl(object, topic, token_per_topic = token_per_topic),
-      digits = 2
+      digits = 2,
+      ...
     )
+    cat("\n")
   }
 
   if (topic == 0) {
@@ -158,20 +191,24 @@ print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
   } else {
     print_topic(topic)
   }
-
 }
 
 # #' @rdname wdl
-#' @export
-summary.wdl <- function(object, topic = 1, token_per_topic = 5, ...) {
-  # `topic`: which topic to list (default all)
-  # `token_per_topic`: number of tokens shown per topic
+# #'
+# #' @param topic int, number of topic to be printed
+# #' @param token_per_topic int, number of tokens to be printed
+# #'
+# #' @export
+# summary.wdl <- function(object, topic = 1, token_per_topic = 5, ...) {
+#   # `topic`: which topic to list (default all)
+#   # `token_per_topic`: number of tokens shown per topic
+#
+#   topics_mat <- object$topics
+#   n <- min(nrow(topics_mat), token_per_topic)
+#   if (topic > ncol(topics_mat)) {
+#     stop("topic index greater than number of topics")
+#   }
+#   sort(topics_mat[, topic], decreasing = TRUE)[1:n]
+# }
 
-  topics_mat <- object$topics
-  n <- min(nrow(topics_mat), token_per_topic)
-  if (topic > ncol(topics_mat))
-    stop("topic index greater than number of topics")
-  sort(topics_mat[,topic], decreasing = TRUE)[1:n]
-}
-
-
+# TODO: maybe add `plot` too? for topic word cloud?

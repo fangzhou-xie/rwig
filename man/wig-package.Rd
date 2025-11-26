@@ -2,11 +2,18 @@
 % Please edit documentation in R/wig-package.R
 \docType{package}
 \name{wig-package}
-\alias{wig}
 \alias{wig-package}
-\title{wig: Wasserstein Index Generation model in R}
+\title{wig: Wasserstein Index Generation (WIG) Model in R}
 \description{
-Implementing several Optimal Transport algorithms in Fangzhou Xie (2025) \doi{10.48550/arXiv.2504.08722} and re-implementing of Wasserstein Index Generation model by Fangzhou Xie (2020) \doi{10.1016/j.econlet.2019.108874}.
+Efficient implementation of several Optimal Transport algorithms in Fangzhou Xie (2025) \doi{10.48550/arXiv.2504.08722} and the Wasserstein Index Generation (WIG) model in Fangzhou Xie (2020) \doi{10.1016/j.econlet.2019.108874}.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/fangzhou-xie/wig}
+  \item Report bugs at \url{https://github.com/fangzhou-xie/wig/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Fangzhou Xie \email{fangzhou.xie@rutgers.edu}

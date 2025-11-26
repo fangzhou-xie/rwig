@@ -1,0 +1,145 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# wig
+
+```{r, echo = FALSE, results = "hide", message = FALSE}
+# use badges
+library(badger)
+```
+
+<!-- badges: start -->
+![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)
+```{r, echo = FALSE, results = "asis"}
+cat(
+  # badge_doi("10.1016/j.softx.2021.100965", "yellow"),
+  badge_lifecycle("stable"),
+  # badge_cran_release("rethnicity", "green"),
+  # badge_cran_download("rethnicity", "grand-total", "green"),
+  # badge_cran_checks("rethnicity"),
+  badge_github_actions("fangzhou-xie/rethnicity")
+)
+```
+<!-- badges: end -->
+
+The `wig` package implements the Sinkhorn algorithms for regularized Optimal
+Transport problems, Wasserstein Barycenter algorithms for the regularized 
+Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model, 
+and **W**asserstein **I**ndex **G**eneration (**WIG**) model 
+(see references below).
+
+
+## Installation
+
+<!-- This package is on [CRAN](https://cran.rstudio.com/), and I recommened  -->
+<!-- to use the `pak` to install it: -->
+
+<!-- ``` r -->
+<!-- # install pak if not already done so -->
+<!-- # install.packages("pak") -->
+<!-- pak::pak("wig") -->
+
+<!-- # or you can install it in the classic way -->
+<!-- install.packages("wig") -->
+<!-- ``` -->
+
+You can install the development version of wig from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("fangzhou-xie/wig")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(wig)
+
+## basic example code
+```
+
+
+## Reference
+
+Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport: With Applications to Data Science. Foundations and Trends® in Machine Learning, 11(5–6), 355–607. https://doi.org/10.1561/2200000073
+
+Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D., Cuturi, M., Peyré, G., & Starck, J.-L. (2018). Wasserstein dictionary learning: Optimal transport-based unsupervised nonlinear dictionary learning. SIAM Journal on Imaging Sciences, 11(1), 643–678. https://doi.org/10.1137/17M1140431
+
+Xie, F. (2020). Wasserstein index generation model: Automatic generation of time-series index with application to economic policy uncertainty. Economics Letters, 186, 108874. https://doi.org/10.1016/j.econlet.2019.108874
+
+Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport Algorithms (No. arXiv:2504.08722). arXiv. https://doi.org/10.48550/arXiv.2504.08722
+
+
+<!-- ``` -->
+<!-- @article{schmitz2018, -->
+<!--   title = {Wasserstein Dictionary Learning: Optimal Transport-Based Unsupervised Nonlinear Dictionary Learning}, -->
+<!--   shorttitle = {Wasserstein Dictionary Learning}, -->
+<!--   author = {Schmitz, Morgan A. and Heitz, Matthieu and Bonneel, Nicolas and Ngol{\`e}, Fred and Coeurjolly, David and Cuturi, Marco and Peyr{\'e}, Gabriel and Starck, Jean-Luc}, -->
+<!--   year = 2018, -->
+<!--   month = jan, -->
+<!--   journal = {SIAM Journal on Imaging Sciences}, -->
+<!--   volume = {11}, -->
+<!--   number = {1}, -->
+<!--   pages = {643--678}, -->
+<!--   issn = {1936-4954}, -->
+<!--   doi = {10.1137/17M1140431}, -->
+<!--   urldate = {2019-07-15}, -->
+<!--   langid = {english} -->
+<!-- } -->
+
+<!-- @article{peyre2019, -->
+<!--   title = {Computational Optimal Transport: With Applications to Data Science}, -->
+<!--   author = {Peyr{\'e}, Gabriel and Cuturi, Marco}, -->
+<!--   year = 2019, -->
+<!--   month = feb, -->
+<!--   journal = {Foundations and Trends\textregistered{} in Machine Learning}, -->
+<!--   volume = {11}, -->
+<!--   number = {5-6}, -->
+<!--   pages = {355--607}, -->
+<!--   publisher = {Now Publishers, Inc.}, -->
+<!--   issn = {1935-8237, 1935-8245}, -->
+<!--   doi = {10.1561/2200000073}, -->
+<!--   urldate = {2024-07-29}, -->
+<!--   langid = {english}, -->
+<!-- } -->
+
+<!-- @article{xie2020, -->
+<!--   title = {Wasserstein Index Generation Model: Automatic Generation of Time-Series Index with Application to Economic Policy Uncertainty}, -->
+<!--   author = {Xie, Fangzhou}, -->
+<!--   year = 2020, -->
+<!--   month = jan, -->
+<!--   journal = {Economics Letters}, -->
+<!--   volume = {186}, -->
+<!--   pages = {108874}, -->
+<!--   issn = {0165-1765}, -->
+<!--   doi = {10.1016/j.econlet.2019.108874}, -->
+<!--   urldate = {2019-12-10}, -->
+<!-- } -->
+
+<!-- @misc{xie2025, -->
+<!--   title = {Deriving the Gradients of Some Popular Optimal Transpor Algorithms}, -->
+<!--   author = {Xie, Fangzhou}, -->
+<!--   year = 2025, -->
+<!--   month = oct, -->
+<!--   number = {arXiv:2504.08722}, -->
+<!--   eprint = {2504.08722}, -->
+<!--   primaryclass = {math}, -->
+<!--   publisher = {arXiv}, -->
+<!--   doi = {10.48550/arXiv.2504.08722}, -->
+<!--   urldate = {2025-11-11}, -->
+<!-- } -->
+<!-- ``` -->

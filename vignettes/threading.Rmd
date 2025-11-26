@@ -1,0 +1,22 @@
+---
+title: "Advanced Topic: Multi-threading"
+description: >
+  Advanced setting to set up the threads for faster processing
+  in Sinkhorn, Barycenter, WDL, and WIG models.
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Advanced Topic: Multi-threading}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(wig)
+```
