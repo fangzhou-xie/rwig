@@ -7,6 +7,10 @@
 #ifndef WIG_WDL_H
 #define WIG_WDL_H
 
+#ifndef ARMA_DONT_USE_OPENMP
+#define ARMA_DONT_USE_OPENMP
+#endif
+
 // #include <iostream>               // std::cout
 // #include "R_ext/Print.h"          // for REprintf used for verbose logging
 

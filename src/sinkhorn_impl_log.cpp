@@ -1,7 +1,9 @@
 
 // actual implementation of the Sinkhorn log (serial version)
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 #include <thread> // std::thread
 #include <vector> // std::vector

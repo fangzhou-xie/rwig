@@ -2,7 +2,9 @@
 // this is the file defining the functions exporting to R side
 // WDL algos
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 // #include <iostream> // std::cout
 // #include "R_ext/Print.h"    // for REprintf

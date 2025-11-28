@@ -2,7 +2,9 @@
 // this is the file defining the functions exporting to R side
 // barycenter algos
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 // #include <cpp11.hpp>
 // #include <cpp11armadillo.hpp>
@@ -11,7 +13,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include "barycenter_impl.hpp"
-#include "ctrack.hpp"
+// #include "ctrack.hpp"
 
 // using namespace arma;
 // using namespace cpp11;

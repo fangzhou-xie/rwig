@@ -6,7 +6,9 @@
 #ifndef WIG_OPTIMIZER_H
 #define WIG_OPTIMIZER_H
 
+#ifndef ARMA_DONT_USE_OPENMP
 #define ARMA_DONT_USE_OPENMP
+#endif
 
 // #include <iostream> // for std::cout
 

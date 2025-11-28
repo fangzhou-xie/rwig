@@ -1,7 +1,9 @@
 
 // implement the tsvd algorithm in c++
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 // #include <cpp11.hpp>
 // #include <cpp11armadillo.hpp>

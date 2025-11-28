@@ -7,7 +7,9 @@
 #ifndef WIG_SINKHORN_H
 #define WIG_SINKHORN_H
 
+#ifndef ARMA_DONT_USE_OPENMP
 #define ARMA_DONT_USE_OPENMP
+#endif
 
 #include <vector> // std::vector
 

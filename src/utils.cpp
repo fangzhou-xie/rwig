@@ -1,7 +1,9 @@
 
 // definition file for the utility functions
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 #include <vector> // std::vector
 #include <string> // std::string

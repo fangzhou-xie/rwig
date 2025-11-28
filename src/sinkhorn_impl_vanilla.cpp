@@ -1,7 +1,9 @@
 // actual implementation of the Sinkhorn vanilla algo
 // only serial implementation
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 // #include <iostream>
 

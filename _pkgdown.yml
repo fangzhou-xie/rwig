@@ -43,3 +43,4 @@ articles:
   contents:
   - threading
   - gradient
+  - tsvd

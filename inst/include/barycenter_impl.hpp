@@ -7,7 +7,9 @@
 #ifndef WIG_BARYCENTER_H
 #define WIG_BARYCENTER_H
 
+#ifndef ARMA_DONT_USE_OPENMP
 #define ARMA_DONT_USE_OPENMP
+#endif
 
 #include <vector>             // std::vector
 

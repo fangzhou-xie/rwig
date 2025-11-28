@@ -1,6 +1,8 @@
 // implementation of the WDL class (serial)
 
-#define ARMA_DONT_USE_OPENMP
+// #ifndef ARMA_DONT_USE_OPENMP
+// #define ARMA_DONT_USE_OPENMP
+// #endif
 
 #include <RcppArmadillo/Lightest>
 // [[Rcpp::depends(RcppArmadillo)]]
