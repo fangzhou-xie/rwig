@@ -8,10 +8,13 @@ Wasserstein Dictionary Learning (WDL) model for topic modeling
 wdl(docs, ...)
 
 # S3 method for class 'character'
-wdl(docs, specs = wdl_specs(), verbose = TRUE)
+wdl(docs, specs = wdl_specs(), verbose = TRUE, ...)
 
 # S3 method for class 'wdl'
-print(object, topic = 0, token_per_topic = 5, ...)
+print(x, topic = 0, token_per_topic = 5, ...)
+
+# S3 method for class 'wdl'
+summary(object, topic = 1, token_per_topic = 5, ...)
 ```
 
 ## Arguments
@@ -20,9 +23,23 @@ print(object, topic = 0, token_per_topic = 5, ...)
 
   character vector, sentences to be analyzed
 
+- ...:
+
+  only for compatibility
+
+- specs:
+
+  list, model specification for the WDL see
+  [`wdl_specs`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  for reference
+
 - verbose:
 
   bool, whether to print useful info
+
+- x:
+
+  WDL model
 
 - topic:
 
@@ -32,9 +49,9 @@ print(object, topic = 0, token_per_topic = 5, ...)
 
   int, number of tokens to be printed
 
-- spec:
+- object:
 
-  list, model specification for the WDL see `wdl_spec()` for reference
+  WDL model
 
 ## Value
 
@@ -44,10 +61,10 @@ topics and weights computed from the WDL given the input data
 
 This is the re-implementation of WDL model from ground up, and it calls
 the
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
 under the hood (to be precise directly calling the underlying C++
 routine for
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md))
+[`barycenter`](https://fangzhou-xie.github.io/wig/reference/barycenter.md))
 
 ## References
 

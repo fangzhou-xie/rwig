@@ -49,8 +49,8 @@ sinkhorn(
     default to `method = "log"` for stablized computation in log-domain
     (default = .1)
 
-  - max_iter: int, maximum iteration of `sinkhorn()` algorithm (default
-    = 1000)
+  - max_iter: int, maximum iteration of `sinkhorn` algorithm (default =
+    1000)
 
   - zero_tol: double, determine covergence (default = 1e-6)
 

@@ -1,4 +1,4 @@
-# Multi-threading Support
+# WDL Model
 
 ``` r
 library(wig) |> suppressPackageStartupMessages()

@@ -8,27 +8,55 @@ autogeneration
 ``` r
 wig(.data, date_col, docs_col, ...)
 
+# S3 method for class 'data.frame'
+wig(.data, date_col, docs_col, specs = wig_specs(), ...)
+
 # S3 method for class 'wig'
-print(object, topic = 1, token_per_topic = 5, ...)
+print(x, topic = 1, token_per_topic = 5, ...)
+
+# S3 method for class 'wig'
+summary(object, topic = 1, token_per_topic = 5, ...)
 ```
 
 ## Arguments
 
+- .data:
+
+  a dataframe containing the dates/datetimes and documents
+
 - date_col:
 
-  name of the column for dates
+  name of the column for dates/datetimes
 
 - docs_col:
 
-  name of the column for the texts
+  name of the column for the texts/documents
 
-- spec:
+- ...:
 
-  list, model specification for WIG see `wig_spec()` for reference
+  only for compatibility
 
-- verbose:
+- specs:
 
-  bool, whether to print useful info
+  list, model specification for WIG see
+  [`wig_specs`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  for reference
+
+- x:
+
+  WIG model
+
+- topic:
+
+  int, number of topic to be printed
+
+- token_per_topic:
+
+  int, number of tokens to be printed
+
+- object:
+
+  WIG model
 
 ## Details
 
@@ -52,6 +80,5 @@ wigdf <- data.frame(
 
 wigfit <- wig(wigdf, ref_date, docs)
 #> `method` is automatically switched to "log"
-
 
 ```

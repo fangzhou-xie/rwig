@@ -36,7 +36,14 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/sinkhorn.html">Sinkhorn Algorithms</a></li>
-    <li><a class="dropdown-item" href="articles/threading.html">Advanced Topic: Multi-threading</a></li>
+    <li><a class="dropdown-item" href="articles/barycenter.html">Barycenter Algorithms</a></li>
+    <li><a class="dropdown-item" href="articles/wdl-model.html">WDL Model</a></li>
+    <li><a class="dropdown-item" href="articles/wig-model.html">WIG Model</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced Topics</h6></li>
+    <li><a class="dropdown-item" href="articles/threading.html">Multi-threading Support</a></li>
+    <li><a class="dropdown-item" href="articles/gradient.html">Computation of the Gradients</a></li>
+    <li><a class="dropdown-item" href="articles/tsvd.html">Truncated SVD</a></li>
   </ul>
 </li>
       </ul>
@@ -58,7 +65,7 @@
 <!-- badges: start -->
 
 <p>The <code>wig</code> package implements the Sinkhorn algorithms for regularized Optimal Transport problems, Wasserstein Barycenter algorithms for the regularized Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model, and <strong>W</strong>asserstein <strong>I</strong>ndex <strong>G</strong>eneration (<strong>WIG</strong>) model (see references below).</p>
-<p>All the methods are implemented from the ground up with C++ and Armadillo, with additional support for multi-threading for the log-stablized methods for <a href="https://fangzhou-xie.github.io/wig/reference/sinkhorn.html">sinkhorn</a> and <a href="https://fangzhou-xie.github.io/wig/reference/barycenter.html">barycenter</a>. See the <a href="https://fangzhou-xie.github.io/wig/articles/threading.html">vignette</a> on multi-threading.</p>
+<p>All the methods are implemented from the ground up with C++ and Armadillo (with Rcpp and RcppArmadillo), with additional support for multi-threading for the log-stablized methods for <a href="https://fangzhou-xie.github.io/wig/reference/sinkhorn.html">sinkhorn</a> and <a href="https://fangzhou-xie.github.io/wig/reference/barycenter.html">barycenter</a>. See the <a href="https://fangzhou-xie.github.io/wig/articles/threading.html">vignette</a> on multi-threading for faster processing.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -71,44 +78,22 @@
 <!-- # or you can install it in the classic way -->
 <!-- install.packages("wig") -->
 <!-- ``` -->
-<p>You can install the development version of wig from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>The package is currently under heavy development and can only be considered as alpha stage. You can install the development version of wig from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"fangzhou-xie/wig"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="get-started">Get Started<a class="anchor" aria-label="anchor" href="#get-started"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fangzhou-xie/wig" class="external-link">wig</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; ══ WARNING: ═════════════════════════════════════════════════════════════ wig ══</span></span>
-<span><span class="co">#&gt; ! Your current BLAS backend is: /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3. For better performance, it's recommended to use an optimized BLAS library, such as Inter MKL or OpenBLAS. For example, you can consider ropenblas (&lt;https://github.com/prdm0/ropenblas&gt;).</span></span>
-<span><span class="co">#&gt; ! Automatically setting BLAS thread to be 1, and this is recommended for most users. If you want to set up threading for faster processing, you can set `n_threads` argument in functions: sinkhorn() (&lt;https://fangzhou-xie.github.io/wig/reference/sinkhorn.html&gt;) and barycenter() (&lt;https://fangzhou-xie.github.io/wig/reference/barycenter.html&gt;) Please read the vignette (&lt;https://fangzhou-xie.github.io/wig/articles/threading.html&gt;) for advanced usage on threading.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ══ CITATION: ════════════════════════════════════════════════════════════ wig ══</span></span>
-<span><span class="co">#&gt; ℹ Please use the following to cite my works, thanks!</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;  @article{xie2020,</span></span>
-<span><span class="co">#&gt;    title = {Wasserstein Index Generation Model: Automatic Generation of Time-Series Index with Application to Economic Policy Uncertainty},</span></span>
-<span><span class="co">#&gt;    author = {Xie, Fangzhou},</span></span>
-<span><span class="co">#&gt;    year = 2020,</span></span>
-<span><span class="co">#&gt;    journal = {Economics Letters},</span></span>
-<span><span class="co">#&gt;    volume = {186},</span></span>
-<span><span class="co">#&gt;    pages = {108874},</span></span>
-<span><span class="co">#&gt;    issn = {0165-1765},</span></span>
-<span><span class="co">#&gt;    doi = {10.1016/j.econlet.2019.108874},</span></span>
-<span><span class="co">#&gt;    urldate = {2019-12-10},</span></span>
-<span><span class="co">#&gt;  }</span></span>
-<span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
+<p>Please check out all the vignettes for the examples of using this package under the “Articles” drop down menu.</p>
 </div>
 <div class="section level2">
 <h2 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>
 </h2>
 <p>Peyré, G., &amp; Cuturi, M. (2019). Computational Optimal Transport: With Applications to Data Science. Foundations and Trends® in Machine Learning, 11(5–6), 355–607. <a href="https://doi.org/10.1561/2200000073" class="external-link uri">https://doi.org/10.1561/2200000073</a></p>
 <p>Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D., Cuturi, M., Peyré, G., &amp; Starck, J.-L. (2018). Wasserstein dictionary learning: Optimal transport-based unsupervised nonlinear dictionary learning. SIAM Journal on Imaging Sciences, 11(1), 643–678. <a href="https://doi.org/10.1137/17M1140431" class="external-link uri">https://doi.org/10.1137/17M1140431</a></p>
-<p>Xie, F. (2020). Wasserstein index generation model: Automatic generation of time-series index with application to economic policy uncertainty. Economics Letters, 186, 108874. <a href="https://doi.org/10.1016/j.econlet.2019.108874" class="external-link uri">https://doi.org/10.1016/j.econlet.2019.108874</a></p>
+<p>Xie, F. (2020). Wasserstein index generation model: Automatic generation of time-series index with applieion to economic policy uncertainty. Economics Letters, 186, 108874. <a href="https://doi.org/10.1016/j.econlet.2019.108874" class="external-link uri">https://doi.org/10.1016/j.econlet.2019.108874</a></p>
 <p>Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport Algorithms (No. arXiv:2504.08722). arXiv. <a href="https://doi.org/10.48550/arXiv.2504.08722" class="external-link uri">https://doi.org/10.48550/arXiv.2504.08722</a></p>
 </div>
 </div>
@@ -148,9 +133,9 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://doi.org/10.1016/j.econlet.2019.108874" class="external-link"><img src="https://img.shields.io/badge/doi-10.1016/j.econlet.2019.108874-yellow.svg" alt="DOI: 10.1016/j.econlet.2019.108874"></a></li>
-<li><a href="https://cran.r-project.org/web/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="experimental version"></a></li>
-<li><a href="https://github.com/fangzhou-xie/rethnicity/actions" class="external-link"><img src="https://github.com/fangzhou-xie/rethnicity/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://github.com/fangzhou-xie/wig/actions" class="external-link"><img src="https://github.com/fangzhou-xie/wig/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://cran.r-project.org/web/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
 </ul>
 </div>
 

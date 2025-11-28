@@ -19,7 +19,14 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sinkhorn.html">Sinkhorn Algorithms</a></li>
-    <li><a class="dropdown-item" href="../articles/threading.html">Advanced Topic: Multi-threading</a></li>
+    <li><a class="dropdown-item" href="../articles/barycenter.html">Barycenter Algorithms</a></li>
+    <li><a class="dropdown-item" href="../articles/wdl-model.html">WDL Model</a></li>
+    <li><a class="dropdown-item" href="../articles/wig-model.html">WIG Model</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
+    <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
+    <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -55,9 +62,9 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">wig_specs</span><span class="op">(</span></span>
-<span>  wig_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>group_time <span class="op">=</span> <span class="st">"months"</span>, svd_method <span class="op">=</span> <span class="st">"docs"</span>, standardize <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  wig_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>group_unit <span class="op">=</span> <span class="st">"months"</span>, svd_method <span class="op">=</span> <span class="st">"docs"</span>, standardize <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  wdl_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>embed_dim <span class="op">=</span> <span class="fl">10</span>, num_topics <span class="op">=</span> <span class="fl">4</span>, batch_size <span class="op">=</span> <span class="fl">64</span>, epochs <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>    rng_seed <span class="op">=</span> <span class="fl">123</span>, verbose <span class="op">=</span> <span class="fl">0</span><span class="op">)</span>,</span>
+<span>    rng_seed <span class="op">=</span> <span class="fl">123</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  tokenizer_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  word2vec_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"cbow"</span>, dim <span class="op">=</span> <span class="fl">10</span>, min_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  barycenter_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="fl">0.1</span>, with_grad <span class="op">=</span> <span class="cn">TRUE</span>, method <span class="op">=</span> <span class="st">"auto"</span>, threshold <span class="op">=</span></span>
@@ -135,7 +142,7 @@ https://doi.org/10.48550/arXiv.2504.08722</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code>wig_specs</code>, <code><a href="barycenter.html">barycenter()</a></code>,
+    <div class="dont-index"><p><code>wig_specs()</code>, <code><a href="barycenter.html">barycenter()</a></code>,
 <code><a href="https://rdrr.io/pkg/word2vec/man/word2vec.html" class="external-link">word2vec::word2vec()</a></code>, <code><a href="https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html" class="external-link">tokenizers::tokenize_words()</a></code></p></div>
     </div>
 

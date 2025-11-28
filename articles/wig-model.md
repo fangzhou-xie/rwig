@@ -1,4 +1,4 @@
-# Multi-threading Support
+# WIG Model
 
 ``` r
 library(wig) |> suppressPackageStartupMessages()

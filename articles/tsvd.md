@@ -1,4 +1,4 @@
-# Multi-threading Support
+# Truncated SVD
 
 ``` r
 library(wig) |> suppressPackageStartupMessages()

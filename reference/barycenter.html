@@ -21,7 +21,14 @@ Barycenter problems."></head><body>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/sinkhorn.html">Sinkhorn Algorithms</a></li>
-    <li><a class="dropdown-item" href="../articles/threading.html">Advanced Topic: Multi-threading</a></li>
+    <li><a class="dropdown-item" href="../articles/barycenter.html">Barycenter Algorithms</a></li>
+    <li><a class="dropdown-item" href="../articles/wdl-model.html">WDL Model</a></li>
+    <li><a class="dropdown-item" href="../articles/wig-model.html">WIG Model</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced Topics</h6></li>
+    <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
+    <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
+    <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -85,7 +92,7 @@ ignored by <code>method = "parallel"</code>, default = 0)</p></li>
 <li><p>threshold: double, threshold value below which "auto" method
 will default to <code>method = "log"</code> for stablized computation in log-domain
 (default = .1)</p></li>
-<li><p>max_iter: int, maximum iteration of <code>barycenter()</code> algorithm
+<li><p>max_iter: int, maximum iteration of <code>barycenter</code> algorithm
 (default = 1000)</p></li>
 <li><p>zero_tol: double, determine covergence (default = 1e-6)</p></li>
 <li><p>verbose: int, print out debug info for the algorithm for every
@@ -144,9 +151,9 @@ https://doi.org/10.48550/arXiv.2504.08722</p>
 <span class="r-in"><span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="fu">barycenter</span><span class="op">(</span><span class="va">A</span>, <span class="va">C</span>, <span class="va">w</span>, barycenter_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="va">reg</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> `method` is automatically switched to "log"</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Forward pass:</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 1, err: 0.3207, last speed: 0.035, avg speed: 0.035</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.003</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.002</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 1, err: 0.3207, last speed: 0.019, avg speed: 0.019</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.002</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.001</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># you can also supply arguments to control the computation</span></span></span>
 <span class="r-in"><span><span class="co"># for example, including the loss and gradient w.r.t. `A`</span></span></span>

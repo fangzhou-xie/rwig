@@ -19,12 +19,14 @@
 
 - [`wdl()`](https://fangzhou-xie.github.io/wig/reference/wdl.md)
   [`print(`*`<wdl>`*`)`](https://fangzhou-xie.github.io/wig/reference/wdl.md)
+  [`summary(`*`<wdl>`*`)`](https://fangzhou-xie.github.io/wig/reference/wdl.md)
   : Wasserstein Dictionary Learning model
 
 ## Wasserstein Index Generation (WIG) algorithm
 
 - [`wig()`](https://fangzhou-xie.github.io/wig/reference/wig.md)
   [`print(`*`<wig>`*`)`](https://fangzhou-xie.github.io/wig/reference/wig.md)
+  [`summary(`*`<wig>`*`)`](https://fangzhou-xie.github.io/wig/reference/wig.md)
   : Wasserstein Index Generation model
 
 ## Model Specs for WDL and WIG
@@ -32,3 +34,8 @@
 - [`wdl_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
   [`wig_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
   : Model Specs for WDL and WIG models
+
+## Truncated SVD
+
+- [`tsvd()`](https://fangzhou-xie.github.io/wig/reference/tsvd.md) :
+  Truncated SVD
