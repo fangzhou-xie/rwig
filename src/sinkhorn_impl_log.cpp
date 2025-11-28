@@ -1,19 +1,11 @@
 
 // actual implementation of the Sinkhorn log (serial version)
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
-
 #include <thread> // std::thread
 #include <vector> // std::vector
 // #include <iostream> // std::cout
 
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 #include "sinkhorn_impl.hpp"
 #include "vformat.hpp"

@@ -1,19 +1,12 @@
 
 // actual implementation of the Barycenter class
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
 
 #include <vector> // std::vector
 #include <thread> // std::thread
 // #include <iostream> // std::cout
 
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 #include "barycenter_impl.hpp"
 #include "vformat.hpp"

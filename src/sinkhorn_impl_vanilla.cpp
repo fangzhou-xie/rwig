@@ -1,17 +1,7 @@
 // actual implementation of the Sinkhorn vanilla algo
 // only serial implementation
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
-
-// #include <iostream>
-
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 #include "sinkhorn_impl.hpp"
 #include "vformat.hpp"

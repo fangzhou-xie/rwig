@@ -1,11 +1,5 @@
 // implementation of the WDL class (serial)
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
 
 #include "barycenter_impl.hpp" // barycenter class
 #include "wdl_impl.hpp"        // wdl class

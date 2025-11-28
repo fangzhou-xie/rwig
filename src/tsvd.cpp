@@ -1,16 +1,7 @@
 
 // implement the tsvd algorithm in c++
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
-
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
-// using namespace arma;
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 // [[Rcpp::export]]
 arma::mat tsvd_cpp(const arma::mat& M,

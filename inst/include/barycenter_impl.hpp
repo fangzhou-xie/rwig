@@ -7,17 +7,7 @@
 #ifndef WIG_BARYCENTER_H
 #define WIG_BARYCENTER_H
 
-#ifndef ARMA_DONT_USE_OPENMP
-#define ARMA_DONT_USE_OPENMP
-#endif
-
-#include <vector>             // std::vector
-
-#define RCPP_NO_SUGAR
-#define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 #include "timer.hpp"           // TicToc timer class
 

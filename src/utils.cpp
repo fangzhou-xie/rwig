@@ -1,18 +1,11 @@
 
 // definition file for the utility functions
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
 
 #include <vector> // std::vector
 #include <string> // std::string
 
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
-
-#include <RcppArmadillo/Lightest>
-// [[Rcpp::depends(RcppArmadillo)]]
+#include "common.hpp"
 
 // using namespace arma;
 
