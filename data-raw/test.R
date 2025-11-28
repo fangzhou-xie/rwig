@@ -23,8 +23,17 @@ wigfit |> class()
 wigfit |> print()
 wigfit |> summary()
 
+wigfit$index
+
 dts_vec <- as.Date(c("2012-01-01", "2012-02-01", "2012-03-02", "2012-03-03"))
 wig_doc_scores <- c(1, 2, 3, 4)
+
+aggregate_by_period(dts_vec, wig_doc_scores, "month")
+
+x <- xts::xts(wig_doc_scores, order.by = dts_vec)
+xts::period.apply(x, INDEX = xts::endpoints(dts_vec), FUN = sum)
+
+xts::endpoints(x)
 
 # dts_vec_chr <- as.character(dts_vec)
 dts_vec <- gsub("[[:digit:]]{2}$", "01", as.character(dts_vec))
@@ -37,6 +46,12 @@ wig_df_by <- by(wig_df, wig_df$ref_date, function(df) {
 wig_df <- do.call(rbind, wig_df_by)
 rownames(wig_df) <- NULL
 wig_df
+
+xts::period.apply(
+  wig_doc_scores,
+  xts::endpoints(dts_vec, "years"),
+  FUN = sum
+)
 
 # next: standardize to mean 100 and sd 1
 

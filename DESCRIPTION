@@ -15,9 +15,10 @@ RoxygenNote: 7.3.3
 URL: https://github.com/fangzhou-xie/wig, https://fangzhou-xie.github.io/wig/
 BugReports: https://github.com/fangzhou-xie/wig/issues
 LinkingTo: Rcpp, RcppArmadillo
-Imports: Rcpp, xts, word2vec, tokenizers, stopwords, RhpcBLASctl, rlang, cli
+Imports: Rcpp, word2vec, tokenizers, RhpcBLASctl, rlang, cli, utils, stats, lubridate
 Roxygen: list(markdown = TRUE)
 Suggests: 
+    stopwords,
     knitr,
     rmarkdown,
     tinytest

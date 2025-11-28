@@ -25,12 +25,12 @@ library(badger)
 cat(
   badge_doi("10.1016/j.econlet.2019.108874", "yellow",
             "DOI: 10.1016/j.econlet.2019.108874"),
-  badge_license(),
   badge_lifecycle("experimental", alt = "experimental version"),
-  # badge_cran_release("rethnicity", "green"),
-  # badge_cran_download("rethnicity", "grand-total", "green"),
-  # badge_cran_checks("rethnicity"),
-  badge_github_actions("fangzhou-xie/rethnicity")
+  # badge_cran_release("wig", "green"),
+  # badge_cran_download("wig", "grand-total", "green"),
+  # badge_cran_checks("wig"),
+  badge_github_actions("fangzhou-xie/wig"),
+  badge_license()
 )
 ```
 <!-- badges: end -->
@@ -41,13 +41,14 @@ Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model,
 and **W**asserstein **I**ndex **G**eneration (**WIG**) model 
 (see references below).
 
-All the methods are implemented from the ground up with C++ and Armadillo,
+All the methods are implemented from the ground up with C++ and Armadillo
+(with Rcpp and RcppArmadillo),
 with additional support for multi-threading for the log-stablized
 methods for 
 [sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html) and 
 [barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
 See the [vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
-on multi-threading.
+on multi-threading for faster processing.
 
 ## Installation
 
@@ -63,6 +64,8 @@ on multi-threading.
 <!-- install.packages("wig") -->
 <!-- ``` -->
 
+The package is currently under heavy development and can only be considered
+as alpha stage.
 You can install the development version of wig from [GitHub](https://github.com/) with:
 
 ``` r
@@ -70,16 +73,10 @@ You can install the development version of wig from [GitHub](https://github.com/
 pak::pak("fangzhou-xie/wig")
 ```
 
-## Example
+## Get Started
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-library(wig)
-
-## basic example code
-```
-
+Please check out all the vignettes for the examples of using this package
+under the "Articles" drop down menu.
 
 ## Reference
 
@@ -87,7 +84,7 @@ Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport: With Applicati
 
 Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D., Cuturi, M., Peyré, G., & Starck, J.-L. (2018). Wasserstein dictionary learning: Optimal transport-based unsupervised nonlinear dictionary learning. SIAM Journal on Imaging Sciences, 11(1), 643–678. https://doi.org/10.1137/17M1140431
 
-Xie, F. (2020). Wasserstein index generation model: Automatic generation of time-series index with application to economic policy uncertainty. Economics Letters, 186, 108874. https://doi.org/10.1016/j.econlet.2019.108874
+Xie, F. (2020). Wasserstein index generation model: Automatic generation of time-series index with applieion to economic policy uncertainty. Economics Letters, 186, 108874. https://doi.org/10.1016/j.econlet.2019.108874
 
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport Algorithms (No. arXiv:2504.08722). arXiv. https://doi.org/10.48550/arXiv.2504.08722
 

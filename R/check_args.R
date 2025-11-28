@@ -11,6 +11,9 @@ check_wig_args <- function(wig_args) {
   if (is.null(wig_args$standardize)) {
     wig_args$standardize <- TRUE
   }
+  # if (is.null(wig_args$verbose)) {
+  #   wig_args$verbose <- FALSE
+  # }
 
   wig_args
 }

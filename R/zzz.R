@@ -25,7 +25,7 @@ wig_startup_warning_message <- function() {
   warn_blas <- paste0(
     c(
       " Your current BLAS backend is:",
-      paste0("", sessionInfo()$BLAS, ".", collapse = ""),
+      paste0("", utils::sessionInfo()$BLAS, ".", collapse = ""),
       "For better performance,",
       "it's recommended to use an optimized BLAS library,",
       "such as Inter MKL or OpenBLAS.",
@@ -48,7 +48,7 @@ wig_startup_warning_message <- function() {
       # "{.run [sinkhorn()](wig::help(\"sinkhorn\"))}",
       # "and {.run [barycenter()](wig::help(\"barycenter\"))}.",
       "{.href [sinkhorn()](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)}",
-      "and {.href [barycenter()](https://fangzhou-xie.github.io/wig/reference/barycenter.html)}",
+      "and {.href [barycenter()](https://fangzhou-xie.github.io/wig/reference/barycenter.html)}.",
       "Please read the",
       "{.href [vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)}",
       # "{.run vignette(\"threading\", package = \"wig\")}",

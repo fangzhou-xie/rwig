@@ -4,25 +4,34 @@
 \alias{wdl}
 \alias{wdl.character}
 \alias{print.wdl}
+\alias{summary.wdl}
 \title{Wasserstein Dictionary Learning model}
 \usage{
 wdl(docs, ...)
 
-\method{wdl}{character}(docs, specs = wdl_specs(), verbose = TRUE)
+\method{wdl}{character}(docs, specs = wdl_specs(), verbose = TRUE, ...)
 
-\method{print}{wdl}(object, topic = 0, token_per_topic = 5, ...)
+\method{print}{wdl}(x, topic = 0, token_per_topic = 5, ...)
+
+\method{summary}{wdl}(object, topic = 1, token_per_topic = 5, ...)
 }
 \arguments{
 \item{docs}{character vector, sentences to be analyzed}
 
+\item{...}{only for compatibility}
+
+\item{specs}{list, model specification for the WDL
+see \code{\link{wdl_specs}} for reference}
+
 \item{verbose}{bool, whether to print useful info}
+
+\item{x}{WDL model}
 
 \item{topic}{int, number of topic to be printed}
 
 \item{token_per_topic}{int, number of tokens to be printed}
 
-\item{spec}{list, model specification for the WDL
-see \code{\link{wdl_spec()}} for reference}
+\item{object}{WDL model}
 }
 \value{
 topics and weights computed from the WDL given the input data
@@ -32,9 +41,9 @@ Wasserstein Dictionary Learning (WDL) model for topic modeling
 }
 \details{
 This is the re-implementation of WDL model from ground up,
-and it calls the \code{\link{barycenter()}} under the hood
+and it calls the \code{\link{barycenter}} under the hood
 (to be precise directly calling the underlying C++ routine
-for \code{\link{barycenter()}})
+for \code{\link{barycenter}})
 }
 \examples{
 # simple WDL example

@@ -7,12 +7,12 @@
 
 [![DOI:
 10.1016/j.econlet.2019.108874](https://img.shields.io/badge/doi-10.1016/j.econlet.2019.108874-yellow.svg)](https://doi.org/10.1016/j.econlet.2019.108874)
-[![License:
-MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://cran.r-project.org/web/licenses/MIT)
 [![experimental
 version](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R build
-status](https://github.com/fangzhou-xie/rethnicity/workflows/R-CMD-check/badge.svg)](https://github.com/fangzhou-xie/rethnicity/actions)
+status](https://github.com/fangzhou-xie/wig/workflows/R-CMD-check/badge.svg)](https://github.com/fangzhou-xie/wig/actions)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://cran.r-project.org/web/licenses/MIT)
 <!-- badges: end -->
 
 The `wig` package implements the Sinkhorn algorithms for regularized
@@ -22,14 +22,14 @@ Learning (WDL) model, and **W**asserstein **I**ndex **G**eneration
 (**WIG**) model (see references below).
 
 All the methods are implemented from the ground up with C++ and
-Armadillo, with additional support for multi-threading for the
-log-stablized methods for
+Armadillo (with Rcpp and RcppArmadillo), with additional support for
+multi-threading for the log-stablized methods for
 [sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)
 and
 [barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
 See the
 [vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
-on multi-threading.
+on multi-threading for faster processing.
 
 ## Installation
 
@@ -51,41 +51,19 @@ on multi-threading.
 
 <!-- ``` -->
 
-You can install the development version of wig from
-[GitHub](https://github.com/) with:
+The package is currently under heavy development and can only be
+considered as alpha stage. You can install the development version of
+wig from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
 pak::pak("fangzhou-xie/wig")
 ```
 
-## Example
+## Get Started
 
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(wig)
-#> ══ WARNING: ═════════════════════════════════════════════════════════════ wig ══
-#> ! Your current BLAS backend is: /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3. For better performance, it's recommended to use an optimized BLAS library, such as Inter MKL or OpenBLAS. For example, you can consider ropenblas (<https://github.com/prdm0/ropenblas>).
-#> ! Automatically setting BLAS thread to be 1, and this is recommended for most users. If you want to set up threading for faster processing, you can set `n_threads` argument in functions: sinkhorn() (<https://fangzhou-xie.github.io/wig/reference/sinkhorn.html>) and barycenter() (<https://fangzhou-xie.github.io/wig/reference/barycenter.html>) Please read the vignette (<https://fangzhou-xie.github.io/wig/articles/threading.html>) for advanced usage on threading.
-#> 
-#> ══ CITATION: ════════════════════════════════════════════════════════════ wig ══
-#> ℹ Please use the following to cite my works, thanks!
-#> 
-#>  @article{xie2020,
-#>    title = {Wasserstein Index Generation Model: Automatic Generation of Time-Series Index with Application to Economic Policy Uncertainty},
-#>    author = {Xie, Fangzhou},
-#>    year = 2020,
-#>    journal = {Economics Letters},
-#>    volume = {186},
-#>    pages = {108874},
-#>    issn = {0165-1765},
-#>    doi = {10.1016/j.econlet.2019.108874},
-#>    urldate = {2019-12-10},
-#>  }
-
-## basic example code
-```
+Please check out all the vignettes for the examples of using this
+package under the “Articles” drop down menu.
 
 ## Reference
 
@@ -100,7 +78,7 @@ learning. SIAM Journal on Imaging Sciences, 11(1), 643–678.
 <https://doi.org/10.1137/17M1140431>
 
 Xie, F. (2020). Wasserstein index generation model: Automatic generation
-of time-series index with application to economic policy uncertainty.
+of time-series index with applieion to economic policy uncertainty.
 Economics Letters, 186, 108874.
 <https://doi.org/10.1016/j.econlet.2019.108874>
 

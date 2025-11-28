@@ -1,11 +1,8 @@
 ---
-title: "Multi-threading Support"
-description: >
-  Advanced setting to set up the threads for faster processing
-  in Sinkhorn, Barycenter, WDL, and WIG models.
+title: "Computation of the Gradients"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Multi-threading Support}
+  %\VignetteIndexEntry{Computation of the Gradients}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

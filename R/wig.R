@@ -1,3 +1,10 @@
+# WIG score aggregation
+aggregate_by_period <- function(datetimes, values, unit = "month") {
+  period_starts <- lubridate::floor_date(datetimes, unit = unit)
+  result <- stats::aggregate(values, by = list(period_starts), FUN = sum)
+  result
+}
+
 #' Wasserstein Index Generation model
 #'
 #' @description
@@ -14,11 +21,12 @@
 #' *Economics Letters*, 186, 108874.
 #' https://doi.org/10.1016/j.econlet.2019.108874
 #'
-#' @param date_col name of the column for dates
-#' @param docs_col name of the column for the texts
-#' @param spec list, model specification for WIG
-#' see \code{\link{wig_spec()}} for reference
-#' @param verbose bool, whether to print useful info
+#' @param .data a dataframe containing the dates/datetimes and documents
+#' @param date_col name of the column for dates/datetimes
+#' @param docs_col name of the column for the texts/documents
+#' @param specs list, model specification for WIG
+#' see \code{\link{wig_specs}} for reference
+#' @param ... only for compatibility
 #'
 #' @examples
 #' # create a small dataset
@@ -30,19 +38,20 @@
 #' wigfit <- wig(wigdf, ref_date, docs)
 #'
 #'
-#'
 #' @export
 wig <- function(.data, date_col, docs_col, ...) {
   UseMethod("wig")
 }
 
+#' @rdname wig
+#'
 #' @export
 wig.data.frame <- function(
   .data,
   date_col,
   docs_col,
   specs = wig_specs(),
-  verbose = TRUE
+  ...
 ) {
   # load all the parameters needed for the model
   wig_args <- specs$wig_control
@@ -68,7 +77,8 @@ wig.data.frame <- function(
   docs_vec <- eval(docs_col, .data, parent.frame())
 
   # check the `date_vec` is actually date/datetime
-  if (!xts::is.timeBased(date_vec)) {
+  # replace `xts::is.timeBased(date_vec)`
+  if (!lubridate::is.instant(date_vec)) {
     stop("`date_col` is not of date/datetime!")
   }
 
@@ -93,7 +103,7 @@ wig.data.frame <- function(
 
   # TODO: maybe use `lubridate` or string manipulation instead of loop?
   # after generating the document-wise score, regroup them by time for index
-  # dts_end_inds <- xts::endpoints(date_vec, on = wig_args$group_time)
+  # dts_end_inds <- xts::endpoints(date_vec, on = wig_args$group_unit)
   # dts_vec <- numeric(length(dts_end_inds) - 1)
   # wig_index <- numeric(length(dts_end_inds) - 1)
   # for (i in 2:length(dts_end_inds)) {
@@ -103,9 +113,30 @@ wig.data.frame <- function(
   #   ])
   # }
 
-  # dts_vec_chr <- as.character(dts_vec)
-  dts_vec <- gsub("[[:digit:]]{2}$", "01", as.character(date_vec))
-  wig_raw_df <- data.frame(ref_date = dts_vec, WIG = wig_doc_scores)
+  #
+  # dts_vec <- gsub("[[:digit:]]{2}$", "01", as.character(date_vec))
+  # wig_raw_df <- data.frame(ref_date = dts_vec, WIG = wig_doc_scores)
+
+  # use `xts` for auto grouping
+  # https://stackoverflow.com/questions/26982057/use-endpoints-function-to-get-start-points-instead
+  # startpoints <- function(x, on = "months", k = 1) {
+  #   head(xts::endpoints(x, on, k) + 1, -1)
+  # }
+  # date_start_vec <- startpoints(date_vec, wig_args$group_unit)
+  # date_end_vec <- xts::endpoints(date_vec, wig_args$group_unit)
+  # browser()
+  # wig_raw_df <- data.frame(
+  #   ref_date = date_start_vec,
+  #   WIG = c(xts::period.apply(wig_doc_scores, date_end_vec, FUN = sum))
+  # )
+
+  # use `lubridate` for grouping
+  wig_raw_df <- aggregate_by_period(
+    date_vec,
+    wig_doc_scores,
+    unit = wig_args$group_unit
+  )
+  colnames(wig_raw_df) <- c("ref_date", "WIG")
 
   # base R solution to summarize
   wig_raw_by_df <- by(wig_raw_df, wig_raw_df$ref_date, function(df) {
@@ -117,7 +148,9 @@ wig.data.frame <- function(
   date_vec <- wig_df$ref_date
   wig_index <- wig_df$WIG
   if (wig_args$standardize) {
-    wig_index <- (wig_index - mean(wig_index)) / sd(wig_index) + 100
+    wig_index <- (wig_index - base::mean(wig_index)) /
+      stats::sd(wig_index) +
+      100
   }
 
   wig_df <- data.frame(ref_date = date_vec, WIG = wig_index)
@@ -132,22 +165,32 @@ wig.data.frame <- function(
 }
 
 #' @rdname wig
+#'
+#' @param x WIG model
+#' @param topic int, number of topic to be printed
+#' @param token_per_topic int, number of tokens to be printed
+#'
 #' @export
-print.wig <- function(object, topic = 1, token_per_topic = 5, ...) {
+print.wig <- function(x, topic = 1, token_per_topic = 5, ...) {
   cat(sprintf(
     "WIG model from %s to %s\n",
-    as.character(min(object$index$ref_date)),
-    as.character(max(object$index$ref_date))
+    as.character(min(x$index$ref_date)),
+    as.character(max(x$index$ref_date))
   ))
 
-  print.wdl(object$wdl_model, topic, token_per_topic, ...)
+  print.wdl(x$wdl_model, topic, token_per_topic, ...)
 }
 
-#
-# #' @rdname wig
-# #' @export
-# summary.wig <- function(object, topic = 1, token_per_topic = 5, ...) {
-#   cat("Summary of WDL topics:\n")
-#
-#   summary.wdl(object$wdl_model, topic, token_per_topic, ...)
-# }
+
+#' @rdname wig
+#'
+#' @param object WIG model
+#' @param topic int, number of topic to be printed
+#' @param token_per_topic int, number of tokens to be printed
+#'
+#' @export
+summary.wig <- function(object, topic = 1, token_per_topic = 5, ...) {
+  cat("Summary of WDL topics:\n")
+
+  summary.wdl(object$wdl_model, topic, token_per_topic, ...)
+}

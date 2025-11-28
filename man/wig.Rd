@@ -2,22 +2,38 @@
 % Please edit documentation in R/wig.R
 \name{wig}
 \alias{wig}
+\alias{wig.data.frame}
 \alias{print.wig}
+\alias{summary.wig}
 \title{Wasserstein Index Generation model}
 \usage{
 wig(.data, date_col, docs_col, ...)
 
-\method{print}{wig}(object, topic = 1, token_per_topic = 5, ...)
+\method{wig}{data.frame}(.data, date_col, docs_col, specs = wig_specs(), ...)
+
+\method{print}{wig}(x, topic = 1, token_per_topic = 5, ...)
+
+\method{summary}{wig}(object, topic = 1, token_per_topic = 5, ...)
 }
 \arguments{
-\item{date_col}{name of the column for dates}
+\item{.data}{a dataframe containing the dates/datetimes and documents}
 
-\item{docs_col}{name of the column for the texts}
+\item{date_col}{name of the column for dates/datetimes}
 
-\item{spec}{list, model specification for WIG
-see \code{\link{wig_spec()}} for reference}
+\item{docs_col}{name of the column for the texts/documents}
 
-\item{verbose}{bool, whether to print useful info}
+\item{...}{only for compatibility}
+
+\item{specs}{list, model specification for WIG
+see \code{\link{wig_specs}} for reference}
+
+\item{x}{WIG model}
+
+\item{topic}{int, number of topic to be printed}
+
+\item{token_per_topic}{int, number of tokens to be printed}
+
+\item{object}{WIG model}
 }
 \description{
 Wasserstein Index Generation (WIG) model for time-series sentiment index
@@ -34,7 +50,6 @@ wigdf <- data.frame(
 )
 
 wigfit <- wig(wigdf, ref_date, docs)
-
 
 
 }

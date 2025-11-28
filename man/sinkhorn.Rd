@@ -32,7 +32,7 @@ and switch to \code{method = "log"} if the minimum value is less than \code{thre
 \item threshold: double, threshold value below which "auto" method
 will default to \code{method = "log"} for stablized computation in log-domain
 (default = .1)
-\item max_iter: int, maximum iteration of \code{\link{sinkhorn()}} algorithm
+\item max_iter: int, maximum iteration of \code{\link{sinkhorn}} algorithm
 (default = 1000)
 \item zero_tol: double, determine covergence (default = 1e-6)
 \item verbose: int, print out debug info for the algorithm for every

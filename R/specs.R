@@ -110,7 +110,7 @@ wdl_specs <- function(
 #' @export
 wig_specs <- function(
   wig_control = list(
-    group_time = "months",
+    group_unit = "months",
     svd_method = "docs",
     standardize = TRUE
   ),
@@ -120,7 +120,7 @@ wig_specs <- function(
     batch_size = 64,
     epochs = 2,
     rng_seed = 123,
-    verbose = 0
+    verbose = FALSE
   ),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),

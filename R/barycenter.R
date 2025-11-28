@@ -39,7 +39,7 @@
 #' * threshold: double, threshold value below which "auto" method
 #' will default to `method = "log"` for stablized computation in log-domain
 #' (default = .1)
-#' * max_iter: int, maximum iteration of \code{\link{barycenter()}} algorithm
+#' * max_iter: int, maximum iteration of \code{\link{barycenter}} algorithm
 #' (default = 1000)
 #' * zero_tol: double, determine covergence (default = 1e-6)
 #' * verbose: int, print out debug info for the algorithm for every

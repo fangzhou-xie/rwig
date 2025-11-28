@@ -5,9 +5,9 @@
 #'
 #' @details
 #' This is the re-implementation of WDL model from ground up,
-#' and it calls the \code{\link{barycenter()}} under the hood
+#' and it calls the \code{\link{barycenter}} under the hood
 #' (to be precise directly calling the underlying C++ routine
-#' for \code{\link{barycenter()}})
+#' for \code{\link{barycenter}})
 #'
 #' @references
 #'
@@ -28,9 +28,10 @@
 #' https://doi.org/10.48550/arXiv.2504.08722
 #'
 #' @param docs character vector, sentences to be analyzed
-#' @param spec list, model specification for the WDL
-#' see \code{\link{wdl_spec()}} for reference
+#' @param specs list, model specification for the WDL
+#' see \code{\link{wdl_specs}} for reference
 #' @param verbose bool, whether to print useful info
+#' @param ... only for compatibility
 #'
 #' @returns topics and weights computed from the WDL given the input data
 #'
@@ -52,7 +53,7 @@ wdl <- function(docs, ...) {
 #' @rdname wdl
 #' @importFrom Rcpp evalCpp
 #' @export
-wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE) {
+wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   # unpack the arguments for the model
   wdl_args <- specs$wdl_control
   tok_args <- specs$tokenizer_control
@@ -164,11 +165,12 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE) {
 
 #' @rdname wdl
 #'
+#' @param x WDL model
 #' @param topic int, number of topic to be printed
 #' @param token_per_topic int, number of tokens to be printed
 #'
 #' @export
-print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
+print.wdl <- function(x, topic = 0, token_per_topic = 5, ...) {
   # `topic`: which topic to list (default all)
   # `token_per_topic`: number of tokens shown per topic
 
@@ -177,7 +179,7 @@ print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
   print_topic <- function(topic) {
     cat(sprintf("Topic %s:\n", topic))
     print.default(
-      summary.wdl(object, topic, token_per_topic = token_per_topic),
+      summary.wdl(x, topic, token_per_topic = token_per_topic),
       digits = 2,
       ...
     )
@@ -185,7 +187,7 @@ print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
   }
 
   if (topic == 0) {
-    for (topic in 1:ncol(object$topics)) {
+    for (topic in 1:ncol(x$topics)) {
       print_topic(topic)
     }
   } else {
@@ -193,22 +195,23 @@ print.wdl <- function(object, topic = 0, token_per_topic = 5, ...) {
   }
 }
 
-# #' @rdname wdl
-# #'
-# #' @param topic int, number of topic to be printed
-# #' @param token_per_topic int, number of tokens to be printed
-# #'
-# #' @export
-# summary.wdl <- function(object, topic = 1, token_per_topic = 5, ...) {
-#   # `topic`: which topic to list (default all)
-#   # `token_per_topic`: number of tokens shown per topic
-#
-#   topics_mat <- object$topics
-#   n <- min(nrow(topics_mat), token_per_topic)
-#   if (topic > ncol(topics_mat)) {
-#     stop("topic index greater than number of topics")
-#   }
-#   sort(topics_mat[, topic], decreasing = TRUE)[1:n]
-# }
+#' @rdname wdl
+#'
+#' @param object WDL model
+#' @param topic int, number of topic to be printed
+#' @param token_per_topic int, number of tokens to be printed
+#'
+#' @export
+summary.wdl <- function(object, topic = 1, token_per_topic = 5, ...) {
+  # `topic`: which topic to list (default all)
+  # `token_per_topic`: number of tokens shown per topic
+
+  topics_mat <- object$topics
+  n <- min(nrow(topics_mat), token_per_topic)
+  if (topic > ncol(topics_mat)) {
+    stop("topic index greater than number of topics")
+  }
+  sort(topics_mat[, topic], decreasing = TRUE)[1:n]
+}
 
 # TODO: maybe add `plot` too? for topic word cloud?

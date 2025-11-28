@@ -2,6 +2,8 @@
 
 S3method(print,wdl)
 S3method(print,wig)
+S3method(summary,wdl)
+S3method(summary,wig)
 S3method(wdl,character)
 S3method(wig,data.frame)
 export(barycenter)

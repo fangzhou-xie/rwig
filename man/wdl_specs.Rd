@@ -17,9 +17,9 @@ wdl_specs(
 )
 
 wig_specs(
-  wig_control = list(group_time = "months", svd_method = "docs", standardize = TRUE),
+  wig_control = list(group_unit = "months", svd_method = "docs", standardize = TRUE),
   wdl_control = list(embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2,
-    rng_seed = 123, verbose = 0),
+    rng_seed = 123, verbose = FALSE),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, method = "auto", threshold =
@@ -85,6 +85,6 @@ Transport Algorithms (No. arXiv:2504.08722). \emph{arXiv}.
 https://doi.org/10.48550/arXiv.2504.08722
 }
 \seealso{
-\code{\link{wig_specs}}, \code{\link[=barycenter]{barycenter()}},
+\code{\link[=wig_specs]{wig_specs()}}, \code{\link[=barycenter]{barycenter()}},
 \code{\link[word2vec:word2vec]{word2vec::word2vec()}}, \code{\link[tokenizers:basic-tokenizers]{tokenizers::tokenize_words()}}
 }
