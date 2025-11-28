@@ -1,0 +1,41 @@
+url: https://fangzhou-xie.github.io/wig/
+template:
+  bootstrap: 5
+
+reference:
+- title: NYT Economic Policy Uncertainty headlines dataset
+  contents:
+  - headlines
+
+- title: Sinkhorn algorithm
+  contents:
+  - sinkhorn
+
+- title: Barycenter algorithm
+  contents:
+  - barycenter
+
+- title: Wasserstein Dictionary Learning (WDL) algorithm
+  contents:
+  - wdl
+
+- title: Wasserstein Index Generation (WIG) algorithm
+  contents:
+  - wig
+
+- title: Model Specs for WDL and WIG
+  contents:
+  - wdl_specs
+  - wig_specs
+
+
+articles:
+- title: Get Started
+  navbar:
+  contents:
+  - sinkhorn
+
+- title: Advanced Topics
+  navbar:
+  contents:
+  - threading

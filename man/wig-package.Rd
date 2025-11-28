@@ -11,6 +11,7 @@ Efficient implementation of several Optimal Transport algorithms in Fangzhou Xie
 Useful links:
 \itemize{
   \item \url{https://github.com/fangzhou-xie/wig}
+  \item \url{https://fangzhou-xie.github.io/wig/}
   \item Report bugs at \url{https://github.com/fangzhou-xie/wig/issues}
 }
 

@@ -80,38 +80,6 @@ check_w2v_args <- function(w2v_args) {
   w2v_args
 }
 
-# check_skh_args <- function(skh_args) {
-#   # check the parameters for Sinkhorn (Barycenter) algorithm
-#   if (is.null(skh_args$regularizer)) {
-#     skh_args$regularizer <- .1
-#   }
-#   if (is.null(skh_args$sinkhorn_mode)) {
-#     skh_args$sinkhorn_mode <- "auto"
-#   }
-#   if (is.null(skh_args$sinkhorn_mode_threshold)) {
-#     skh_args$sinkhorn_mode_threshold <- .1
-#   }
-#   if (is.null(skh_args$max_iter)) {
-#     skh_args$max_iter <- 1000
-#   }
-#   if (is.null(skh_args$zero_tol)) {
-#     skh_args$zero_tol <- 1e-6
-#   }
-#
-#   # map sinkhorn algo type from character to integer
-#   if (skh_args$sinkhorn_mode == "auto") {
-#     skh_args$sinkhorn_mode_int <- 0L
-#   } else if (skh_args$sinkhorn_mode == "parallel") {
-#     skh_args$sinkhorn_mode_int <- 1L
-#   } else if (skh_args$sinkhorn_mode == "log") {
-#     skh_args$sinkhorn_mode_int <- 2L
-#   } else {
-#     stop("sinkhorn_mode must be from: \"auto\", \"parallel\", or \"log\"")
-#   }
-#
-#   skh_args
-# }
-
 check_opt_args <- function(opt_args) {
   # check the parameters for the optimizer
   if (is.null(opt_args$lr)) {
@@ -147,6 +115,7 @@ check_opt_args <- function(opt_args) {
   opt_args
 }
 
+#' @keywords internal
 #' only used for \code{\link{sinkhorn()}}
 check_sinkhorn_args <- function(skh_args) {
   # check the parameters for Sinkhorn algorithm
@@ -227,6 +196,7 @@ check_sinkhorn_args <- function(skh_args) {
   skh_args
 }
 
+#' @keywords internal
 #' used for \code{\link{barycenter()}} and \code{\link{wdl()}}
 check_barycenter_args <- function(brc_args) {
   # check the parameters for the Barycenter algorithm

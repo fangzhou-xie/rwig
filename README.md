@@ -5,8 +5,12 @@
 
 <!-- badges: start -->
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)
-[![](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![DOI:
+10.1016/j.econlet.2019.108874](https://img.shields.io/badge/doi-10.1016/j.econlet.2019.108874-yellow.svg)](https://doi.org/10.1016/j.econlet.2019.108874)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://cran.r-project.org/web/licenses/MIT)
+[![experimental
+version](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R build
 status](https://github.com/fangzhou-xie/rethnicity/workflows/R-CMD-check/badge.svg)](https://github.com/fangzhou-xie/rethnicity/actions)
 <!-- badges: end -->
@@ -16,6 +20,16 @@ Optimal Transport problems, Wasserstein Barycenter algorithms for the
 regularized Wasserstein Barycenter problems, Wasserstein Dictionary
 Learning (WDL) model, and **W**asserstein **I**ndex **G**eneration
 (**WIG**) model (see references below).
+
+All the methods are implemented from the ground up with C++ and
+Armadillo, with additional support for multi-threading for the
+log-stablized methods for
+[sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)
+and
+[barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
+See the
+[vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
+on multi-threading.
 
 ## Installation
 
@@ -93,115 +107,3 @@ Economics Letters, 186, 108874.
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
 Algorithms (No. arXiv:2504.08722). arXiv.
 <https://doi.org/10.48550/arXiv.2504.08722>
-
-<!-- ``` -->
-
-<!-- @article{schmitz2018, -->
-
-<!--   title = {Wasserstein Dictionary Learning: Optimal Transport-Based Unsupervised Nonlinear Dictionary Learning}, -->
-
-<!--   shorttitle = {Wasserstein Dictionary Learning}, -->
-
-<!--   author = {Schmitz, Morgan A. and Heitz, Matthieu and Bonneel, Nicolas and Ngol{\`e}, Fred and Coeurjolly, David and Cuturi, Marco and Peyr{\'e}, Gabriel and Starck, Jean-Luc}, -->
-
-<!--   year = 2018, -->
-
-<!--   month = jan, -->
-
-<!--   journal = {SIAM Journal on Imaging Sciences}, -->
-
-<!--   volume = {11}, -->
-
-<!--   number = {1}, -->
-
-<!--   pages = {643--678}, -->
-
-<!--   issn = {1936-4954}, -->
-
-<!--   doi = {10.1137/17M1140431}, -->
-
-<!--   urldate = {2019-07-15}, -->
-
-<!--   langid = {english} -->
-
-<!-- } -->
-
-<!-- @article{peyre2019, -->
-
-<!--   title = {Computational Optimal Transport: With Applications to Data Science}, -->
-
-<!--   author = {Peyr{\'e}, Gabriel and Cuturi, Marco}, -->
-
-<!--   year = 2019, -->
-
-<!--   month = feb, -->
-
-<!--   journal = {Foundations and Trends\textregistered{} in Machine Learning}, -->
-
-<!--   volume = {11}, -->
-
-<!--   number = {5-6}, -->
-
-<!--   pages = {355--607}, -->
-
-<!--   publisher = {Now Publishers, Inc.}, -->
-
-<!--   issn = {1935-8237, 1935-8245}, -->
-
-<!--   doi = {10.1561/2200000073}, -->
-
-<!--   urldate = {2024-07-29}, -->
-
-<!--   langid = {english}, -->
-
-<!-- } -->
-
-<!-- @article{xie2020, -->
-
-<!--   title = {Wasserstein Index Generation Model: Automatic Generation of Time-Series Index with Application to Economic Policy Uncertainty}, -->
-
-<!--   author = {Xie, Fangzhou}, -->
-
-<!--   year = 2020, -->
-
-<!--   month = jan, -->
-
-<!--   journal = {Economics Letters}, -->
-
-<!--   volume = {186}, -->
-
-<!--   pages = {108874}, -->
-
-<!--   issn = {0165-1765}, -->
-
-<!--   doi = {10.1016/j.econlet.2019.108874}, -->
-
-<!--   urldate = {2019-12-10}, -->
-
-<!-- } -->
-
-<!-- @misc{xie2025, -->
-
-<!--   title = {Deriving the Gradients of Some Popular Optimal Transpor Algorithms}, -->
-
-<!--   author = {Xie, Fangzhou}, -->
-
-<!--   year = 2025, -->
-
-<!--   month = oct, -->
-
-<!--   number = {arXiv:2504.08722}, -->
-
-<!--   eprint = {2504.08722}, -->
-
-<!--   primaryclass = {math}, -->
-
-<!--   publisher = {arXiv}, -->
-
-<!--   doi = {10.48550/arXiv.2504.08722}, -->
-
-<!--   urldate = {2025-11-11}, -->
-
-<!-- } -->
-
-<!-- ``` -->
