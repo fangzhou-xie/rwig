@@ -28,6 +28,10 @@ reference:
   - wdl_specs
   - wig_specs
 
+- title: Truncated SVD
+  contents:
+  - tsvd
+
 
 articles:
 - title: Get Started

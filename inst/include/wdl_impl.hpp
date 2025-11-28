@@ -14,9 +14,8 @@
 // #include <iostream>               // std::cout
 // #include "R_ext/Print.h"          // for REprintf used for verbose logging
 
-// arma-related headers
-// #include <cpp11.hpp>
-// #include <cpp11armadillo.hpp>
+#define RCPP_NO_SUGAR
+#define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
 
 #include <RcppArmadillo/Lightest>
 // [[Rcpp::depends(RcppArmadillo)]]

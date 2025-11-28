@@ -12,7 +12,8 @@
 
 // #include <iostream> // for std::cout
 
-// #include <cpp11armadillo.hpp>
+#define RCPP_NO_SUGAR
+#define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
 
 #include <RcppArmadillo/Lightest>
 // [[Rcpp::depends(RcppArmadillo)]]
