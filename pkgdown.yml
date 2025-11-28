@@ -4,4 +4,7 @@ pkgdown_sha: ~
 articles:
   sinkhorn: sinkhorn.html
   threading: threading.html
-last_built: 2025-11-26T16:38Z
+last_built: 2025-11-28T18:42Z
+urls:
+  reference: https://fangzhou-xie.github.io/wig/reference
+  article: https://fangzhou-xie.github.io/wig/articles

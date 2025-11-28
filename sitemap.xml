@@ -1,21 +1,19 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
-<url><loc>/LICENSE.html</loc></url>
-<url><loc>/articles/index.html</loc></url>
-<url><loc>/articles/sinkhorn.html</loc></url>
-<url><loc>/articles/threading.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/reference/barycenter.html</loc></url>
-<url><loc>/reference/check_barycenter_args.html</loc></url>
-<url><loc>/reference/check_sinkhorn_args.html</loc></url>
-<url><loc>/reference/headlines.html</loc></url>
-<url><loc>/reference/hello.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
-<url><loc>/reference/sinkhorn.html</loc></url>
-<url><loc>/reference/wdl.html</loc></url>
-<url><loc>/reference/wig-package.html</loc></url>
-<url><loc>/reference/wig.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/404.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/LICENSE-text.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/LICENSE.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/articles/index.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/articles/sinkhorn.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/articles/threading.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/authors.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/index.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/barycenter.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/headlines.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/index.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/sinkhorn.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/wdl.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/wdl_specs.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/wig-package.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/wig/reference/wig.html</loc></url>
 </urlset>
 

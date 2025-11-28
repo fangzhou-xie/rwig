@@ -1,0 +1,126 @@
+# wig
+
+The `wig` package implements the Sinkhorn algorithms for regularized
+Optimal Transport problems, Wasserstein Barycenter algorithms for the
+regularized Wasserstein Barycenter problems, Wasserstein Dictionary
+Learning (WDL) model, and **W**asserstein **I**ndex **G**eneration
+(**WIG**) model (see references below).
+
+All the methods are implemented from the ground up with C++ and
+Armadillo, with additional support for multi-threading for the
+log-stablized methods for
+[sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)
+and
+[barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
+See the
+[vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
+on multi-threading.
+
+## Installation
+
+You can install the development version of wig from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("fangzhou-xie/wig")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+``` r
+library(wig)
+#> ══ WARNING: ═════════════════════════════════════════════════════════════ wig ══
+#> ! Your current BLAS backend is: /usr/lib/x86_64-linux-gnu/openblas-pthread/libblas.so.3. For better performance, it's recommended to use an optimized BLAS library, such as Inter MKL or OpenBLAS. For example, you can consider ropenblas (<https://github.com/prdm0/ropenblas>).
+#> ! Automatically setting BLAS thread to be 1, and this is recommended for most users. If you want to set up threading for faster processing, you can set `n_threads` argument in functions: sinkhorn() (<https://fangzhou-xie.github.io/wig/reference/sinkhorn.html>) and barycenter() (<https://fangzhou-xie.github.io/wig/reference/barycenter.html>) Please read the vignette (<https://fangzhou-xie.github.io/wig/articles/threading.html>) for advanced usage on threading.
+#> 
+#> ══ CITATION: ════════════════════════════════════════════════════════════ wig ══
+#> ℹ Please use the following to cite my works, thanks!
+#> 
+#>  @article{xie2020,
+#>    title = {Wasserstein Index Generation Model: Automatic Generation of Time-Series Index with Application to Economic Policy Uncertainty},
+#>    author = {Xie, Fangzhou},
+#>    year = 2020,
+#>    journal = {Economics Letters},
+#>    volume = {186},
+#>    pages = {108874},
+#>    issn = {0165-1765},
+#>    doi = {10.1016/j.econlet.2019.108874},
+#>    urldate = {2019-12-10},
+#>  }
+
+## basic example code
+```
+
+## Reference
+
+Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport: With
+Applications to Data Science. Foundations and Trends® in Machine
+Learning, 11(5–6), 355–607. <https://doi.org/10.1561/2200000073>
+
+Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D.,
+Cuturi, M., Peyré, G., & Starck, J.-L. (2018). Wasserstein dictionary
+learning: Optimal transport-based unsupervised nonlinear dictionary
+learning. SIAM Journal on Imaging Sciences, 11(1), 643–678.
+<https://doi.org/10.1137/17M1140431>
+
+Xie, F. (2020). Wasserstein index generation model: Automatic generation
+of time-series index with application to economic policy uncertainty.
+Economics Letters, 186, 108874.
+<https://doi.org/10.1016/j.econlet.2019.108874>
+
+Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
+Algorithms (No. arXiv:2504.08722). arXiv.
+<https://doi.org/10.48550/arXiv.2504.08722>
+
+# Package index
+
+## NYT Economic Policy Uncertainty headlines dataset
+
+- [`headlines`](https://fangzhou-xie.github.io/wig/reference/headlines.md)
+  : NYT headlines by economic policy uncertainty
+
+## Sinkhorn algorithm
+
+- [`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+  : Sinkhorn algorithm
+
+## Barycenter algorithm
+
+- [`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+  : Barycenter algorithm
+
+## Wasserstein Dictionary Learning (WDL) algorithm
+
+- [`wdl()`](https://fangzhou-xie.github.io/wig/reference/wdl.md)
+  [`print(`*`<wdl>`*`)`](https://fangzhou-xie.github.io/wig/reference/wdl.md)
+  : Wasserstein Dictionary Learning model
+
+## Wasserstein Index Generation (WIG) algorithm
+
+- [`wig()`](https://fangzhou-xie.github.io/wig/reference/wig.md)
+  [`print(`*`<wig>`*`)`](https://fangzhou-xie.github.io/wig/reference/wig.md)
+  : Wasserstein Index Generation model
+
+## Model Specs for WDL and WIG
+
+- [`wdl_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  [`wig_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  : Model Specs for WDL and WIG models
+
+# Articles
+
+### Get Started
+
+- [Sinkhorn
+  Algorithms](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md):
+
+### Advanced Topics
+
+- [Advanced Topic:
+  Multi-threading](https://fangzhou-xie.github.io/wig/articles/threading.md):
+
+  Advanced setting to set up the threads for faster processing in
+  Sinkhorn, Barycenter, WDL, and WIG models.

@@ -1,0 +1,76 @@
+# Wasserstein Dictionary Learning model
+
+Wasserstein Dictionary Learning (WDL) model for topic modeling
+
+## Usage
+
+``` r
+wdl(docs, ...)
+
+# S3 method for class 'character'
+wdl(docs, specs = wdl_specs(), verbose = TRUE)
+
+# S3 method for class 'wdl'
+print(object, topic = 0, token_per_topic = 5, ...)
+```
+
+## Arguments
+
+- docs:
+
+  character vector, sentences to be analyzed
+
+- verbose:
+
+  bool, whether to print useful info
+
+- topic:
+
+  int, number of topic to be printed
+
+- token_per_topic:
+
+  int, number of tokens to be printed
+
+- spec:
+
+  list, model specification for the WDL see `wdl_spec()` for reference
+
+## Value
+
+topics and weights computed from the WDL given the input data
+
+## Details
+
+This is the re-implementation of WDL model from ground up, and it calls
+the
+[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+under the hood (to be precise directly calling the underlying C++
+routine for
+[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md))
+
+## References
+
+Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport: With
+Applications to Data Science. *Foundations and Trends® in Machine
+Learning*, 11(5–6), 355–607. https://doi.org/10.1561/2200000073
+
+Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D.,
+Cuturi, M., Peyré, G., & Starck, J.-L. (2018). Wasserstein dictionary
+learning: Optimal transport-based unsupervised nonlinear dictionary
+learning. *SIAM Journal on Imaging Sciences*, 11(1), 643–678.
+https://doi.org/10.1137/17M1140431
+
+Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
+Algorithms (No. arXiv:2504.08722). *arXiv*.
+https://doi.org/10.48550/arXiv.2504.08722
+
+## Examples
+
+``` r
+# simple WDL example
+sentences <- c("this is a sentence", "this is another one")
+wdl_fit <- wdl(sentences)
+#> `method` is automatically switched to "log"
+
+```
