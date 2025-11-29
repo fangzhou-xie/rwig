@@ -14,8 +14,19 @@ LazyData: true
 RoxygenNote: 7.3.3
 URL: https://github.com/fangzhou-xie/wig, https://fangzhou-xie.github.io/wig/
 BugReports: https://github.com/fangzhou-xie/wig/issues
-LinkingTo: Rcpp, RcppArmadillo
-Imports: Rcpp, word2vec, tokenizers, RhpcBLASctl, rlang, cli, utils, stats, lubridate
+LinkingTo: 
+    Rcpp (>= 1.0.8), 
+    RcppArmadillo (>= 0.12.8.4.0)
+Imports: 
+    utils, 
+    stats, 
+    Rcpp, 
+    RhpcBLASctl, 
+    word2vec, 
+    tokenizers, 
+    rlang, 
+    cli, 
+    lubridate
 Roxygen: list(markdown = TRUE)
 Suggests: 
     stopwords,
@@ -23,5 +34,5 @@ Suggests:
     rmarkdown,
     tinytest
 Depends: 
-    R (>= 3.5)
+    R (>= 4.4)
 VignetteBuilder: knitr
