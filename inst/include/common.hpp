@@ -7,15 +7,14 @@
 // #define ARMA_DONT_USE_OPENMP
 // #endif
 
-#define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
+// #define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
 
 // #define RCPP_NO_SUGAR
 // #define RCPP_NO_MODULES
 // #include <RcppArmadillo.h>
 
 
-#include <RcppArmadillo/Lightest>
-
+#include <RcppArmadillo/Lighter>
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
