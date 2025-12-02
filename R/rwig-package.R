@@ -1,9 +1,7 @@
 #' @keywords internal
-"_PACKAGE"
-
-#' @name wig
 #' @importFrom Rcpp evalCpp
-#' @useDynLib wig, .registration = TRUE
+#' @useDynLib rwig, .registration = TRUE
+"_PACKAGE"
 
 ## usethis namespace: start
 ## usethis namespace: end

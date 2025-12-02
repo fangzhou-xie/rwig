@@ -2,8 +2,8 @@
 // header for a timer class for timing the functions
 // useful for improving the performance of codes
 
-#ifndef WIG_TIMER_H
-#define WIG_TIMER_H
+#ifndef RWIG_TIMER_H
+#define RWIG_TIMER_H
 
 #include <chrono>              // std::chrono::steady_clock
 
@@ -49,4 +49,4 @@ public:
 };
 
 
-#endif // WIG_TIMER_H
+#endif // RWIG_TIMER_H

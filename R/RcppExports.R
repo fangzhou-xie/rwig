@@ -2,34 +2,34 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 barycenter_parallel_cpp <- function(A, C, w, reg, b_ext, withgrad = FALSE, maxiter = 1000L, zerotol = 1e-6, verbose = 0L) {
-    .Call(`_wig_barycenter_parallel_cpp`, A, C, w, reg, b_ext, withgrad, maxiter, zerotol, verbose)
+    .Call(`_rwig_barycenter_parallel_cpp`, A, C, w, reg, b_ext, withgrad, maxiter, zerotol, verbose)
 }
 
 barycenter_log_cpp <- function(A, C, w, reg, b_ext, withgrad = FALSE, n_threads = 0L, maxiter = 1000L, zerotol = 1e-6, verbose = 0L) {
-    .Call(`_wig_barycenter_log_cpp`, A, C, w, reg, b_ext, withgrad, n_threads, maxiter, zerotol, verbose)
+    .Call(`_rwig_barycenter_log_cpp`, A, C, w, reg, b_ext, withgrad, n_threads, maxiter, zerotol, verbose)
 }
 
 sinkhorn_vanilla_cpp <- function(a, b, C, reg, withgrad = FALSE, maxiter = 1000L, zerotol = 1e-6, verbose = 0L) {
-    .Call(`_wig_sinkhorn_vanilla_cpp`, a, b, C, reg, withgrad, maxiter, zerotol, verbose)
+    .Call(`_rwig_sinkhorn_vanilla_cpp`, a, b, C, reg, withgrad, maxiter, zerotol, verbose)
 }
 
 sinkhorn_log_cpp <- function(a, b, C, reg, withgrad = FALSE, n_threads = 0L, maxiter = 1000L, zerotol = 1e-6, verbose = 0L) {
-    .Call(`_wig_sinkhorn_log_cpp`, a, b, C, reg, withgrad, n_threads, maxiter, zerotol, verbose)
+    .Call(`_rwig_sinkhorn_log_cpp`, a, b, C, reg, withgrad, n_threads, maxiter, zerotol, verbose)
 }
 
 tsvd_cpp <- function(M, k, flip_sign) {
-    .Call(`_wig_tsvd_cpp`, M, k, flip_sign)
+    .Call(`_rwig_tsvd_cpp`, M, k, flip_sign)
 }
 
 euclidean_cpp <- function(A) {
-    .Call(`_wig_euclidean_cpp`, A)
+    .Call(`_rwig_euclidean_cpp`, A)
 }
 
 doc2dist_cpp <- function(docs, dict) {
-    .Call(`_wig_doc2dist_cpp`, docs, dict)
+    .Call(`_rwig_doc2dist_cpp`, docs, dict)
 }
 
 wdl_cpp <- function(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode = 1L, max_iter = 1000L, zero_tol = 1e-6, optimizer = 2L, eta = .001, gamma = .01, beta1 = .9, beta2 = .999, eps = 1e-8, verbose = FALSE) {
-    .Call(`_wig_wdl_cpp`, Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose)
+    .Call(`_rwig_wdl_cpp`, Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose)
 }
 

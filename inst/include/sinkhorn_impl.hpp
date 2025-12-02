@@ -4,8 +4,8 @@
 // https://arxiv.org/abs/2504.08722
 // Section 3 & 4
 
-#ifndef WIG_SINKHORN_H
-#define WIG_SINKHORN_H
+#ifndef RWIG_SINKHORN_H
+#define RWIG_SINKHORN_H
 
 #include <vector> // std::vector
 
@@ -116,4 +116,4 @@ public:
 
 };
 
-#endif // WIG_SINKHORN_H
+#endif // RWIG_SINKHORN_H

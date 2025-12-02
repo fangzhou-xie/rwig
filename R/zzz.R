@@ -13,11 +13,10 @@ inform_startup <- function(msg, ...) {
   rlang::inform(msg, ..., class = "packageStartupMessage")
 }
 
-
-wig_startup_warning_message <- function() {
+startup_warning_message <- function() {
   warn_rule <- cli::rule(
     left = cli::style_bold("WARNING:"),
-    right = cli::format_inline("{.pkg wig}"),
+    right = cli::format_inline("{.pkg rwig}"),
     col = "cyan",
     line = 2
   )
@@ -40,18 +39,13 @@ wig_startup_warning_message <- function() {
   warn_thread <- paste0(
     c(
       " Automatically setting BLAS thread to be 1,",
-      # "This should not affect most users with the default reference BLAS,",
-      # "but only advanced users who have set up an optimized BLAS backend.",
       "and this is recommended for most users.",
       "If you want to set up threading for faster processing,",
       "you can set `n_threads` argument in functions:",
-      # "{.run [sinkhorn()](wig::help(\"sinkhorn\"))}",
-      # "and {.run [barycenter()](wig::help(\"barycenter\"))}.",
-      "{.href [sinkhorn()](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)}",
-      "and {.href [barycenter()](https://fangzhou-xie.github.io/wig/reference/barycenter.html)}.",
+      "{.href [sinkhorn()](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html)}",
+      "and {.href [barycenter()](https://fangzhou-xie.github.io/rwig/reference/barycenter.html)}.",
       "Please read the",
-      "{.href [vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)}",
-      # "{.run vignette(\"threading\", package = \"wig\")}",
+      "{.href [vignette](https://fangzhou-xie.github.io/rwig/articles/threading.html)}",
       "for advanced usage on threading."
     ),
     collapse = " "
@@ -67,10 +61,10 @@ wig_startup_warning_message <- function() {
   paste0(warn_rule, "\n", warns, collapse = "\n")
 }
 
-wig_startup_info_message <- function() {
+startup_info_message <- function() {
   cite_rule <- cli::rule(
     left = cli::style_bold("CITATION:"),
-    right = cli::format_inline("{.pkg wig}"),
+    right = cli::format_inline("{.pkg rwig}"),
     col = "cyan",
     line = 2
   )
@@ -120,13 +114,13 @@ wig_startup_info_message <- function() {
   RhpcBLASctl::blas_set_num_threads(1)
 
   # TODO: add vignette link about the threading (advanced)
-  warn_msg <- wig_startup_warning_message()
+  warn_msg <- startup_warning_message()
   inform_startup(warn_msg)
 
-  info_msg <- wig_startup_info_message()
+  info_msg <- startup_info_message()
   inform_startup(info_msg)
 }
 
 .onUnload <- function(libpath) {
-  library.dynam.unload("wig", libpath)
+  library.dynam.unload("rwig", libpath)
 }

@@ -1,7 +1,7 @@
 // common headers (armadillo)
 
-#ifndef WIG_COMMON_H
-#define WIG_COMMON_H
+#ifndef RWIG_COMMON_H
+#define RWIG_COMMON_H
 
 // #ifndef ARMA_DONT_USE_OPENMP
 // #define ARMA_DONT_USE_OPENMP
@@ -18,4 +18,4 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 
-#endif // WIG_COMMON_H
+#endif // RWIG_COMMON_H

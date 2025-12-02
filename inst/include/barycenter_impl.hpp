@@ -4,8 +4,8 @@
 // https://arxiv.org/abs/2504.08722
 // Section 5 & 6
 
-#ifndef WIG_BARYCENTER_H
-#define WIG_BARYCENTER_H
+#ifndef RWIG_BARYCENTER_H
+#define RWIG_BARYCENTER_H
 
 #include "common.hpp"
 
@@ -134,4 +134,4 @@ public:
 };
 
 
-#endif // WIG_BARYCENTER_H
+#endif // RWIG_BARYCENTER_H

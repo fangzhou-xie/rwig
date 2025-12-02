@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# wig
+# rwig
 
 ```{r, echo = FALSE, results = "hide", message = FALSE}
 # use badges
@@ -26,28 +26,28 @@ cat(
   badge_doi("10.1016/j.econlet.2019.108874", "yellow",
             "DOI: 10.1016/j.econlet.2019.108874"),
   badge_lifecycle("experimental", alt = "experimental version"),
-  # badge_cran_release("wig", "green"),
-  # badge_cran_download("wig", "grand-total", "green"),
-  # badge_cran_checks("wig"),
-  badge_github_actions("fangzhou-xie/wig", "R-CMD-check.yaml"),
+  # badge_cran_release("rwig", "green"),
+  # badge_cran_download("rwig", "grand-total", "green"),
+  # badge_cran_checks("rwig"),
+  badge_github_actions("fangzhou-xie/rwig", "R-CMD-check.yaml"),
   badge_license()
 )
 ```
 <!-- badges: end -->
 
-The `wig` package implements the Sinkhorn algorithms for regularized Optimal
+The `rwig` package implements the Sinkhorn algorithms for regularized Optimal
 Transport problems, Wasserstein Barycenter algorithms for the regularized 
 Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model, 
-and **W**asserstein **I**ndex **G**eneration (**WIG**) model 
+and **W**asserstein **I**ndex **G**eneration (**WIG**) model in **R**
 (see references below).
 
 All the methods are implemented from the ground up with C++ and Armadillo
 (with Rcpp and RcppArmadillo),
 with additional support for multi-threading for the log-stablized
 methods for 
-[sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html) and 
-[barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
-See the [vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
+[sinkhorn](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html) and 
+[barycenter](https://fangzhou-xie.github.io/rwig/reference/barycenter.html).
+See the [vignette](https://fangzhou-xie.github.io/rwig/articles/threading.html)
 on multi-threading for faster processing.
 
 ## Installation
@@ -58,26 +58,26 @@ on multi-threading for faster processing.
 <!-- ``` r -->
 <!-- # install pak if not already done so -->
 <!-- # install.packages("pak") -->
-<!-- pak::pak("wig") -->
+<!-- pak::pak("rwig") -->
 
 <!-- # or you can install it in the classic way -->
-<!-- install.packages("wig") -->
+<!-- install.packages("rwig") -->
 <!-- ``` -->
 
 The package is currently under heavy development and can only be considered
 as alpha stage.
-You can install the development version of wig from [GitHub](https://github.com/) with:
+You can install the development version of `rwig` from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("fangzhou-xie/wig")
+pak::pak("fangzhou-xie/rwig")
 ```
 
 ## Get Started
 
 Please check out all the vignettes for the examples of using this package
 under the "Articles" drop down menu on the 
-[documentation website](https://fangzhou-xie.github.io/wig/).
+[documentation website](https://fangzhou-xie.github.io/rwig/).
 
 ## Citation
 

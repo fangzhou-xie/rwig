@@ -3,8 +3,8 @@
 // https://arxiv.org/abs/2504.08722
 // Section 7.1
 
-#ifndef WIG_OPTIMIZER_H
-#define WIG_OPTIMIZER_H
+#ifndef RWIG_OPTIMIZER_H
+#define RWIG_OPTIMIZER_H
 
 #include "common.hpp"
 
@@ -101,5 +101,5 @@ public:
 };
 
 
-#endif // WIG_OPTIMIZER_H
+#endif // RWIG_OPTIMIZER_H
 

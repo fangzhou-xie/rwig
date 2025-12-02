@@ -23,4 +23,10 @@ headlines
 \description{
 NYT headlines by economic policy uncertainty
 }
+\references{
+Xie, F. (2020). Wasserstein index generation model: Automatic generation of
+time-series index with application to economic policy uncertainty.
+\emph{Economics Letters}, 186, 108874.
+https://doi.org/10.1016/j.econlet.2019.108874
+}
 \keyword{datasets}

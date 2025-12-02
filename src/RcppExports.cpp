@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // barycenter_parallel_cpp
 Rcpp::List barycenter_parallel_cpp(const arma::mat& A, const arma::mat& C, const arma::vec& w, double reg, const arma::vec& b_ext, bool withgrad, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _wig_barycenter_parallel_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _rwig_barycenter_parallel_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -32,7 +32,7 @@ END_RCPP
 }
 // barycenter_log_cpp
 Rcpp::List barycenter_log_cpp(const arma::mat& A, const arma::mat& C, const arma::vec& w, double reg, const arma::vec& b_ext, bool withgrad, const int& n_threads, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _wig_barycenter_log_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP n_threadsSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _rwig_barycenter_log_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP n_threadsSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,7 +52,7 @@ END_RCPP
 }
 // sinkhorn_vanilla_cpp
 Rcpp::List sinkhorn_vanilla_cpp(const arma::vec& a, const arma::vec& b, const arma::mat& C, double reg, bool withgrad, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _wig_sinkhorn_vanilla_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _rwig_sinkhorn_vanilla_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -70,7 +70,7 @@ END_RCPP
 }
 // sinkhorn_log_cpp
 Rcpp::List sinkhorn_log_cpp(const arma::vec& a, const arma::vec& b, const arma::mat& C, double reg, bool withgrad, const int& n_threads, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _wig_sinkhorn_log_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP n_threadsSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _rwig_sinkhorn_log_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP n_threadsSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -89,7 +89,7 @@ END_RCPP
 }
 // tsvd_cpp
 arma::mat tsvd_cpp(const arma::mat& M, const int k, const int flip_sign);
-RcppExport SEXP _wig_tsvd_cpp(SEXP MSEXP, SEXP kSEXP, SEXP flip_signSEXP) {
+RcppExport SEXP _rwig_tsvd_cpp(SEXP MSEXP, SEXP kSEXP, SEXP flip_signSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -102,7 +102,7 @@ END_RCPP
 }
 // euclidean_cpp
 arma::mat euclidean_cpp(const arma::mat& A);
-RcppExport SEXP _wig_euclidean_cpp(SEXP ASEXP) {
+RcppExport SEXP _rwig_euclidean_cpp(SEXP ASEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -113,7 +113,7 @@ END_RCPP
 }
 // doc2dist_cpp
 arma::mat doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict);
-RcppExport SEXP _wig_doc2dist_cpp(SEXP docsSEXP, SEXP dictSEXP) {
+RcppExport SEXP _rwig_doc2dist_cpp(SEXP docsSEXP, SEXP dictSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -125,7 +125,7 @@ END_RCPP
 }
 // wdl_cpp
 Rcpp::List wdl_cpp(const arma::mat& Y, const arma::mat& C, const double reg, const int S, const int n_threads, const int batch_size, const int epochs, int sinkhorn_mode, const int max_iter, const double zero_tol, const int optimizer, const double eta, const double gamma, const double beta1, const double beta2, const double eps, const bool verbose);
-RcppExport SEXP _wig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _rwig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -152,18 +152,18 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_wig_barycenter_parallel_cpp", (DL_FUNC) &_wig_barycenter_parallel_cpp, 9},
-    {"_wig_barycenter_log_cpp", (DL_FUNC) &_wig_barycenter_log_cpp, 10},
-    {"_wig_sinkhorn_vanilla_cpp", (DL_FUNC) &_wig_sinkhorn_vanilla_cpp, 8},
-    {"_wig_sinkhorn_log_cpp", (DL_FUNC) &_wig_sinkhorn_log_cpp, 9},
-    {"_wig_tsvd_cpp", (DL_FUNC) &_wig_tsvd_cpp, 3},
-    {"_wig_euclidean_cpp", (DL_FUNC) &_wig_euclidean_cpp, 1},
-    {"_wig_doc2dist_cpp", (DL_FUNC) &_wig_doc2dist_cpp, 2},
-    {"_wig_wdl_cpp", (DL_FUNC) &_wig_wdl_cpp, 17},
+    {"_rwig_barycenter_parallel_cpp", (DL_FUNC) &_rwig_barycenter_parallel_cpp, 9},
+    {"_rwig_barycenter_log_cpp", (DL_FUNC) &_rwig_barycenter_log_cpp, 10},
+    {"_rwig_sinkhorn_vanilla_cpp", (DL_FUNC) &_rwig_sinkhorn_vanilla_cpp, 8},
+    {"_rwig_sinkhorn_log_cpp", (DL_FUNC) &_rwig_sinkhorn_log_cpp, 9},
+    {"_rwig_tsvd_cpp", (DL_FUNC) &_rwig_tsvd_cpp, 3},
+    {"_rwig_euclidean_cpp", (DL_FUNC) &_rwig_euclidean_cpp, 1},
+    {"_rwig_doc2dist_cpp", (DL_FUNC) &_rwig_doc2dist_cpp, 2},
+    {"_rwig_wdl_cpp", (DL_FUNC) &_rwig_wdl_cpp, 17},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_wig(DllInfo *dll) {
+RcppExport void R_init_rwig(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

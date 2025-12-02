@@ -1,6 +1,3 @@
-
-if ( requireNamespace("tinytest", quietly=TRUE) ){
-  tinytest::test_package("wig")
+if (requireNamespace("tinytest", quietly = TRUE)) {
+  tinytest::test_package("rwig")
 }
-
-

@@ -4,8 +4,8 @@
 // Reference:
 // https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 
-#ifndef WIG_VFORMAT_H
-#define WIG_VFORMAT_H
+#ifndef RWIG_VFORMAT_H
+#define RWIG_VFORMAT_H
 
 // #include <string>
 // #include <cstdarg>
@@ -51,4 +51,4 @@ inline const std::string vformat(const std::string& format, Args ... args) {
   return std::string( buf.get(), buf.get() + size - 1 );
 }
 
-#endif // WIG_VFORMAT_H
+#endif // RWIG_VFORMAT_H

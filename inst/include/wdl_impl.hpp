@@ -4,8 +4,8 @@
 // Section 7.2 and 7.3
 
 
-#ifndef WIG_WDL_H
-#define WIG_WDL_H
+#ifndef RWIG_WDL_H
+#define RWIG_WDL_H
 
 
 // #include <iostream>               // std::cout
@@ -224,4 +224,4 @@ public:
 };
 
 
-#endif // WIG_WDL_H
+#endif // RWIG_WDL_H
