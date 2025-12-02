@@ -82,6 +82,10 @@ Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
 Algorithms (No. arXiv:2504.08722). *arXiv*.
 https://doi.org/10.48550/arXiv.2504.08722
 
+## See also
+
+[`vignette("wdl-model")`](https://fangzhou-xie.github.io/wig/articles/wdl-model.md)
+
 ## Examples
 
 ``` r
@@ -89,5 +93,4 @@ https://doi.org/10.48550/arXiv.2504.08722
 sentences <- c("this is a sentence", "this is another one")
 wdl_fit <- wdl(sentences)
 #> `method` is automatically switched to "log"
-
 ```

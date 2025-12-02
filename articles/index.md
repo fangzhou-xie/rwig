@@ -8,6 +8,8 @@
   Algorithms](https://fangzhou-xie.github.io/wig/articles/barycenter.md):
 - [WDL Model](https://fangzhou-xie.github.io/wig/articles/wdl-model.md):
 - [WIG Model](https://fangzhou-xie.github.io/wig/articles/wig-model.md):
+- [WDL and WIG Model
+  Specs](https://fangzhou-xie.github.io/wig/articles/specs.md):
 
 ### Advanced Topics
 

@@ -1,7 +1,8 @@
 # Barycenter algorithm
 
 Barycenter algorithm to solve for entropy-regularized Optimal Transport
-Barycenter problems.
+Barycenter problems. For a more detailed explaination, please refer to
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
 
 ## Usage
 
@@ -99,6 +100,11 @@ Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
 Algorithms (No. arXiv:2504.08722). *arXiv*.
 https://doi.org/10.48550/arXiv.2504.08722
 
+## See also
+
+[`vignette("gradient")`](https://fangzhou-xie.github.io/wig/articles/gradient.md),
+[`vignette("threading")`](https://fangzhou-xie.github.io/wig/articles/threading.md)
+
 ## Examples
 
 ``` r
@@ -118,9 +124,9 @@ reg <- .1
 sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
 #> `method` is automatically switched to "log"
 #> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.039, avg speed: 0.039
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.004
-#> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.002
+#> iter: 1, err: 0.3207, last speed: 0.018, avg speed: 0.018
+#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.002
+#> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.001
 
 # you can also supply arguments to control the computation
 # for example, including the loss and gradient w.r.t. `A`

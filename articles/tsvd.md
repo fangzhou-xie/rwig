@@ -3,3 +3,40 @@
 ``` r
 library(wig) |> suppressPackageStartupMessages()
 ```
+
+Truncated Singular Value Decomposition (TSVD) is commonly used in
+machine learning for dimension reduction, for example it is implemented
+in
+[scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html).
+
+However, a well known issue in SVD is the “sign indeterminacy”, meaning
+that the result columns might have different signs depending on how SVD
+is computed.
+
+I implemented two versions: one as in `scikit-learn`, and another from
+Bro et al. (2008). The `scikit-learn` version specifies the maximum
+entry (in absolute value) should always be positive, and Bro et
+al. (2008) entails an specific algorithm for resolving the signs.
+
+``` r
+A <- rbind(c(1,3), c(2,-4))
+
+tsvd(A, 1, "auto")
+#>           [,1]
+#> [1,] -2.689994
+#> [2,]  4.352502
+tsvd(A, 1, "sklearn")
+#>           [,1]
+#> [1,] -2.689994
+#> [2,]  4.352502
+tsvd(A, 1, "none")
+#>           [,1]
+#> [1,] -2.689994
+#> [2,]  4.352502
+```
+
+## References
+
+Bro, R., Acar, E., & Kolda, T. G. (2008). Resolving the sign ambiguity
+in the singular value decomposition. Journal of Chemometrics, 22(2),
+135–140. <https://doi.org/10.1002/cem.1122>

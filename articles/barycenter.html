@@ -37,6 +37,7 @@
     <li><a class="dropdown-item" href="../articles/barycenter.html">Barycenter Algorithms</a></li>
     <li><a class="dropdown-item" href="../articles/wdl-model.html">WDL Model</a></li>
     <li><a class="dropdown-item" href="../articles/wig-model.html">WIG Model</a></li>
+    <li><a class="dropdown-item" href="../articles/specs.html">WDL and WIG Model Specs</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced Topics</h6></li>
     <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
@@ -74,7 +75,72 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fangzhou-xie/wig" class="external-link">wig</a></span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-  </main>
+<p>Suppose we have a matrix <strong>A</strong> of size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>×</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">M \times S</annotation></semantics></math>,
+the cost matrix <strong>C</strong> of size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M \times N</annotation></semantics></math>,
+and we are aiming to compute the barycenter vector of size
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>.
+For example,</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.3</span>, <span class="fl">.2</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.1</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.2</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.1</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.3</span>, <span class="fl">.4</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">C</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.2</span>, <span class="fl">.3</span>, <span class="fl">.4</span>, <span class="fl">.5</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.3</span>, <span class="fl">.4</span>, <span class="fl">.3</span>, <span class="fl">.2</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.4</span>, <span class="fl">.3</span>, <span class="fl">.2</span>, <span class="fl">.1</span>, <span class="fl">.2</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.3</span>, <span class="fl">.2</span>, <span class="fl">.1</span>, <span class="fl">.2</span>, <span class="fl">.5</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.5</span>, <span class="fl">.5</span>, <span class="fl">.4</span>, <span class="fl">.0</span>, <span class="fl">.2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.4</span>, <span class="fl">.6</span><span class="op">)</span></span>
+<span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fl">.1</span></span>
+<span></span>
+<span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barycenter.html">barycenter</a></span><span class="op">(</span><span class="va">A</span>, <span class="va">C</span>, <span class="va">w</span>, barycenter_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="va">reg</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `method` is automatically switched to "log"</span></span>
+<span><span class="co">#&gt; Forward pass:</span></span>
+<span><span class="co">#&gt; iter: 1, err: 0.3207, last speed: 0.000, avg speed: 0.000</span></span>
+<span><span class="co">#&gt; iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.000</span></span>
+<span><span class="co">#&gt; iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.000</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="difference-from-sinkhorn">Difference from <code>sinkhorn()</code><a class="anchor" aria-label="anchor" href="#difference-from-sinkhorn"></a>
+</h2>
+<p>The interface for <code><a href="../reference/barycenter.html">barycenter()</a></code> is almost identical to
+<code><a href="../reference/sinkhorn.html">sinkhorn()</a></code> (see <code><a href="../articles/sinkhorn.html">vignette("sinkhorn")</a></code>), except
+for the name of the algorithm. <code><a href="../reference/sinkhorn.html">sinkhorn()</a></code> accepts three
+parameters for the <code>method</code> argument: <code>vanilla</code>,
+<code>log</code>, and <code>auto</code>; whereas
+<code><a href="../reference/barycenter.html">barycenter()</a></code> accepts <code>parallel</code>,
+<code>log</code>, and <code>auto</code>.</p>
+<p>You can still set the gradient, threading (only for
+<code>log</code>), and all other parameters to control the computation
+as in <code><a href="../reference/sinkhorn.html">sinkhorn()</a></code>, but you will also need to supply an
+external vector for <code>b_ext</code> to compute the quadratic loss
+between the output barycenter and <code>b_ext</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.2</span>, <span class="fl">.2</span>, <span class="fl">.2</span>, <span class="fl">.2</span><span class="op">)</span></span>
+<span><span class="va">sol</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/barycenter.html">barycenter</a></span><span class="op">(</span><span class="va">A</span>, <span class="va">C</span>, <span class="va">w</span>, b_ext <span class="op">=</span> <span class="va">b</span>, barycenter_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="va">reg</span>, with_grad <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
+</h2>
+<p>See also <code><a href="../articles/sinkhorn.html">vignette("sinkhorn")</a></code>.</p>
+</div>
+<div class="section level2">
+<h2 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>
+</h2>
+<p>Peyré, G., &amp; Cuturi, M. (2019). Computational Optimal Transport:
+With Applications to Data Science. <em>Foundations and Trends® in
+Machine Learning</em>, 11(5–6), 355–607. <a href="https://doi.org/10.1561/2200000073" class="external-link uri">https://doi.org/10.1561/2200000073</a></p>
+<p>Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
+Transport Algorithms (No. arXiv:2504.08722). <em>arXiv</em>. <a href="https://doi.org/10.48550/arXiv.2504.08722" class="external-link uri">https://doi.org/10.48550/arXiv.2504.08722</a></p>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

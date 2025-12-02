@@ -6,8 +6,8 @@ Control the parameters of WDL and WIG models
 
 ``` r
 wdl_specs(
-  wdl_control = list(embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2, shuffle
-    = TRUE, verbose = FALSE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, verbose
+    = FALSE),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, n_threads = 0, method = "auto",
@@ -17,9 +17,9 @@ wdl_specs(
 )
 
 wig_specs(
-  wig_control = list(group_unit = "months", svd_method = "docs", standardize = TRUE),
-  wdl_control = list(embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2,
-    rng_seed = 123, verbose = FALSE),
+  wig_control = list(group_unit = "month", svd_method = "docs", standardize = TRUE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, rng_seed = 123, verbose
+    = FALSE),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, method = "auto", threshold =
@@ -64,7 +64,9 @@ list of the control lists
 
 ## Details
 
-Control parameters for the WDL and WIG model
+See
+[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md)
+for details on the parameters.
 
 ## References
 
@@ -79,8 +81,8 @@ learning. *SIAM Journal on Imaging Sciences*, 11(1), 643–678.
 https://doi.org/10.1137/17M1140431
 
 Kingma, D. P., & Ba, J. (2015). Adam: A method for stochastic
-optimization. International Conference on Learning Representations
-(ICLR).
+optimization. *International Conference on Learning Representations
+(ICLR)*.
 
 Loshchilov, I., & Hutter, F. (2019). Decoupled Weight Decay
 Regularization (No. arXiv:1711.05101). *arXiv*.
@@ -100,4 +102,5 @@ https://doi.org/10.48550/arXiv.2504.08722
 `wig_specs()`,
 [`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md),
 [`word2vec::word2vec()`](https://rdrr.io/pkg/word2vec/man/word2vec.html),
-[`tokenizers::tokenize_words()`](https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html)
+[`tokenizers::tokenize_words()`](https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html),
+[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md)

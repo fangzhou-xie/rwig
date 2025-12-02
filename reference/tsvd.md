@@ -46,3 +46,14 @@ in the singular value decomposition. Journal of Chemometrics, 22(2),
 
 [Truncated SVD
 (sklearn)](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html)
+[`vignette("tsvd")`](https://fangzhou-xie.github.io/wig/articles/tsvd.md)
+
+## Examples
+
+``` r
+A <- rbind(c(1,3), c(2,4))
+tsvd(A)
+#>          [,1]
+#> [1,] 3.148096
+#> [2,] 4.467164
+```

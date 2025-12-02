@@ -1,7 +1,8 @@
 # Sinkhorn algorithm
 
 Sinkhorn algorithm to solve entropy-regularized Optimal Transport
-problems.
+problems. For a more detailed explaination, please refer to
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md).
 
 ## Usage
 
@@ -10,8 +11,8 @@ sinkhorn(
   a,
   b,
   C,
-  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, method = "auto", threshold = 0.1,
-    max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
+  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, n_threads = 0, method = "auto",
+    threshold = 0.1, max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
 )
 ```
 
@@ -90,6 +91,11 @@ Learning*, 11(5–6), 355–607. https://doi.org/10.1561/2200000073
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal Transport
 Algorithms (No. arXiv:2504.08722). *arXiv*.
 https://doi.org/10.48550/arXiv.2504.08722
+
+## See also
+
+[`vignette("gradient")`](https://fangzhou-xie.github.io/wig/articles/gradient.md),
+[`vignette("threading")`](https://fangzhou-xie.github.io/wig/articles/threading.md)
 
 ## Examples
 
