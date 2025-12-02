@@ -3,7 +3,7 @@
 ## Get Started with Sinkhorn Algorithm
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 Suppose we have two probability vectors **a** and **b**, for example,
@@ -28,7 +28,7 @@ reg <- .1
 
 and the regularization parameter `reg = .1`. We can then compute the
 optimal transport plan by the
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md)
 algorithm:
 
 ``` r
@@ -156,7 +156,7 @@ sol_auto <- sinkhorn(
 ```
 
 See also
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md).
 
 ## Gradient of Loss w.r.t. **a**
 
@@ -181,8 +181,8 @@ sol_grad$grad_a
 ```
 
 See also
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md),
-[`vignette("gradient")`](https://fangzhou-xie.github.io/wig/articles/gradient.md).
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md),
+[`vignette("gradient")`](https://fangzhou-xie.github.io/rwig/articles/gradient.md).
 
 ## Other Control Parameters
 
@@ -226,7 +226,7 @@ sol_verbose <- sinkhorn(
 ```
 
 See also
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md).
 
 ## Reference
 

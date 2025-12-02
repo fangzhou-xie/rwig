@@ -7,15 +7,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/fangzhou-xie/wig/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/fangzhou-xie/rwig/blob/main/DESCRIPTION)
 
-Xie F (2025). *wig: Wasserstein Index Generation (WIG) Model in R*. R
-package version 0.1.0, <https://github.com/fangzhou-xie/wig>.
+Xie F (2025). *rwig: Wasserstein Index Generation (WIG) Model in R*. R
+package version 0.1.0, <https://github.com/fangzhou-xie/rwig>.
 
     @Manual{,
-      title = {wig: Wasserstein Index Generation (WIG) Model in R},
+      title = {rwig: Wasserstein Index Generation (WIG) Model in R},
       author = {Fangzhou Xie},
       year = {2025},
       note = {R package version 0.1.0},
-      url = {https://github.com/fangzhou-xie/wig},
+      url = {https://github.com/fangzhou-xie/rwig},
     }

@@ -39,7 +39,7 @@ summary(object, topic = 1, token_per_topic = 5, ...)
 - specs:
 
   list, model specification for WIG see
-  [`wig_specs`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  [`wig_specs`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
   for reference
 
 - x:
@@ -71,7 +71,7 @@ https://doi.org/10.1016/j.econlet.2019.108874
 
 ## See also
 
-[`vignette("wdl-model")`](https://fangzhou-xie.github.io/wig/articles/wdl-model.md)
+[`vignette("wdl-model")`](https://fangzhou-xie.github.io/rwig/articles/wdl-model.md)
 
 ## Examples
 

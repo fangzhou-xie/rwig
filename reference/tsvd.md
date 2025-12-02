@@ -46,7 +46,7 @@ in the singular value decomposition. Journal of Chemometrics, 22(2),
 
 [Truncated SVD
 (sklearn)](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html)
-[`vignette("tsvd")`](https://fangzhou-xie.github.io/wig/articles/tsvd.md)
+[`vignette("tsvd")`](https://fangzhou-xie.github.io/rwig/articles/tsvd.md)
 
 ## Examples
 

@@ -48,7 +48,7 @@ wig_specs(
 - barycenter_control, :
 
   list, parameters for
-  [`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+  [`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 
 - optimizer_control, :
 
@@ -65,7 +65,7 @@ list of the control lists
 ## Details
 
 See
-[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md)
+[`vignette("specs")`](https://fangzhou-xie.github.io/rwig/articles/specs.md)
 for details on the parameters.
 
 ## References
@@ -100,7 +100,7 @@ https://doi.org/10.48550/arXiv.2504.08722
 ## See also
 
 `wig_specs()`,
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md),
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md),
 [`word2vec::word2vec()`](https://rdrr.io/pkg/word2vec/man/word2vec.html),
 [`tokenizers::tokenize_words()`](https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html),
-[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md)
+[`vignette("specs")`](https://fangzhou-xie.github.io/rwig/articles/specs.md)

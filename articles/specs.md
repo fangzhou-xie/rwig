@@ -1,28 +1,28 @@
 # WDL and WIG Model Specs
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 In this vignette, I will show how to set up the control parameters
 (hyper-parameters) needed for the WDL and WIG models.
 
 The
-[`wdl_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+[`wdl_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
 is a list of lists, and consists of 5 parts (lists): `wdl_control`,
 `tokenizer_control`, `word2vec_control`, `barycenter_control`,
 `optimizer_control`.
 
 The
-[`wig_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+[`wig_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
 is the same as
-[`wdl_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md),
+[`wdl_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md),
 with additional `wig_control`.
 
 ## `wig_control`
 
 This is the options only needed for
-[`wig_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md).
+[`wig_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md).
 By default, it is
 
 ``` r
@@ -52,9 +52,9 @@ wig_control = list(
 ## `wdl_control`
 
 This is the options supplied to the WDL modelling, and is used for both
-[`wdl_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+[`wdl_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
 and
-[`wig_specs()`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md).
+[`wig_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md).
 
 1.  `num_topics`: number of topics for the topic modeling
 2.  `batch_size`: batch size for the training purpose
@@ -82,7 +82,7 @@ min_count = 1
 ## `barycenter_control`
 
 Identical to `barycenter_control` in
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 function, but with default
 
 ``` r
@@ -116,8 +116,8 @@ Section 7.1 in Xie (2025), and the references within.
 ## See Also
 
 See also
-[`vignette("wdl-model")`](https://fangzhou-xie.github.io/wig/articles/wdl-model.md),
-[`vignette("wig-model")`](https://fangzhou-xie.github.io/wig/articles/wig-model.md).
+[`vignette("wdl-model")`](https://fangzhou-xie.github.io/rwig/articles/wdl-model.md),
+[`vignette("wig-model")`](https://fangzhou-xie.github.io/rwig/articles/wig-model.md).
 
 ## References
 

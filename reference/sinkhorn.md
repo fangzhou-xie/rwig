@@ -2,7 +2,7 @@
 
 Sinkhorn algorithm to solve entropy-regularized Optimal Transport
 problems. For a more detailed explaination, please refer to
-[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md).
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/rwig/articles/sinkhorn.md).
 
 ## Usage
 
@@ -94,8 +94,8 @@ https://doi.org/10.48550/arXiv.2504.08722
 
 ## See also
 
-[`vignette("gradient")`](https://fangzhou-xie.github.io/wig/articles/gradient.md),
-[`vignette("threading")`](https://fangzhou-xie.github.io/wig/articles/threading.md)
+[`vignette("gradient")`](https://fangzhou-xie.github.io/rwig/articles/gradient.md),
+[`vignette("threading")`](https://fangzhou-xie.github.io/rwig/articles/threading.md)
 
 ## Examples
 

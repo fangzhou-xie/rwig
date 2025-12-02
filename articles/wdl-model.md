@@ -1,7 +1,7 @@
 # WDL Model
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 Let’s say we have some documents as character vectors, and we want to
@@ -67,7 +67,7 @@ wdl_fit$weights
 ## See Also
 
 See also
-[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md).
+[`vignette("specs")`](https://fangzhou-xie.github.io/rwig/articles/specs.md).
 
 ## References
 

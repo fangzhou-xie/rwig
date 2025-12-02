@@ -30,7 +30,7 @@ summary(object, topic = 1, token_per_topic = 5, ...)
 - specs:
 
   list, model specification for the WDL see
-  [`wdl_specs`](https://fangzhou-xie.github.io/wig/reference/wdl_specs.md)
+  [`wdl_specs`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
   for reference
 
 - verbose:
@@ -61,10 +61,10 @@ topics and weights computed from the WDL given the input data
 
 This is the re-implementation of WDL model from ground up, and it calls
 the
-[`barycenter`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 under the hood (to be precise directly calling the underlying C++
 routine for
-[`barycenter`](https://fangzhou-xie.github.io/wig/reference/barycenter.md))
+[`barycenter`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md))
 
 ## References
 
@@ -84,7 +84,7 @@ https://doi.org/10.48550/arXiv.2504.08722
 
 ## See also
 
-[`vignette("wdl-model")`](https://fangzhou-xie.github.io/wig/articles/wdl-model.md)
+[`vignette("wdl-model")`](https://fangzhou-xie.github.io/rwig/articles/wdl-model.md)
 
 ## Examples
 

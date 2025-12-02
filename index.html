@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Wasserstein Index Generation (WIG) Model in R • wig</title>
+<title>Wasserstein Index Generation (WIG) Model in R • rwig</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">wig</a>
+    <a class="navbar-brand me-2" href="index.html">rwig</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
 
@@ -52,7 +52,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/fangzhou-xie/wig/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/fangzhou-xie/rwig/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -61,12 +61,12 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="wig">wig<a class="anchor" aria-label="anchor" href="#wig"></a>
+<div class="page-header"><h1 id="rwig">rwig<a class="anchor" aria-label="anchor" href="#rwig"></a>
 </h1></div>
 <!-- badges: start -->
 
-<p>The <code>wig</code> package implements the Sinkhorn algorithms for regularized Optimal Transport problems, Wasserstein Barycenter algorithms for the regularized Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model, and <strong>W</strong>asserstein <strong>I</strong>ndex <strong>G</strong>eneration (<strong>WIG</strong>) model (see references below).</p>
-<p>All the methods are implemented from the ground up with C++ and Armadillo (with Rcpp and RcppArmadillo), with additional support for multi-threading for the log-stablized methods for <a href="https://fangzhou-xie.github.io/wig/reference/sinkhorn.html">sinkhorn</a> and <a href="https://fangzhou-xie.github.io/wig/reference/barycenter.html">barycenter</a>. See the <a href="https://fangzhou-xie.github.io/wig/articles/threading.html">vignette</a> on multi-threading for faster processing.</p>
+<p>The <code>rwig</code> package implements the Sinkhorn algorithms for regularized Optimal Transport problems, Wasserstein Barycenter algorithms for the regularized Wasserstein Barycenter problems, Wasserstein Dictionary Learning (WDL) model, and <strong>W</strong>asserstein <strong>I</strong>ndex <strong>G</strong>eneration (<strong>WIG</strong>) model in <strong>R</strong> (see references below).</p>
+<p>All the methods are implemented from the ground up with C++ and Armadillo (with Rcpp and RcppArmadillo), with additional support for multi-threading for the log-stablized methods for <a href="https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html">sinkhorn</a> and <a href="https://fangzhou-xie.github.io/rwig/reference/barycenter.html">barycenter</a>. See the <a href="https://fangzhou-xie.github.io/rwig/articles/threading.html">vignette</a> on multi-threading for faster processing.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -75,19 +75,19 @@
 <!-- ``` r -->
 <!-- # install pak if not already done so -->
 <!-- # install.packages("pak") -->
-<!-- pak::pak("wig") -->
+<!-- pak::pak("rwig") -->
 <!-- # or you can install it in the classic way -->
-<!-- install.packages("wig") -->
+<!-- install.packages("rwig") -->
 <!-- ``` -->
-<p>The package is currently under heavy development and can only be considered as alpha stage. You can install the development version of wig from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<p>The package is currently under heavy development and can only be considered as alpha stage. You can install the development version of <code>rwig</code> from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"fangzhou-xie/wig"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"fangzhou-xie/rwig"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="get-started">Get Started<a class="anchor" aria-label="anchor" href="#get-started"></a>
 </h2>
-<p>Please check out all the vignettes for the examples of using this package under the “Articles” drop down menu on the <a href="https://fangzhou-xie.github.io/wig/">documentation website</a>.</p>
+<p>Please check out all the vignettes for the examples of using this package under the “Articles” drop down menu on the <a href="https://fangzhou-xie.github.io/rwig/">documentation website</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
@@ -118,9 +118,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://cloud.r-project.org/package=wig" class="external-link">View on CRAN</a></li>
-<li><a href="https://github.com/fangzhou-xie/wig/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/fangzhou-xie/wig/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/fangzhou-xie/rwig/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/fangzhou-xie/rwig/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -136,7 +135,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing wig</a></li>
+<li><a href="authors.html#citation">Citing rwig</a></li>
 </ul>
 </div>
 
@@ -152,7 +151,7 @@
 <ul class="list-unstyled">
 <li><a href="https://doi.org/10.1016/j.econlet.2019.108874" class="external-link"><img src="https://img.shields.io/badge/doi-10.1016/j.econlet.2019.108874-yellow.svg" alt="DOI: 10.1016/j.econlet.2019.108874"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="experimental version"></a></li>
-<li><a href="https://github.com/fangzhou-xie/wig/actions" class="external-link"><img src="https://github.com/fangzhou-xie/wig/workflows/R-CMD-check.yaml/badge.svg" alt="R build status"></a></li>
+<li><a href="https://github.com/fangzhou-xie/rwig/actions" class="external-link"><img src="https://github.com/fangzhou-xie/rwig/workflows/R-CMD-check.yaml/badge.svg" alt="R build status"></a></li>
 <li><a href="https://cran.r-project.org/web/licenses/MIT" class="external-link"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a></li>
 </ul>
 </div>

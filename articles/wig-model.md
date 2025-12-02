@@ -1,7 +1,7 @@
 # WIG Model
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 The Wasserstein Index Generation (WIG) model leverages the WDL model for
@@ -30,8 +30,8 @@ wigfit
 ## See Also
 
 See also
-[`vignette("wdl-model")`](https://fangzhou-xie.github.io/wig/articles/wdl-model.md),
-[`vignette("specs")`](https://fangzhou-xie.github.io/wig/articles/specs.md).
+[`vignette("wdl-model")`](https://fangzhou-xie.github.io/rwig/articles/wdl-model.md),
+[`vignette("specs")`](https://fangzhou-xie.github.io/rwig/articles/specs.md).
 
 ## References
 

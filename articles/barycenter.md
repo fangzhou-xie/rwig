@@ -1,7 +1,7 @@
 # Barycenter Algorithms
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 Suppose we have a matrix **A** of size $M \times S$, the cost matrix
@@ -37,21 +37,21 @@ sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
 ## Difference from `sinkhorn()`
 
 The interface for
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 is almost identical to
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md)
 (see
-[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md)),
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/rwig/articles/sinkhorn.md)),
 except for the name of the algorithm.
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md)
 accepts three parameters for the `method` argument: `vanilla`, `log`,
 and `auto`; whereas
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 accepts `parallel`, `log`, and `auto`.
 
 You can still set the gradient, threading (only for `log`), and all
 other parameters to control the computation as in
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md),
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md),
 but you will also need to supply an external vector for `b_ext` to
 compute the quadratic loss between the output barycenter and `b_ext`.
 
@@ -63,7 +63,7 @@ sol <- barycenter(A, C, w, b_ext = b, barycenter_control = list(reg = reg, with_
 ## See Also
 
 See also
-[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md).
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/rwig/articles/sinkhorn.md).
 
 ## Reference
 

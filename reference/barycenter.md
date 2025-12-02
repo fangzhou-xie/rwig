@@ -2,7 +2,7 @@
 
 Barycenter algorithm to solve for entropy-regularized Optimal Transport
 Barycenter problems. For a more detailed explaination, please refer to
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md).
 
 ## Usage
 
@@ -102,8 +102,8 @@ https://doi.org/10.48550/arXiv.2504.08722
 
 ## See also
 
-[`vignette("gradient")`](https://fangzhou-xie.github.io/wig/articles/gradient.md),
-[`vignette("threading")`](https://fangzhou-xie.github.io/wig/articles/threading.md)
+[`vignette("gradient")`](https://fangzhou-xie.github.io/rwig/articles/gradient.md),
+[`vignette("threading")`](https://fangzhou-xie.github.io/rwig/articles/threading.md)
 
 ## Examples
 
@@ -124,8 +124,8 @@ reg <- .1
 sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
 #> `method` is automatically switched to "log"
 #> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.018, avg speed: 0.018
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.002
+#> iter: 1, err: 0.3207, last speed: 0.015, avg speed: 0.015
+#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.001
 #> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.001
 
 # you can also supply arguments to control the computation

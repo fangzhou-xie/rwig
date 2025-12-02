@@ -1,7 +1,7 @@
 # Truncated SVD
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 Truncated Singular Value Decomposition (TSVD) is commonly used in

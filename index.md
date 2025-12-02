@@ -1,37 +1,37 @@
-# wig
+# rwig
 
-The `wig` package implements the Sinkhorn algorithms for regularized
+The `rwig` package implements the Sinkhorn algorithms for regularized
 Optimal Transport problems, Wasserstein Barycenter algorithms for the
 regularized Wasserstein Barycenter problems, Wasserstein Dictionary
 Learning (WDL) model, and **W**asserstein **I**ndex **G**eneration
-(**WIG**) model (see references below).
+(**WIG**) model in **R** (see references below).
 
 All the methods are implemented from the ground up with C++ and
 Armadillo (with Rcpp and RcppArmadillo), with additional support for
 multi-threading for the log-stablized methods for
-[sinkhorn](https://fangzhou-xie.github.io/wig/reference/sinkhorn.html)
+[sinkhorn](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html)
 and
-[barycenter](https://fangzhou-xie.github.io/wig/reference/barycenter.html).
+[barycenter](https://fangzhou-xie.github.io/rwig/reference/barycenter.html).
 See the
-[vignette](https://fangzhou-xie.github.io/wig/articles/threading.html)
+[vignette](https://fangzhou-xie.github.io/rwig/articles/threading.html)
 on multi-threading for faster processing.
 
 ## Installation
 
 The package is currently under heavy development and can only be
 considered as alpha stage. You can install the development version of
-wig from [GitHub](https://github.com/) with:
+`rwig` from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
-pak::pak("fangzhou-xie/wig")
+pak::pak("fangzhou-xie/rwig")
 ```
 
 ## Get Started
 
 Please check out all the vignettes for the examples of using this
 package under the “Articles” drop down menu on the [documentation
-website](https://fangzhou-xie.github.io/wig/).
+website](https://fangzhou-xie.github.io/rwig/).
 
 ## Citation
 

@@ -1,4 +1,4 @@
 # License
 
     YEAR: 2025
-    COPYRIGHT HOLDER: wig authors
+    COPYRIGHT HOLDER: rwig authors

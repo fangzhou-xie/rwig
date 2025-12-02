@@ -1,13 +1,13 @@
 # Computation of the Gradients
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 To set up the computation for the
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md)
 and
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 algorithms, you will need to set `with_grad = TRUE` for
 `sinkhorn_control` and `barycenter_control`.
 
@@ -17,8 +17,8 @@ checked by the Automatic Differentiation library `ForwardDiff` in Julia.
 ## See Also
 
 See also
-[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md),
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/rwig/articles/sinkhorn.md),
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md).
 
 ## References
 

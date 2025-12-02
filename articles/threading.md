@@ -1,13 +1,13 @@
 # Multi-threading Support
 
 ``` r
-library(wig) |> suppressPackageStartupMessages()
+library(rwig) |> suppressPackageStartupMessages()
 ```
 
 The log methods for
-[`sinkhorn()`](https://fangzhou-xie.github.io/wig/reference/sinkhorn.md)
+[`sinkhorn()`](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.md)
 and
-[`barycenter()`](https://fangzhou-xie.github.io/wig/reference/barycenter.md)
+[`barycenter()`](https://fangzhou-xie.github.io/rwig/reference/barycenter.md)
 both require row-by-row and column-by-column *soft-minimum* operations
 for each iteration of the algorithm, and therefore suffer from slow
 computation time compared to the vanilla/parallel version.
@@ -30,8 +30,8 @@ threading actually helps.
 ## See Also
 
 See also
-[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/wig/articles/sinkhorn.md),
-[`vignette("barycenter")`](https://fangzhou-xie.github.io/wig/articles/barycenter.md).
+[`vignette("sinkhorn")`](https://fangzhou-xie.github.io/rwig/articles/sinkhorn.md),
+[`vignette("barycenter")`](https://fangzhou-xie.github.io/rwig/articles/barycenter.md).
 
 ## References
 
