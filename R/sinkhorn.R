@@ -6,8 +6,9 @@
 #' @family Sinkhorn algorithms
 #'
 #' @description
-#' Sinkhorn algorithm to solve entropy-regularized Optimal Transport
-#' problems.
+#' Sinkhorn algorithm to solve entropy-regularized Optimal Transport problems.
+#' For a more detailed explaination, please refer to
+#' \code{vignette("sinkhorn")}.
 #'
 #' @details
 #' This is the general function to solve the OT problem,
@@ -75,6 +76,10 @@
 #' sol <- sinkhorn(a, b, C,
 #' sinkhorn_control = list(reg = reg, with_grad = TRUE, verbose = 0))
 #'
+#' @seealso
+#' \code{vignette("gradient")},
+#' \code{vignette("threading")}
+#'
 #' @importFrom Rcpp evalCpp
 #' @export
 sinkhorn <- function(
@@ -84,6 +89,7 @@ sinkhorn <- function(
   sinkhorn_control = list(
     reg = .1,
     with_grad = FALSE,
+    n_threads = 0,
     method = "auto",
     threshold = .1,
     max_iter = 1000L,
@@ -162,6 +168,9 @@ sinkhorn <- function(
   } else {
     stop("method is not supported!")
   }
+
+  # add method into the results
+  sol$method <- sinkhorn_control$method
   sol
 }
 

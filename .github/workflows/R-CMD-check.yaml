@@ -47,14 +47,14 @@ jobs:
           needs: check
 
       # Force reinstall RcppArmadillo from source on macOS to ensure compatibility
-      - name: Reinstall RcppArmadillo (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          install.packages("pak")
-          pak::pak("coatless-mac/macrtools")
-          macrtools::gfortran_install()
-          #install.packages("RcppArmadillo", type = "source", repos = "https://cloud.r-project.org")
-        shell: Rscript {0}
+      #- name: Reinstall RcppArmadillo (macOS)
+      #  if: runner.os == 'macOS'
+      #  run: |
+      #    install.packages("pak")
+      #    pak::pak("coatless-mac/macrtools")
+      #    macrtools::gfortran_install()
+      #    #install.packages("RcppArmadillo", type = "source", repos = "https://cloud.r-project.org")
+      #  shell: Rscript {0}
 
       - uses: r-lib/actions/check-r-package@v2
         with:

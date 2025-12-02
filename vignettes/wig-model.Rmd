@@ -18,3 +18,35 @@ knitr::opts_chunk$set(
 library(wig) |> suppressPackageStartupMessages()
 ```
 
+The Wasserstein Index Generation (WIG) model leverages
+the WDL model for topic modeling and generates time series
+sentiment index, given that the docs are associated with timestamps.
+This was used to automatically reconstruct the Economic Policy Uncertain (EPU)
+index.
+
+```{r}
+# create a small dataset
+wigdf <- data.frame(
+  ref_date = as.Date(c("2012-01-01", "2012-02-01")),
+  docs = c("this is a sentence", "this is another sentence")
+)
+
+wigfit <- wig(wigdf, ref_date, docs)
+wigfit
+```
+
+## See Also
+
+See also `vignette("wdl-model")`, `vignette("specs")`.
+
+## References
+
+Baker, S. R., Bloom, N., & Davis, S. J. (2016). 
+Measuring economic policy uncertainty. 
+*The Quarterly Journal of Economics*, 131(4), 1593–1636. 
+https://doi.org/10.1093/qje/qjw024
+
+Xie, F. (2020). Wasserstein index generation model: Automatic generation of
+time-series index with application to economic policy uncertainty.
+*Economics Letters*, 186, 108874.
+https://doi.org/10.1016/j.econlet.2019.108874

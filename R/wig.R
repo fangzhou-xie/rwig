@@ -37,6 +37,8 @@ aggregate_by_period <- function(datetimes, values, unit = "month") {
 #'
 #' wigfit <- wig(wigdf, ref_date, docs)
 #'
+#' @seealso
+#' \code{vignette("wdl-model")}
 #'
 #' @export
 wig <- function(.data, date_col, docs_col, ...) {

@@ -28,6 +28,11 @@ Two variants of "sign flipping methods" are implemented here,
 one following the sklearn implementation on Truncated SVD,
 another by Bro et al. (2008).
 }
+\examples{
+A <- rbind(c(1,3), c(2,4))
+tsvd(A)
+
+}
 \references{
 https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html
 
@@ -37,4 +42,5 @@ Journal of Chemometrics, 22(2), 135–140. https://doi.org/10.1002/cem.1122
 }
 \seealso{
 \href{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html}{Truncated SVD (sklearn)}
+\code{vignette("tsvd")}
 }

@@ -8,6 +8,8 @@
 #' @description
 #' Barycenter algorithm to solve for entropy-regularized Optimal Transport
 #' Barycenter problems.
+#' For a more detailed explaination, please refer to
+#' \code{vignette("barycenter")}.
 #'
 #' @details
 #' This is the general function to solve OT Barycenter problem,
@@ -78,6 +80,10 @@
 #' # you can also supply arguments to control the computation
 #' # for example, including the loss and gradient w.r.t. `A`
 #' sol <- barycenter(A, C, w, b, barycenter_control = list(reg = reg, with_grad = TRUE))
+#'
+#' @seealso
+#' \code{vignette("gradient")},
+#' \code{vignette("threading")}
 #'
 #' @importFrom Rcpp evalCpp
 #' @export
@@ -204,6 +210,8 @@ barycenter <- function(
     stop("method is not supported!")
   }
 
+  # add method into the results
+  sol$method <- barycenter_control$method
   sol
 }
 

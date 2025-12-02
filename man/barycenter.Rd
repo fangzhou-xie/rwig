@@ -59,6 +59,8 @@ list of results
 \description{
 Barycenter algorithm to solve for entropy-regularized Optimal Transport
 Barycenter problems.
+For a more detailed explaination, please refer to
+\code{vignette("barycenter")}.
 }
 \details{
 This is the general function to solve OT Barycenter problem,
@@ -96,5 +98,9 @@ https://doi.org/10.1561/2200000073
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
 Transport Algorithms (No. arXiv:2504.08722). \emph{arXiv}.
 https://doi.org/10.48550/arXiv.2504.08722
+}
+\seealso{
+\code{vignette("gradient")},
+\code{vignette("threading")}
 }
 \concept{Barycenter algorithms}

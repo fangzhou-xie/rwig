@@ -40,6 +40,8 @@
 #' sentences <- c("this is a sentence", "this is another one")
 #' wdl_fit <- wdl(sentences)
 #'
+#' @seealso
+#' \code{vignette("wdl-model")}
 #'
 #' @importFrom Rcpp evalCpp
 #' @export

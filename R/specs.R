@@ -8,7 +8,7 @@
 #' Control the parameters of WDL and WIG models
 #'
 #' @details
-#' Control parameters for the WDL and WIG model
+#' See \code{vignette("specs")} for details on the parameters.
 #'
 #' @references
 #'
@@ -26,7 +26,7 @@
 #'
 #' Kingma, D. P., & Ba, J. (2015).
 #' Adam: A method for stochastic optimization.
-#' International Conference on Learning Representations (ICLR).
+#' *International Conference on Learning Representations (ICLR)*.
 #'
 #' Loshchilov, I., & Hutter, F. (2019).
 #' Decoupled Weight Decay Regularization (No. arXiv:1711.05101). *arXiv*.
@@ -52,14 +52,14 @@
 #' (SGD, Adam, AdamW)
 #'
 #' @seealso [wig_specs()], [barycenter()],
-#' [word2vec::word2vec()], [tokenizers::tokenize_words()]
+#' [word2vec::word2vec()], [tokenizers::tokenize_words()],
+#' \code{vignette("specs")}
 #'
 #' @return list of the control lists
 #'
 #' @export
 wdl_specs <- function(
   wdl_control = list(
-    embed_dim = 10,
     num_topics = 4,
     batch_size = 64,
     epochs = 2,
@@ -110,12 +110,11 @@ wdl_specs <- function(
 #' @export
 wig_specs <- function(
   wig_control = list(
-    group_unit = "months",
+    group_unit = "month",
     svd_method = "docs",
     standardize = TRUE
   ),
   wdl_control = list(
-    embed_dim = 10,
     num_topics = 4,
     batch_size = 64,
     epochs = 2,

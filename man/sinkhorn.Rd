@@ -8,8 +8,8 @@ sinkhorn(
   a,
   b,
   C,
-  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, method = "auto", threshold = 0.1,
-    max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
+  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, n_threads = 0, method = "auto",
+    threshold = 0.1, max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
 )
 }
 \arguments{
@@ -52,8 +52,9 @@ list of results
 }
 }
 \description{
-Sinkhorn algorithm to solve entropy-regularized Optimal Transport
-problems.
+Sinkhorn algorithm to solve entropy-regularized Optimal Transport problems.
+For a more detailed explaination, please refer to
+\code{vignette("sinkhorn")}.
 }
 \details{
 This is the general function to solve the OT problem,
@@ -90,5 +91,9 @@ https://doi.org/10.1561/2200000073
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
 Transport Algorithms (No. arXiv:2504.08722). \emph{arXiv}.
 https://doi.org/10.48550/arXiv.2504.08722
+}
+\seealso{
+\code{vignette("gradient")},
+\code{vignette("threading")}
 }
 \concept{Sinkhorn algorithms}

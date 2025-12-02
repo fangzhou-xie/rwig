@@ -50,7 +50,6 @@ for \code{\link{barycenter}})
 sentences <- c("this is a sentence", "this is another one")
 wdl_fit <- wdl(sentences)
 
-
 }
 \references{
 Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport:
@@ -68,4 +67,7 @@ https://doi.org/10.1137/17M1140431
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
 Transport Algorithms (No. arXiv:2504.08722). \emph{arXiv}.
 https://doi.org/10.48550/arXiv.2504.08722
+}
+\seealso{
+\code{vignette("wdl-model")}
 }

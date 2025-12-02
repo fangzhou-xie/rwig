@@ -6,8 +6,8 @@
 \title{Model Specs for WDL and WIG models}
 \usage{
 wdl_specs(
-  wdl_control = list(embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2, shuffle
-    = TRUE, verbose = FALSE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, verbose
+    = FALSE),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, n_threads = 0, method = "auto",
@@ -17,9 +17,9 @@ wdl_specs(
 )
 
 wig_specs(
-  wig_control = list(group_unit = "months", svd_method = "docs", standardize = TRUE),
-  wdl_control = list(embed_dim = 10, num_topics = 4, batch_size = 64, epochs = 2,
-    rng_seed = 123, verbose = FALSE),
+  wig_control = list(group_unit = "month", svd_method = "docs", standardize = TRUE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, rng_seed = 123, verbose
+    = FALSE),
   tokenizer_control = list(),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, method = "auto", threshold =
@@ -52,7 +52,7 @@ list of the control lists
 Control the parameters of WDL and WIG models
 }
 \details{
-Control parameters for the WDL and WIG model
+See \code{vignette("specs")} for details on the parameters.
 }
 \references{
 Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport:
@@ -69,7 +69,7 @@ https://doi.org/10.1137/17M1140431
 
 Kingma, D. P., & Ba, J. (2015).
 Adam: A method for stochastic optimization.
-International Conference on Learning Representations (ICLR).
+\emph{International Conference on Learning Representations (ICLR)}.
 
 Loshchilov, I., & Hutter, F. (2019).
 Decoupled Weight Decay Regularization (No. arXiv:1711.05101). \emph{arXiv}.
@@ -86,5 +86,6 @@ https://doi.org/10.48550/arXiv.2504.08722
 }
 \seealso{
 \code{\link[=wig_specs]{wig_specs()}}, \code{\link[=barycenter]{barycenter()}},
-\code{\link[word2vec:word2vec]{word2vec::word2vec()}}, \code{\link[tokenizers:basic-tokenizers]{tokenizers::tokenize_words()}}
+\code{\link[word2vec:word2vec]{word2vec::word2vec()}}, \code{\link[tokenizers:basic-tokenizers]{tokenizers::tokenize_words()}},
+\code{vignette("specs")}
 }

@@ -17,3 +17,60 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(wig) |> suppressPackageStartupMessages()
 ```
+
+Let's say we have some documents as character vectors,
+and we want to discover the underlying topics.
+This is called "topic modeling", and Latent Dirichlet Allocation (LDA)
+is probably the most famous among all of topic models.
+Here, we consider the Wasserstein Dicionary Learning (WDL) model.
+
+```{r}
+# a very simple example
+sentences <- c("this is a sentence", "this is another one")
+wdl_fit <- wdl(sentences)
+
+wdl_fit
+```
+
+We can see from the topics that they are vectors of the tokens (words)
+with associated probabilities.
+If you want to access the topics,
+you can do this:
+
+```{r}
+wdl_fit$topics
+```
+
+Alternatively, you can also obtain the weights of the topics
+used to re-construct the input data:
+
+```{r}
+wdl_fit$weights
+```
+
+## See Also
+
+See also `vignette("specs")`.
+
+
+## References
+
+Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). 
+Latent dirichlet allocation. 
+*Journal of Machine Learning Research*, 3(Jan), 993–1022.
+
+Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport:
+With Applications to Data Science.
+*Foundations and Trends® in Machine Learning*, 11(5–6), 355–607.
+https://doi.org/10.1561/2200000073
+
+Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D.,
+Cuturi, M., Peyré, G., & Starck, J.-L. (2018).
+Wasserstein dictionary learning:
+Optimal transport-based unsupervised nonlinear dictionary learning.
+*SIAM Journal on Imaging Sciences*, 11(1), 643–678.
+https://doi.org/10.1137/17M1140431
+
+Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
+Transport Algorithms (No. arXiv:2504.08722). *arXiv*.
+https://doi.org/10.48550/arXiv.2504.08722

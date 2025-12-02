@@ -41,6 +41,7 @@ articles:
   - barycenter
   - wdl-model
   - wig-model
+  - specs
 
 - title: Advanced Topics
   navbar: Advanced Topics

@@ -17,3 +17,63 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(wig) |> suppressPackageStartupMessages()
 ```
+
+Suppose we have a matrix **A** of size $M \times S$,
+the cost matrix **C** of size $M \times N$,
+and we are aiming to compute the barycenter vector of size $N$.
+For example,
+
+```{r}
+A <- rbind(
+  c(.3, .2),
+  c(.2, .1),
+  c(.1, .2),
+  c(.1, .1),
+  c(.3, .4)
+)
+C <- rbind(
+  c(.1, .2, .3, .4, .5),
+  c(.2, .3, .4, .3, .2),
+  c(.4, .3, .2, .1, .2),
+  c(.3, .2, .1, .2, .5),
+  c(.5, .5, .4, .0, .2)
+)
+w <- c(.4, .6)
+reg <- .1
+
+sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
+```
+
+## Difference from `sinkhorn()`
+
+The interface for `barycenter()` is almost identical to `sinkhorn()`
+(see `vignette("sinkhorn")`), except for the name of the algorithm.
+`sinkhorn()` accepts three parameters for the `method` argument:
+`vanilla`, `log`, and `auto`;
+whereas `barycenter()` accepts `parallel`, `log`, and `auto`.
+
+You can still set the gradient, threading (only for `log`),
+and all other parameters to control the computation as in `sinkhorn()`,
+but you will also need to supply an external vector for `b_ext`
+to compute the quadratic loss between the output barycenter and `b_ext`.
+
+```r
+b <- c(.2, .2, .2, .2, .2)
+sol <- barycenter(A, C, w, b_ext = b, barycenter_control = list(reg = reg, with_grad = TRUE))
+```
+
+## See Also
+
+See also `vignette("sinkhorn")`.
+
+
+## Reference
+
+Peyré, G., & Cuturi, M. (2019). 
+Computational Optimal Transport: With Applications to Data Science.
+*Foundations and Trends® in Machine Learning*, 11(5–6), 355–607.
+https://doi.org/10.1561/2200000073
+
+Xie, F. (2025). 
+Deriving the Gradients of Some Popular Optimal Transport Algorithms (No. arXiv:2504.08722). *arXiv*. 
+https://doi.org/10.48550/arXiv.2504.08722
