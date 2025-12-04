@@ -301,8 +301,12 @@ void Sinkhorn::_fwd_log(const int& n_threads) {
   _u = vec(_M, fill::zeros); // f
   _v = vec(_N, fill::zeros); // g
   if (_withgrad) {
-    // _uhist.col(this->iter) = _u;
-    // _vhist.col(this->iter) = _v;
+    // Pre-allocate history vectors to avoid reallocation overhead
+    _uhist.clear();
+    _vhist.clear();
+    _uhist.reserve(_maxiter + 1);
+    _vhist.reserve(_maxiter + 1);
+
     _uhist.push_back(_u);
     _vhist.push_back(_v);
   }
