@@ -132,19 +132,13 @@ wig.data.frame <- function(
   #   WIG = c(xts::period.apply(wig_doc_scores, date_end_vec, FUN = sum))
   # )
 
-  # use `lubridate` for grouping
-  wig_raw_df <- aggregate_by_period(
+  # use `lubridate` for grouping - aggregate_by_period already does the grouping and summing
+  wig_df <- aggregate_by_period(
     date_vec,
     wig_doc_scores,
     unit = wig_args$group_unit
   )
-  colnames(wig_raw_df) <- c("ref_date", "WIG")
-
-  # base R solution to summarize
-  wig_raw_by_df <- by(wig_raw_df, wig_raw_df$ref_date, function(df) {
-    with(df, data.frame(ref_date = ref_date[[1]], WIG = sum(WIG)))
-  })
-  wig_df <- do.call(rbind, wig_raw_by_df)
+  colnames(wig_df) <- c("ref_date", "WIG")
   rownames(wig_df) <- NULL # remove the row names
 
   date_vec <- wig_df$ref_date

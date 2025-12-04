@@ -4,6 +4,7 @@
 
 #include <vector> // std::vector
 #include <string> // std::string
+#include <unordered_map> // std::unordered_map
 
 #include "common.hpp"
 
@@ -16,56 +17,65 @@
 // Euclidean matrix based on embeddings
 // [[Rcpp::export]]
 arma::mat euclidean_cpp(const arma::mat& A) {
-  // convert AR to A
-  // mat A = as_Mat(AR);
+  // Optimized vectorized implementation using the identity:
+  // ||a - b||^2 = ||a||^2 + ||b||^2 - 2*a·b
+  // This avoids nested loops and leverages BLAS operations
 
-  // create output matrix
-  arma::mat euc = arma::mat(A.n_rows, A.n_rows, arma::fill::zeros);
+  size_t n = A.n_rows;
 
-  double c = 0.;
-  for (size_t i = 0; i < A.n_rows; ++i) {
-    for (size_t j = 0; j < A.n_rows; ++j) {
-      if (i < j) {
-        c = sqrt(accu(square(A.row(i) - A.row(j))));
-        euc(i,j) = c;
-        euc(j,i) = c;
-      }
-    }
-  }
-  // return as_doubles_matrix(euc);
+  // Compute squared norms for each row
+  arma::vec sq_norms = arma::sum(arma::square(A), 1);
+
+  // Compute distance matrix using broadcasting:
+  // dist^2 = norms + norms' - 2*A*A'
+  arma::mat euc = arma::repmat(sq_norms, 1, n) +
+                  arma::repmat(sq_norms.t(), n, 1) -
+                  2.0 * A * A.t();
+
+  // Handle numerical errors (small negative values due to floating point)
+  euc.transform([](double val) { return (val < 0.0) ? 0.0 : std::sqrt(val); });
+
   return euc;
 }
 
-// TODO: re-implement the `doc2dist` function directly using `cpp11::strings`
+// Optimized doc2dist using hash map for O(1) dictionary lookup
 // [[Rcpp::export]]
 arma::mat doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict) {
   // docs: list of character vectors
   // dict: character vector of the dictionary
+
+  // Build hash map for O(1) dictionary lookup
+  std::unordered_map<std::string, int> dict_map;
+  dict_map.reserve(dict.size());
+  for (int i = 0; i < dict.size(); ++i) {
+    dict_map[Rcpp::as<std::string>(dict[i])] = i;
+  }
 
   // create output matrix
   arma::mat docmat(dict.size(), docs.size(), arma::fill::zeros);
 
   // loop the documents
   for (int j = 0; j < docs.size(); ++j) {
-
-    // cpp11::strings docs_j = docs[j];
     std::vector<std::string> docs_j = docs[j];
 
     // loop the tokens inside doc
-    for (long unsigned int k = 0; k < docs_j.size(); ++k) {
-      // cpp11::r_string s = docs_j[k];
-      std::string s = docs_j[k];
-      auto it = std::find(dict.begin(), dict.end(), s);
-      int idx = std::distance(dict.begin(), it);
-      idx = (idx == dict.size()) ? dict.size() - 1 : idx;
-      docmat(idx, j) += 1;
+    for (size_t k = 0; k < docs_j.size(); ++k) {
+      const std::string& s = docs_j[k];
+      auto it = dict_map.find(s);
+
+      // Only count tokens that are in the dictionary
+      if (it != dict_map.end()) {
+        docmat(it->second, j) += 1.0;
+      }
     } // END of loop tokens
 
     // scale the matrix so that each col sum to 1
-    docmat.col(j) /= accu(docmat.col(j));
+    double col_sum = arma::accu(docmat.col(j));
+    if (col_sum > 0.0) {
+      docmat.col(j) /= col_sum;
+    }
   } // END of loop documents
 
-  // return as_doubles_matrix(docmat);
   return docmat;
 }
 

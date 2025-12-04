@@ -94,14 +94,15 @@ void Sinkhorn::_fwd_vanilla() {
   _u = vec(_M, fill::ones);
   _v = vec(_N, fill::ones);
   if (_withgrad) {
-    // _uhist.col(this->iter) = _u;
-    // _vhist.col(this->iter) = _v;
+    // Pre-allocate history vectors to avoid reallocation overhead
+    // Reserve space for maxiter+1 entries (initial + all iterations)
+    _uhist.clear();
+    _vhist.clear();
+    _uhist.reserve(_maxiter + 1);
+    _vhist.reserve(_maxiter + 1);
+
     _uhist.push_back(_u);
     _vhist.push_back(_v);
-    // _Whist.push_back(mat(_M, _N, fill::zeros));
-    // _Xhist.push_back(mat(_N, _M, fill::zeros));
-    // _W = mat(_M, _N, fill::zeros);
-    // _X = mat(_N, _M, fill::zeros);
   }
 
   // logging for backward pass
