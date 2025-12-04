@@ -110,21 +110,30 @@ void Sinkhorn::_fwd_vanilla() {
     Rcpp::message(Rf_mkString("Forward pass:"));
   }
 
+  // Pre-allocate temporary vectors to avoid repeated allocations in hot loop
+  vec Kv(_M);
+  vec Ktu(_N);
+
   while ((this->iter < _maxiter) & (this->err >= _zerotol)) {
     // cpp11::check_user_interrupt();
     Rcpp::checkUserInterrupt();
     this->iter++;
     if (_verbose != 0) { _timer.tic(); }
 
-    _u = _a / (_K * _v);
-    // if (_withgrad) { _uhist.col(this->iter) = _u; }
+    // Update u using cached matrix-vector product
+    Kv = _K * _v;
+    _u = _a / Kv;
     if (_withgrad) { _uhist.push_back(_u); }
 
-    _v = _b / (_K.t() * _u);
-    // if (_withgrad) { _vhist.col(this->iter) = _v; }
+    // Update v using cached matrix-vector product
+    Ktu = _K.t() * _u;
+    _v = _b / Ktu;
     if (_withgrad) { _vhist.push_back(_v); }
 
-    this->err = norm(_u % (_K*_v) - _a, 2) + norm(_v % (_K.t()*_u) - _b, 2);
+    // Compute error with updated u and v
+    Kv = _K * _v;
+    Ktu = _K.t() * _u;
+    this->err = norm(_u % Kv - _a, 2) + norm(_v % Ktu - _b, 2);
     if (_verbose != 0) { _timer.toc(); }
 
     // logging

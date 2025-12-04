@@ -58,6 +58,14 @@ void Barycenter::_fwd_parallel() {
   this->U = mat(_M, _S, fill::ones);
   this->V = mat(_N, _S, fill::ones);
   if (_withgrad) {
+    // Pre-allocate history vectors to avoid reallocation overhead
+    _Uhist.clear();
+    _Vhist.clear();
+    _bhist.clear();
+    _Uhist.reserve(_maxiter + 1);
+    _Vhist.reserve(_maxiter + 1);
+    _bhist.reserve(_maxiter + 1);
+
     _Uhist.push_back(this->U);
     _Vhist.push_back(this->V);
     _bhist.push_back(this->b);
@@ -96,9 +104,9 @@ void Barycenter::_fwd_parallel() {
     this->V = (this->b * _onesS.t()) / _KTU;
     if (_withgrad) { _Vhist.push_back(this->V); }
 
-    // term cond
-    // _KV = _K * this->V;
-    this->err = norm((this->U % (_K * this->V)) - _A, 2);
+    // term cond - recompute _KV after V update to compute error
+    _KV = _K * this->V;
+    this->err = norm((this->U % _KV) - _A, 2);
     if (_verbose != 0) { _timer.toc(); }
 
     // logging
