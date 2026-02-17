@@ -52,4 +52,4 @@ articles:
       - threading
       - gradient
       - tsvd
-      - CUDA
+      - cuda

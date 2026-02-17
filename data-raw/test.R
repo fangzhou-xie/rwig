@@ -4,6 +4,9 @@
 
 # test cuda
 
+6288 / (6288 + 1307)
+
+
 Rcpp::compileAttributes()
 devtools::document()
 
