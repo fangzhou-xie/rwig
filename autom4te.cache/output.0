@@ -618,6 +618,7 @@ PACKAGE_URL=''
 ac_subst_vars='LTLIBOBJS
 LIB@&t@OBJS
 CUDA_RULES
+CUDA_DEFS
 CUDA_LIBS
 CUDA_FLAGS
 target_alias
@@ -1739,6 +1740,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 CUDA_FLAGS=""
 CUDA_LIBS=""
+CUDA_DEFS=""
 CUDA_RULES=""
 
 # Simple OS detection without AC_CANONICAL_HOST
@@ -1752,11 +1754,11 @@ case "${host_os}" in
 	linux*)
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Linux detected, checking for CUDA..." >&5
 printf "%s\n" "$as_me: Linux detected, checking for CUDA..." >&6;}
-		
+
 		if test -z "$CUDA_FLAGS"; then
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-			
+
 			# Fallback: manual search
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: manual search" >&5
 printf "%s\n" "$as_me: manual search" >&6;}
@@ -1766,11 +1768,12 @@ printf %s "checking for CUDA in standard locations... " >&6; }
 				if test -n "$cudapath" && test -d "$cudapath/include" && test -f "$cudapath/bin/nvcc"; then
 					CUDA_FLAGS="-I${cudapath}/include"
 					CUDA_LIBS="-L${cudapath}/lib64 -lcudart -lcublas"
+					CUDA_DEFS="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
-OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
+OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
 
 .PHONY: all
 
@@ -1785,19 +1788,22 @@ cuda_sinkhorn.o: cuda_sinkhorn.cu
 
 cuda_barycenter.o: cuda_barycenter.cu
 	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
+
+cuda_wdl.o: cuda_wdl.cu
+	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
 "
 					{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ($cudapath)" >&5
 printf "%s\n" "yes ($cudapath)" >&6; }
 					break
 				fi
 			done
-			
+
 			if test -z "$CUDA_FLAGS"; then
 				{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 			fi
 		fi
-		
+
 		if test -n "$CUDA_FLAGS"; then
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: CUDA support enabled" >&5
 printf "%s\n" "$as_me: CUDA support enabled" >&6;}
@@ -1822,8 +1828,11 @@ printf "%s\n" "$as_me: R path: $RBIN" >&6;}
 printf "%s\n" "$as_me: CUDA_FLAG: $CUDA_FLAGS" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: CUDA_LIBS: $CUDA_LIBS" >&5
 printf "%s\n" "$as_me: CUDA_LIBS: $CUDA_LIBS" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: CUDA_DEFS: $CUDA_DEFS" >&5
+printf "%s\n" "$as_me: CUDA_DEFS: $CUDA_DEFS" >&6;}
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: CUDA_RULES: $CUDA_RULES" >&5
 printf "%s\n" "$as_me: CUDA_RULES: $CUDA_RULES" >&6;}
+
 
 
 

@@ -7,3 +7,5 @@
 /*
   helper functions for WDL
 */
+
+void cuda_wdl() {}

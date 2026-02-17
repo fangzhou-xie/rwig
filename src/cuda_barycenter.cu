@@ -3,8 +3,8 @@
 
 // #include "check_cuda.hpp" // for checking cuda availability
 
-// #ifdef HAVE_CUBLAS
-// #ifdef HAVE_CUDA_RUNTIME
+#ifdef HAVE_CUBLAS
+#ifdef HAVE_CUDA_RUNTIME
 
 #include "cuda_kernels.cuh"
 
@@ -410,5 +410,5 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   cublasDestroy(handle);
 }
 
-// #endif
-// #endif
+#endif
+#endif

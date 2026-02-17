@@ -577,9 +577,9 @@ cat >>"$ac_tmp/subs1.awk" <<\_ACAWK &&
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
 S["CUDA_RULES"]="NVCC = /usr/local/cuda/bin/nvcc\n"\
-"NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include\n"\
+"NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME\n"\
 "\n"\
-"OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o $(patsubst %.cpp,%.o,$(wildcard *.cpp))\n"\
+"OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o $(patsubst %.cpp,%.o,$(wildcard *.cpp))\n"\
 "\n"\
 ".PHONY: all\n"\
 "\n"\
@@ -594,7 +594,11 @@ S["CUDA_RULES"]="NVCC = /usr/local/cuda/bin/nvcc\n"\
 "\n"\
 "cuda_barycenter.o: cuda_barycenter.cu\n"\
 "	$(NVCC) $(NVCC_FLAGS) -c $< -o $@\n"\
+"\n"\
+"cuda_wdl.o: cuda_wdl.cu\n"\
+"	$(NVCC) $(NVCC_FLAGS) -c $< -o $@\n"\
 ""
+S["CUDA_DEFS"]="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
 S["CUDA_LIBS"]="-L/usr/local/cuda/lib64 -lcudart -lcublas"
 S["CUDA_FLAGS"]="-I/usr/local/cuda/include"
 S["target_alias"]=""

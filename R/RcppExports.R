@@ -33,7 +33,7 @@ doc2dist_cpp <- function(docs, dict) {
     .Call(`_rwig_doc2dist_cpp`, docs, dict)
 }
 
-wdl_cpp <- function(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode = 1L, max_iter = 1000L, zero_tol = 1e-6, optimizer = 2L, eta = .001, gamma = .01, beta1 = .9, beta2 = .999, eps = 1e-8, verbose = FALSE) {
-    .Call(`_rwig_wdl_cpp`, Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose)
+wdl_cpp <- function(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode = 1L, usecuda = TRUE, max_iter = 1000L, zero_tol = 1e-6, optimizer = 2L, eta = .001, gamma = .01, beta1 = .9, beta2 = .999, eps = 1e-8, verbose = FALSE) {
+    .Call(`_rwig_wdl_cpp`, Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, usecuda, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose)
 }
 

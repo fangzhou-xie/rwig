@@ -2,8 +2,6 @@
 // this is the file defining the functions exporting to R side
 // sinkhorn algos
 
-#include "check_cuda.hpp"
-
 #include "sinkhorn_impl.hpp"
 // #include "ctrack.hpp"
 
@@ -127,18 +125,18 @@ Rcpp::List sinkhorn_vanilla_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
 
   Rcpp::List res;
 
-  if constexpr (check_cuda::has_cuda) {
-    if (usecuda) {
-      res = sinkhorn_vanilla_cuda(a, b, C, reg, withgrad, maxiter, zerotol,
-                                  verbose);
-    } else {
-      res = sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol,
-                                 verbose);
-    }
+#if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
+  if (usecuda) {
+    res = sinkhorn_vanilla_cuda(a, b, C, reg, withgrad, maxiter, zerotol,
+                                verbose);
   } else {
-    res =
-        sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
+    res = sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol,
+                               verbose);
   }
+#else
+  res =
+      sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
+#endif
 
   return res;
 }

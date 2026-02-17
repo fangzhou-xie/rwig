@@ -12,6 +12,7 @@ AC_LANG(C++)
 
 CUDA_FLAGS=""
 CUDA_LIBS=""
+CUDA_DEFS=""
 CUDA_RULES=""
 
 # Simple OS detection without AC_CANONICAL_HOST
@@ -24,10 +25,10 @@ esac
 case "${host_os}" in
 	linux*)
 		AC_MSG_NOTICE([Linux detected, checking for CUDA...])
-		
+
 		if test -z "$CUDA_FLAGS"; then
 			AC_MSG_RESULT([no])
-			
+
 			# Fallback: manual search
 			AC_MSG_NOTICE([manual search])
 			AC_MSG_CHECKING([for CUDA in standard locations])
@@ -35,11 +36,12 @@ case "${host_os}" in
 				if test -n "$cudapath" && test -d "$cudapath/include" && test -f "$cudapath/bin/nvcc"; then
 					CUDA_FLAGS="-I${cudapath}/include"
 					CUDA_LIBS="-L${cudapath}/lib64 -lcudart -lcublas"
+					CUDA_DEFS="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
-OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
+OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
 
 .PHONY: all
 
@@ -54,17 +56,20 @@ cuda_sinkhorn.o: cuda_sinkhorn.cu
 
 cuda_barycenter.o: cuda_barycenter.cu
 	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
+
+cuda_wdl.o: cuda_wdl.cu
+	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
 "
 					AC_MSG_RESULT([yes ($cudapath)])
 					break
 				fi
 			done
-			
+
 			if test -z "$CUDA_FLAGS"; then
 				AC_MSG_RESULT([no])
 			fi
 		fi
-		
+
 		if test -n "$CUDA_FLAGS"; then
 			AC_MSG_NOTICE([CUDA support enabled])
 			AC_MSG_NOTICE([  CUDA_FLAGS: $CUDA_FLAGS])
@@ -81,10 +86,12 @@ esac
 AC_MSG_NOTICE([R path: $RBIN])
 AC_MSG_NOTICE([CUDA_FLAG: $CUDA_FLAGS])
 AC_MSG_NOTICE([CUDA_LIBS: $CUDA_LIBS])
+AC_MSG_NOTICE([CUDA_DEFS: $CUDA_DEFS])
 AC_MSG_NOTICE([CUDA_RULES: $CUDA_RULES])
 
 AC_SUBST(CUDA_FLAGS)
 AC_SUBST(CUDA_LIBS)
+AC_SUBST(CUDA_DEFS)
 AC_SUBST(CUDA_RULES)
 
 # `AC_CHECK_lib` check BLAS functions?

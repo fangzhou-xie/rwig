@@ -2,8 +2,6 @@
 // this is the file defining the functions exporting to R side
 // barycenter algos
 
-#include "check_cuda.hpp"
-
 #include "barycenter_impl.hpp"
 // #include "ctrack.hpp"
 
@@ -153,18 +151,18 @@ Rcpp::List barycenter_parallel_cpp(const SEXP &A, const SEXP &C, const SEXP &w,
                                    int verbose = 0) {
   Rcpp::List res;
 
-  if constexpr (check_cuda::has_cuda) {
-    if (usecuda) {
-      res = barycenter_parallel_cuda(A, C, w, reg, b_ext, withgrad, maxiter,
-                                     zerotol, verbose);
-    } else {
-      res = barycenter_parallel_cpu(A, C, w, reg, b_ext, withgrad, maxiter,
-                                    zerotol, verbose);
-    }
+#if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
+  if (usecuda) {
+    res = barycenter_parallel_cuda(A, C, w, reg, b_ext, withgrad, maxiter,
+                                   zerotol, verbose);
   } else {
     res = barycenter_parallel_cpu(A, C, w, reg, b_ext, withgrad, maxiter,
                                   zerotol, verbose);
   }
+#else
+  res = barycenter_parallel_cpu(A, C, w, reg, b_ext, withgrad, maxiter,
+                                zerotol, verbose);
+#endif
   return res;
 }
 

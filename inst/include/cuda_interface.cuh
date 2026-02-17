@@ -3,8 +3,6 @@
 #ifndef RWIG_CUDA_INTERFACE_CUH
 #define RWIG_CUDA_INTERFACE_CUH
 
-#include "check_cuda.hpp" // for checking cuda availability
-
 #ifdef HAVE_CUBLAS
 #ifdef HAVE_CUDA_RUNTIME
 
@@ -29,6 +27,8 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
 
 // TODO: maybe the intermediate barycenter interface too (for WDL)
 // TODO: implement wdl (high priority)
+
+void cuda_wdl();
 
 // TODO: implement log methods (low priority)
 

@@ -136,19 +136,20 @@ BEGIN_RCPP
 END_RCPP
 }
 // wdl_cpp
-Rcpp::List wdl_cpp(const arma::mat& Y, const arma::mat& C, const double reg, const int S, const int n_threads, const int batch_size, const int epochs, int sinkhorn_mode, const int max_iter, const double zero_tol, const int optimizer, const double eta, const double gamma, const double beta1, const double beta2, const double eps, const bool verbose);
-RcppExport SEXP _rwig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP) {
+Rcpp::List wdl_cpp(const SEXP& Y, const SEXP& C, const double reg, const int S, const int n_threads, const int batch_size, const int epochs, int sinkhorn_mode, bool usecuda, const int max_iter, const double zero_tol, const int optimizer, const double eta, const double gamma, const double beta1, const double beta2, const double eps, const bool verbose);
+RcppExport SEXP _rwig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP usecudaSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type Y(YSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type C(CSEXP);
     Rcpp::traits::input_parameter< const double >::type reg(regSEXP);
     Rcpp::traits::input_parameter< const int >::type S(SSEXP);
     Rcpp::traits::input_parameter< const int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< const int >::type batch_size(batch_sizeSEXP);
     Rcpp::traits::input_parameter< const int >::type epochs(epochsSEXP);
     Rcpp::traits::input_parameter< int >::type sinkhorn_mode(sinkhorn_modeSEXP);
+    Rcpp::traits::input_parameter< bool >::type usecuda(usecudaSEXP);
     Rcpp::traits::input_parameter< const int >::type max_iter(max_iterSEXP);
     Rcpp::traits::input_parameter< const double >::type zero_tol(zero_tolSEXP);
     Rcpp::traits::input_parameter< const int >::type optimizer(optimizerSEXP);
@@ -158,7 +159,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type beta2(beta2SEXP);
     Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(wdl_cpp(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose));
+    rcpp_result_gen = Rcpp::wrap(wdl_cpp(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, usecuda, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -172,7 +173,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rwig_tsvd_cpp", (DL_FUNC) &_rwig_tsvd_cpp, 3},
     {"_rwig_euclidean_cpp", (DL_FUNC) &_rwig_euclidean_cpp, 1},
     {"_rwig_doc2dist_cpp", (DL_FUNC) &_rwig_doc2dist_cpp, 2},
-    {"_rwig_wdl_cpp", (DL_FUNC) &_rwig_wdl_cpp, 17},
+    {"_rwig_wdl_cpp", (DL_FUNC) &_rwig_wdl_cpp, 18},
     {NULL, NULL, 0}
 };
 

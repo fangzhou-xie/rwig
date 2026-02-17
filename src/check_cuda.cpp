@@ -2,10 +2,14 @@
 
 #include "common.hpp"
 
-#include "check_cuda.hpp" // for checking cuda availability
-
 // [[Rcpp::export]]
-bool cuda_available_cpp() { return check_cuda::has_cuda; }
+bool cuda_available_cpp() {
+#if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
+  return true;
+#else
+  return false;
+#endif
+}
 
 // #include "cuda_kernels.hpp"
 

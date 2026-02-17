@@ -1,10 +1,10 @@
-PKG_CXXFLAGS = -I../inst/include -pthread -I/usr/local/cuda/include
+PKG_CXXFLAGS = -I../inst/include -pthread -I/usr/local/cuda/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) -L/usr/local/cuda/lib64 -lcudart -lcublas
 
 NVCC = /usr/local/cuda/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
-OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 .PHONY: all
 
@@ -18,5 +18,8 @@ cuda_sinkhorn.o: cuda_sinkhorn.cu
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
 
 cuda_barycenter.o: cuda_barycenter.cu
+	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
+
+cuda_wdl.o: cuda_wdl.cu
 	$(NVCC) $(NVCC_FLAGS) -c $< -o $@
 
