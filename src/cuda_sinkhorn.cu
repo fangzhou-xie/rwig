@@ -3,8 +3,8 @@
 
 // #include "check_cuda.hpp" // for checking cuda availability
 
-#ifdef HAVE_CUBLAS
-#ifdef HAVE_CUDA_RUNTIME
+// #ifdef HAVE_CUBLAS
+// #ifdef HAVE_CUDA_RUNTIME
 
 #include "cuda_kernels.cuh"
 
@@ -327,5 +327,5 @@ void cuda_sinkhorn_vanilla(double *P, double *grad_a, double *u, double *v,
   cublasDestroy(handle);
 }
 
-#endif
-#endif
+// #endif
+// #endif

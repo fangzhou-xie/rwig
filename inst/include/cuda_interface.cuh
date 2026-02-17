@@ -3,8 +3,8 @@
 #ifndef RWIG_CUDA_INTERFACE_CUH
 #define RWIG_CUDA_INTERFACE_CUH
 
-#ifdef HAVE_CUBLAS
-#ifdef HAVE_CUDA_RUNTIME
+// #ifdef HAVE_CUBLAS
+// #ifdef HAVE_CUDA_RUNTIME
 
 /*
   interface to C++ side (then to R)
@@ -32,7 +32,7 @@ void cuda_wdl();
 
 // TODO: implement log methods (low priority)
 
-#endif
-#endif
+// #endif
+// #endif
 
 #endif // RWIG_CUDA_INTERFACE_CUH

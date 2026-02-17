@@ -3,10 +3,10 @@
 #ifndef RWIG_CUDA_KERNELS_CUH
 #define RWIG_CUDA_KERNELS_CUH
 
-#include "check_cuda.hpp" // for checking cuda availability
+// #include "check_cuda.hpp" // for checking cuda availability
 
-#ifdef HAVE_CUBLAS
-#ifdef HAVE_CUDA_RUNTIME
+// #ifdef HAVE_CUBLAS
+// #ifdef HAVE_CUDA_RUNTIME
 
 #include <cmath>
 #include <cstdio> // for printf
@@ -97,7 +97,7 @@ void init_ones(double *x, int n, cudaStream_t &stream);
 void update_K(double *K, int M, int N, double reg, cudaStream_t &stream);
 void normalize(double *x, int n, cublasHandle_t &handle);
 
-#endif
-#endif
+// #endif
+// #endif
 
 #endif // RWIG_CUDA_KERNELS_CUH
