@@ -5,7 +5,7 @@
 # test cuda
 
 Rcpp::compileAttributes()
-# devtools::document()
+devtools::document()
 
 devtools::unload("rwig")
 devtools::load_all()

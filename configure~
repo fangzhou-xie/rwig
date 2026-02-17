@@ -1771,7 +1771,7 @@ printf %s "checking for CUDA in standard locations... " >&6; }
 					CUDA_DEFS="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
 OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
 

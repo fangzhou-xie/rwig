@@ -8,8 +8,8 @@ sinkhorn(
   a,
   b,
   C,
-  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, n_threads = 0, method = "auto",
-    threshold = 0.1, max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
+  sinkhorn_control = list(reg = 0.1, with_grad = FALSE, use_cuda = TRUE, n_threads = 0,
+    method = "auto", threshold = 0.1, max_iter = 1000L, zero_tol = 1e-06, verbose = 0L)
 )
 }
 \arguments{
