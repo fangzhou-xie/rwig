@@ -95,6 +95,7 @@ barycenter <- function(
   barycenter_control = list(
     reg = .1,
     with_grad = FALSE,
+    use_cuda = TRUE,
     n_threads = 0,
     method = "auto",
     threshold = .1,
@@ -202,6 +203,7 @@ barycenter <- function(
       reg,
       b_ext,
       barycenter_control$with_grad,
+      barycenter_control$use_cuda,
       barycenter_control$max_iter,
       barycenter_control$zero_tol,
       barycenter_control$verbose

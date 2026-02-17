@@ -15,8 +15,8 @@ using namespace arma;
 // Algo 4.1/3.1: Vanilla Sinkhorn with/without Gradient wrt a
 ////////////////////////////////////////////////////////////////
 
-void Sinkhorn::compute_vanilla(const vec& a, const vec& b,
-                               const mat& C, double reg) {
+void Sinkhorn::compute_vanilla(const vec &a, const vec &b, const mat &C,
+                               double reg) {
   // CTRACK;
   // reset the counter
   _reset_counter();
@@ -38,9 +38,11 @@ void Sinkhorn::compute_vanilla(const vec& a, const vec& b,
   _reg = reg;
   _M = _C.n_rows;
   _N = _C.n_cols;
-  _K = exp(- _C / reg);
+  _K = exp(-_C / reg);
 
-  if (_C_is_symm) { _K = symmatu(_K); }
+  if (_C_is_symm) {
+    _K = symmatu(_K);
+  }
 
   // if (_withgrad) {
   //   // this->_uhist = std::vector<vec>(_maxiter); // FIXME: or plus 1?
@@ -70,7 +72,7 @@ void Sinkhorn::compute_vanilla(const vec& a, const vec& b,
   if (this->_withgrad) {
     this->_bwd_vanilla(); // update `_grad_a`
     this->grad_a = vec(M, fill::zeros);
-    this->grad_a.elem( a_ind ) = _grad_a;
+    this->grad_a.elem(a_ind) = _grad_a;
   }
 
   // determine return code
@@ -94,14 +96,14 @@ void Sinkhorn::_fwd_vanilla() {
   _u = vec(_M, fill::ones);
   _v = vec(_N, fill::ones);
   if (_withgrad) {
-    // _uhist.col(this->iter) = _u;
-    // _vhist.col(this->iter) = _v;
+    // reserve space
+    _uhist.clear();
+    _vhist.clear();
+    _uhist.reserve(_maxiter + 1);
+    _vhist.reserve(_maxiter + 1);
+
     _uhist.push_back(_u);
     _vhist.push_back(_v);
-    // _Whist.push_back(mat(_M, _N, fill::zeros));
-    // _Xhist.push_back(mat(_N, _M, fill::zeros));
-    // _W = mat(_M, _N, fill::zeros);
-    // _X = mat(_N, _M, fill::zeros);
   }
 
   // logging for backward pass
@@ -109,34 +111,46 @@ void Sinkhorn::_fwd_vanilla() {
     Rcpp::message(Rf_mkString("Forward pass:"));
   }
 
+  _Kv = vec(_N, fill::none);
+  _KTu = vec(_M, fill::none);
+
+  _Kv = _K * _v;
+
   while ((this->iter < _maxiter) & (this->err >= _zerotol)) {
     // cpp11::check_user_interrupt();
     Rcpp::checkUserInterrupt();
     this->iter++;
-    if (_verbose != 0) { _timer.tic(); }
+    if (_verbose != 0) {
+      _timer.tic();
+    }
 
-    _u = _a / (_K * _v);
-    // if (_withgrad) { _uhist.col(this->iter) = _u; }
-    if (_withgrad) { _uhist.push_back(_u); }
+    _u = _a / _Kv;
+    if (_withgrad) {
+      _uhist.push_back(_u);
+    }
 
-    _v = _b / (_K.t() * _u);
-    // if (_withgrad) { _vhist.col(this->iter) = _v; }
-    if (_withgrad) { _vhist.push_back(_v); }
+    _KTu = _K.t() * _u;
+    _v = _b / _KTu;
+    if (_withgrad) {
+      _vhist.push_back(_v);
+    }
 
-    this->err = norm(_u % (_K*_v) - _a, 2) + norm(_v % (_K.t()*_u) - _b, 2);
-    if (_verbose != 0) { _timer.toc(); }
+    _Kv = _K * _v;
+    this->err = norm(_u % _Kv - _a, 2) + norm(_v % _KTu - _b, 2);
+    if (_verbose != 0) {
+      _timer.toc();
+    }
 
     // logging
-    if ((_verbose != 0) && ((this->iter-1) % _verbose) == 0) {
+    if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
 
       // first format the msg as c-string
       // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(Rf_mkString(vformat(
-          "iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f",
-          this->iter, this->err,
-          _timer.speed_last(), _timer.speed_avg()
-      ).c_str()));
-
+      Rcpp::message(Rf_mkString(
+          vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f",
+                  this->iter, this->err, _timer.speed_last(),
+                  _timer.speed_avg())
+              .c_str()));
 
       // convert c-string into SEXP and then print via Rcpp::message
       // Rcpp::message(Rf_mkString(_msg));
@@ -166,31 +180,35 @@ void Sinkhorn::_bwd_vanilla() {
   }
 
   for (int l = this->iter; l > 0; --l) {
-    if (_verbose != 0) { _timer.tic(); }
+    if (_verbose != 0) {
+      _timer.tic();
+    }
 
     if (l == this->iter) {
       vbar = PbarK.t() * _u;
       ubar = PbarK * _v - _K * ((vbar % _v) / (_K.t() * _u));
     } else {
-      vbar = - _K.t() * ((ubar % _uhist[l+1]) / (_K * _vhist[l]));
-      ubar = - _K * ((vbar % _vhist[l]) / (_K.t() * _uhist[l]));
-      // vbar = - _K.t() * diagmat(_uhist.col(l+1) / (_K * _vhist.col(l))) * ubar;
-      // ubar = - _K * diagmat(_vhist.col(l) / (_K.t() * _uhist.col(l))) * vbar;
+      vbar = -_K.t() * ((ubar % _uhist[l + 1]) / (_K * _vhist[l]));
+      ubar = -_K * ((vbar % _vhist[l]) / (_K.t() * _uhist[l]));
+      // vbar = - _K.t() * diagmat(_uhist.col(l+1) / (_K * _vhist.col(l))) *
+      // ubar; ubar = - _K * diagmat(_vhist.col(l) / (_K.t() * _uhist.col(l))) *
+      // vbar;
     }
 
-    if (_verbose != 0) { _timer.toc(); }
-    if ((_verbose != 0) && ((this->iter-1) % _verbose) == 0) {
+    if (_verbose != 0) {
+      _timer.toc();
+    }
+    if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
 
       // first format the msg as c-string
       // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(Rf_mkString(vformat(
-          "iter: %d, last speed: %.3f, avg speed: %.3f",
-          l, _timer.speed_last(), _timer.speed_avg()
-      ).c_str()));
-
+      Rcpp::message(
+          Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f", l,
+                              _timer.speed_last(), _timer.speed_avg())
+                          .c_str()));
     }
 
     // accumulate the adjoint of a
-    this->_grad_a += ubar / (_K * _vhist[l-1]);
+    this->_grad_a += ubar / (_K * _vhist[l - 1]);
   }
 }

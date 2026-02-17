@@ -13,6 +13,7 @@
 // #define RCPP_NO_MODULES
 // #include <RcppArmadillo.h>
 
+#define ARMA_DONT_PRINT_FAST_MATH_WARNING
 
 #include <RcppArmadillo/Lighter>
 // [[Rcpp::depends(RcppArmadillo)]]

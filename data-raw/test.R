@@ -2,7 +2,200 @@
 
 # R -d "valgrind --leak-check=full --track-origins=yes" -f test_memory.R
 
+# test cuda
+
+Rcpp::compileAttributes()
+# devtools::document()
+
+devtools::unload("rwig")
+devtools::load_all()
+
+brc1 <- list(
+  reg = reg,
+  with_grad = TRUE,
+  use_cuda = TRUE,
+  method = "parallel",
+  # max_iter = 1,
+  verbose = 0L
+)
+brc2 <- list(
+  reg = reg,
+  with_grad = TRUE,
+  use_cuda = FALSE,
+  method = "parallel",
+  # max_iter = 1,
+  verbose = 0L
+)
+
+sol1 <- barycenter(A, C, w, b, barycenter_control = brc1)
+sol2 <- barycenter(A, C, w, b, barycenter_control = brc2)
+
+sol1$loss
+sol2$loss
+
+sol1$b
+sol2$b
+
+sol1$U
+sol2$U
+
+sol1$V
+sol2$V
+
+sol1$err
+sol2$err
+
+sol1$grad_A
+sol2$grad_A
+
+bench::mark(
+  sol1 <- barycenter(A, C, w, b, barycenter_control = brc1),
+  sol2 <- barycenter(A, C, w, b, barycenter_control = brc2)
+)
+
+A <- rbind(
+  c(.3, .2),
+  c(.2, .1),
+  c(.1, .2),
+  c(.1, .1),
+  c(.3, .4)
+)
+C <- rbind(
+  c(.1, .2, .3, .4, .5),
+  c(.2, .3, .4, .3, .2),
+  c(.4, .3, .2, .1, .2),
+  c(.3, .2, .1, .2, .5),
+  c(.5, .5, .4, .0, .2)
+)
+w <- c(.4, .6)
+b <- c(.2, .2, .2, .2, .2)
+reg <- .1
+
+softmax <- function(A) {
+  # each col
+  for (j in 1:ncol(A)) {
+    expAj <- exp(A[, j] - max(A[, j]))
+    A[, j] <- expAj / sum(expAj)
+  }
+  A
+}
+
+set.seed(1)
+M <- 2000
+N <- 2000
+S <- 4
+A <- matrix(rnorm(M * S), M, S) |> softmax()
+C <- matrix(rnorm(M * N), M, N) |> abs()
+w <- rnorm(S) |> abs()
+w <- w / sum(w)
+b <- rep(1, N) / N
+reg <- .1
+
+
+bench::mark(
+  sol1 <- barycenter(A, C, w, b, barycenter_control = brc1),
+  sol2 <- barycenter(A, C, w, b, barycenter_control = brc2)
+)
+
+
+a <- c(.3, .4, .1, .1, .1)
+b <- c(.4, .5, .1)
+C <- rbind(
+  c(.1, .2, .3),
+  c(.2, .3, .4),
+  c(.4, .3, .2),
+  c(.3, .2, .1),
+  c(.5, .5, .4)
+)
+reg <- .1
+
+skh1 <- list(
+  reg = reg,
+  with_grad = TRUE,
+  use_cuda = TRUE,
+  method = "vanilla",
+  max_iter = 1,
+  verbose = 0L
+)
+skh2 <- list(
+  reg = reg,
+  with_grad = TRUE,
+  use_cuda = FALSE,
+  method = "vanilla",
+  max_iter = 1,
+  verbose = 0L
+)
+
+sol1 <- sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh1)
+sol2 <- sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh2)
+
+sol1$err
+sol2$err
+
+bench::mark(
+  sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh1),
+  sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh2)
+)
+
+
+N <- 1000
+a <- rnorm(N) |> abs()
+b <- rnorm(N) |> abs()
+a <- a / sum(a)
+b <- b / sum(b)
+C <- matrix(rnorm(N * N) * 10, N, N) |> abs()
+reg <- .1
+
+bench::mark(
+  sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh1),
+  sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh2),
+)
+
+
 #############################################################
+# test WIG EPU
+#############################################################
+
+library(tidyverse)
+library(rwig)
+
+headlines_df <- headlines |>
+  as_tibble() |>
+  mutate(headline = str_to_lower(headline)) |>
+  head(1000)
+
+wig_fit <- headlines_df |>
+  wig(
+    ref_date,
+    headline,
+    wig_specs(
+      wdl_control = list(verbose = TRUE),
+      word2vec_control = list(min_count = 3),
+      barycenter_control = list(method = "parallel", max_iter = 1000)
+    )
+  )
+
+wig_fit$wdl_model |> summary()
+wig_fit$wdl_model$topics |> dim()
+wig_fit$wdl_model$weights |> dim()
+
+# lemmatization of tokens
+sentences <- c("this is a sentence", "this is another one")
+
+tokenizers::tokenize_word_stems(sentences, stopwords = stopwords::stopwords())
+tokenizers::tokenize_words(sentences, stopwords = stopwords::stopwords())
+
+sens_tag <- koRpus::treetag(
+  sentences,
+  treetagger = "manual",
+  format = "obj",
+  TT.tknz = FALSE,
+  lang = "en",
+  TT.options = list(path = "./TreeTagger", preset = "en")
+)
+
+
+f #############################################################
 # test WDL
 #############################################################
 
@@ -2239,3 +2432,21 @@ dir_df <- fs::dir_info("/home/fangzhou/workspace/", recurse = TRUE)
 dir_df |>
   arrange(desc(size)) |>
   select(path, size)
+
+library(tidyverse) |> suppressPackageStartupMessages()
+httpgd::hgd()
+
+fp <- here::here("data-raw", "test.csv")
+
+test_df <- read_csv(fp)
+
+ggplot(test_df) +
+  geom_point(aes(x = age, y = income), size = 4)
+
+x <- rnorm(1000)
+y <- 2 * rnorm(1000)
+test_df <- tibble(x = x, y = y)
+ggplot(test_df) +
+  geom_point(aes(x = x, y = y), size = 2)
+
+httpgd::hgd_close()

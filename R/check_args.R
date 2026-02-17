@@ -59,8 +59,9 @@ check_wdl_args <- function(wdl_args) {
 
 check_tok_args <- function(tok_args) {
   # check tokenizer arguments: m
-  # if (is.null(tok_args$stopwords))
-  #   tok_args$stopwords <- stopwords::stopwords()
+  if (is.null(tok_args$stopwords)) {
+    tok_args$stopwords <- stopwords::stopwords()
+  }
 
   tok_args
 }
@@ -125,6 +126,7 @@ check_sinkhorn_args <- function(skh_args) {
   args <- c(
     "reg",
     "with_grad",
+    "use_cuda",
     "n_threads",
     "method",
     "threshold",
@@ -154,6 +156,9 @@ check_sinkhorn_args <- function(skh_args) {
   # }
   if (is.null(skh_args$with_grad)) {
     skh_args$with_grad <- FALSE
+  }
+  if (is.null(skh_args$use_cuda)) {
+    skh_args$use_cuda <- TRUE
   }
   if (is.null(skh_args$n_threads)) {
     skh_args$n_threads <- 0L
@@ -206,6 +211,7 @@ check_barycenter_args <- function(brc_args) {
   args <- c(
     "reg",
     "with_grad",
+    "use_cuda",
     "n_threads",
     "method",
     "threshold",
@@ -230,6 +236,9 @@ check_barycenter_args <- function(brc_args) {
   }
   if (is.null(brc_args$with_grad)) {
     brc_args$with_grad <- FALSE
+  }
+  if (is.null(brc_args$use_cuda)) {
+    brc_args$use_cuda <- TRUE
   }
   if (is.null(brc_args$n_threads)) {
     brc_args$n_threads <- 0L

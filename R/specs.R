@@ -66,7 +66,7 @@ wdl_specs <- function(
     shuffle = TRUE,
     verbose = FALSE
   ),
-  tokenizer_control = list(),
+  tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(
     reg = .1,
@@ -121,7 +121,7 @@ wig_specs <- function(
     rng_seed = 123,
     verbose = FALSE
   ),
-  tokenizer_control = list(),
+  tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(
     reg = .1,

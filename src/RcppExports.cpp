@@ -12,21 +12,22 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // barycenter_parallel_cpp
-Rcpp::List barycenter_parallel_cpp(const arma::mat& A, const arma::mat& C, const arma::vec& w, double reg, const arma::vec& b_ext, bool withgrad, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _rwig_barycenter_parallel_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+Rcpp::List barycenter_parallel_cpp(const SEXP& A, const SEXP& C, const SEXP& w, double reg, const SEXP& b_ext, bool withgrad, bool usecuda, int maxiter, double zerotol, int verbose);
+RcppExport SEXP _rwig_barycenter_parallel_cpp(SEXP ASEXP, SEXP CSEXP, SEXP wSEXP, SEXP regSEXP, SEXP b_extSEXP, SEXP withgradSEXP, SEXP usecudaSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type C(CSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type w(wSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type C(CSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type w(wSEXP);
     Rcpp::traits::input_parameter< double >::type reg(regSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type b_ext(b_extSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type b_ext(b_extSEXP);
     Rcpp::traits::input_parameter< bool >::type withgrad(withgradSEXP);
+    Rcpp::traits::input_parameter< bool >::type usecuda(usecudaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type zerotol(zerotolSEXP);
     Rcpp::traits::input_parameter< int >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(barycenter_parallel_cpp(A, C, w, reg, b_ext, withgrad, maxiter, zerotol, verbose));
+    rcpp_result_gen = Rcpp::wrap(barycenter_parallel_cpp(A, C, w, reg, b_ext, withgrad, usecuda, maxiter, zerotol, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -50,21 +51,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sinkhorn_vanilla_cpp
-Rcpp::List sinkhorn_vanilla_cpp(const arma::vec& a, const arma::vec& b, const arma::mat& C, double reg, bool withgrad, int maxiter, double zerotol, int verbose);
-RcppExport SEXP _rwig_sinkhorn_vanilla_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+// cuda_available_cpp
+bool cuda_available_cpp();
+RcppExport SEXP _rwig_cuda_available_cpp() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type b(bSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type C(CSEXP);
+    rcpp_result_gen = Rcpp::wrap(cuda_available_cpp());
+    return rcpp_result_gen;
+END_RCPP
+}
+// sinkhorn_vanilla_cpp
+Rcpp::List sinkhorn_vanilla_cpp(const SEXP& a, const SEXP& b, const SEXP& C, double reg, bool withgrad, bool usecuda, int maxiter, double zerotol, int verbose);
+RcppExport SEXP _rwig_sinkhorn_vanilla_cpp(SEXP aSEXP, SEXP bSEXP, SEXP CSEXP, SEXP regSEXP, SEXP withgradSEXP, SEXP usecudaSEXP, SEXP maxiterSEXP, SEXP zerotolSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const SEXP& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const SEXP& >::type C(CSEXP);
     Rcpp::traits::input_parameter< double >::type reg(regSEXP);
     Rcpp::traits::input_parameter< bool >::type withgrad(withgradSEXP);
+    Rcpp::traits::input_parameter< bool >::type usecuda(usecudaSEXP);
     Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
     Rcpp::traits::input_parameter< double >::type zerotol(zerotolSEXP);
     Rcpp::traits::input_parameter< int >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(sinkhorn_vanilla_cpp(a, b, C, reg, withgrad, maxiter, zerotol, verbose));
+    rcpp_result_gen = Rcpp::wrap(sinkhorn_vanilla_cpp(a, b, C, reg, withgrad, usecuda, maxiter, zerotol, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -152,9 +164,10 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rwig_barycenter_parallel_cpp", (DL_FUNC) &_rwig_barycenter_parallel_cpp, 9},
+    {"_rwig_barycenter_parallel_cpp", (DL_FUNC) &_rwig_barycenter_parallel_cpp, 10},
     {"_rwig_barycenter_log_cpp", (DL_FUNC) &_rwig_barycenter_log_cpp, 10},
-    {"_rwig_sinkhorn_vanilla_cpp", (DL_FUNC) &_rwig_sinkhorn_vanilla_cpp, 8},
+    {"_rwig_cuda_available_cpp", (DL_FUNC) &_rwig_cuda_available_cpp, 0},
+    {"_rwig_sinkhorn_vanilla_cpp", (DL_FUNC) &_rwig_sinkhorn_vanilla_cpp, 9},
     {"_rwig_sinkhorn_log_cpp", (DL_FUNC) &_rwig_sinkhorn_log_cpp, 9},
     {"_rwig_tsvd_cpp", (DL_FUNC) &_rwig_tsvd_cpp, 3},
     {"_rwig_euclidean_cpp", (DL_FUNC) &_rwig_euclidean_cpp, 1},

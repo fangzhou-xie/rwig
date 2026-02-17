@@ -69,7 +69,7 @@ and is used for both `wdl_specs()` and `wig_specs()`.
 
 ## `tokenizer_control`
 
-Arguments for `tokenizers::tokenize_words()`.
+Arguments for `tokenizers::tokenize_word_stems()`.
 
 ## `word2vec_control`
 
@@ -89,7 +89,6 @@ but with default
 
 ```{r, eval=FALSE}
 with_grad = TRUE
-max_iter = 20
 ```
 
 ## `optimizer_control`

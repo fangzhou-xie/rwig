@@ -89,6 +89,7 @@ sinkhorn <- function(
   sinkhorn_control = list(
     reg = .1,
     with_grad = FALSE,
+    use_cuda = TRUE,
     n_threads = 0,
     method = "auto",
     threshold = .1,
@@ -161,6 +162,7 @@ sinkhorn <- function(
       C,
       reg,
       sinkhorn_control$with_grad,
+      sinkhorn_control$use_cuda,
       sinkhorn_control$max_iter,
       sinkhorn_control$zero_tol,
       sinkhorn_control$verbose

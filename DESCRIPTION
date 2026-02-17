@@ -20,16 +20,17 @@ LinkingTo:
 Imports: 
     utils, 
     stats, 
+    rlang, 
+    cli, 
+    lubridate,
     Rcpp, 
     RhpcBLASctl, 
     word2vec, 
     tokenizers, 
-    rlang, 
-    cli, 
-    lubridate
+    stopwords
 Roxygen: list(markdown = TRUE)
+SystemRequirements: autoconf, CUDA (> 13.0, only for Linux)
 Suggests: 
-    stopwords,
     knitr,
     rmarkdown,
     tinytest

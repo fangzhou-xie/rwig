@@ -1,0 +1,4 @@
+PKG_CXXFLAGS = -I../inst/include -pthread @CUDA_FLAGS@
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) @CUDA_LIBS@
+
+@CUDA_RULES@

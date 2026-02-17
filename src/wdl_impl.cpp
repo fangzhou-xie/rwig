@@ -179,6 +179,12 @@ void WassersteinDictionaryLearning::_compute_serial() {
       // cpp11::check_user_interrupt();
       Rcpp::checkUserInterrupt();
 
+      if (_verbose) {
+        Rcpp::message(Rf_mkString(vformat(
+          "Epoch %i of %i, batch %i of %i:", +1, _E, batch_id+1, batches
+        ).c_str()));
+      }
+
       _timer.tic();
       // if (_verbose) { _timer.tic(); }
 
@@ -206,11 +212,13 @@ void WassersteinDictionaryLearning::_compute_serial() {
       _timer.toc();
       // logging for each batch
       if (_verbose) {
+        // Rcpp::message(Rf_mkString(vformat(
+        //   "avg speed: %.2f sec, gnorm A: %.3f, gnorm w: %.3f",
+        //   _timer.speed_avg(), norm(_g_Alpha, 2), norm(_g_lambda, 2)
+        // ).c_str()));
         Rcpp::message(Rf_mkString(vformat(
-          "Epoch: %i/%i, batch: %i/%i, avg speed: %.2f sec, gnorm A: %.3f, gnorm w: %.3f",
-          e+1, _E, batch_id+1, batches, _timer.speed_avg(),
-          norm(_g_Alpha, 2), norm(_g_lambda, 2)
-          // norm(bc.grad_A, 2), norm(bc.grad_w, 2)
+          "avg speed: %.2f sec, last speed: %.2f sec",
+          _timer.speed_avg(), _timer.speed_last()
         ).c_str()));
       }
     } // END: one batch

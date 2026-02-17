@@ -195,9 +195,14 @@ void Barycenter::_fwd_log(const int& n_threads) {
   this->U = mat(_M, _S, fill::zeros); // F
   this->V = mat(_N, _S, fill::zeros); // G
   if (_withgrad) {
-    // _Uhist = cube(_M, _S, _maxiter+1, fill::zeros);
-    // _Vhist = cube(_N, _S, _maxiter+1, fill::zeros);
-    // _logbhist = mat(_N, _maxiter+1, fill::zeros);
+    // reserve space
+    _Uhist.clear();
+    _Vhist.clear();
+    _logbhist.clear();
+    _Uhist.reserve(_maxiter+1);
+    _Vhist.reserve(_maxiter+1);
+    _logbhist.reserve(_maxiter+1);
+
     _Uhist.push_back(this->U);  // F hist
     _Vhist.push_back(this->V);  // G hist
     _logbhist.push_back(_logb); // logb hist

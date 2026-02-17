@@ -71,7 +71,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   # docs: character vector of input docs
   # first tokenize and embed
   tok_args <- append(list(x = docs), tok_args)
-  toks <- do.call(tokenizers::tokenize_words, args = tok_args)
+  toks <- do.call(tokenizers::tokenize_word_stems, args = tok_args)
 
   if (wdl_args$verbose) {
     message("Running Word2Vec for the embeddings and distance matrix...")
