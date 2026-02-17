@@ -39,3 +39,8 @@
 
 - [`tsvd()`](https://fangzhou-xie.github.io/rwig/reference/tsvd.md) :
   Truncated SVD
+
+## Check CUDA availability
+
+- [`check_cuda()`](https://fangzhou-xie.github.io/rwig/reference/check_cuda.md)
+  : Check if CUDA is available

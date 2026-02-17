@@ -32,6 +32,7 @@ vignette("sinkhorn").'></head><body>
     <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
     <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
     <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
+    <li><a class="dropdown-item" href="../articles/cuda.html">CUDA Acceleration</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -61,8 +62,8 @@ For a more detailed explaination, please refer to
 <span>  <span class="va">a</span>,</span>
 <span>  <span class="va">b</span>,</span>
 <span>  <span class="va">C</span>,</span>
-<span>  sinkhorn_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="fl">0.1</span>, with_grad <span class="op">=</span> <span class="cn">FALSE</span>, n_threads <span class="op">=</span> <span class="fl">0</span>, method <span class="op">=</span> <span class="st">"auto"</span>,</span>
-<span>    threshold <span class="op">=</span> <span class="fl">0.1</span>, max_iter <span class="op">=</span> <span class="fl">1000L</span>, zero_tol <span class="op">=</span> <span class="fl">1e-06</span>, verbose <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span></span>
+<span>  sinkhorn_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>reg <span class="op">=</span> <span class="fl">0.1</span>, with_grad <span class="op">=</span> <span class="cn">FALSE</span>, use_cuda <span class="op">=</span> <span class="cn">TRUE</span>, n_threads <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"auto"</span>, threshold <span class="op">=</span> <span class="fl">0.1</span>, max_iter <span class="op">=</span> <span class="fl">1000L</span>, zero_tol <span class="op">=</span> <span class="fl">1e-06</span>, verbose <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 

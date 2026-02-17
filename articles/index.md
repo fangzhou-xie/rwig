@@ -25,3 +25,6 @@
   Gradients](https://fangzhou-xie.github.io/rwig/articles/gradient.md):
 
 - [Truncated SVD](https://fangzhou-xie.github.io/rwig/articles/tsvd.md):
+
+- [CUDA
+  Acceleration](https://fangzhou-xie.github.io/rwig/articles/cuda.md):

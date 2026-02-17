@@ -23,8 +23,8 @@ wigfit
 #> WDL model topics:
 #> 
 #> Topic 1:
-#>        a     this  another     </s> sentence 
-#>     0.31     0.27     0.21     0.15     0.04
+#> sentenc    </s>   anoth 
+#>   0.794   0.132   0.074
 ```
 
 ## See Also

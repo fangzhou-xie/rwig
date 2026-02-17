@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
     <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
     <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
+    <li><a class="dropdown-item" href="../articles/cuda.html">CUDA Acceleration</a></li>
   </ul>
 </li>
       </ul>
@@ -90,42 +91,39 @@ of topic models. Here, we consider the Wasserstein Dicionary Learning
 <span><span class="co">#&gt; WDL model topics:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 1:</span></span>
-<span><span class="co">#&gt;     &lt;/s&gt;     this      one  another sentence </span></span>
-<span><span class="co">#&gt;    0.311    0.304    0.108    0.104    0.088 </span></span>
+<span><span class="co">#&gt;     one   anoth    &lt;/s&gt; sentenc </span></span>
+<span><span class="co">#&gt;   0.427   0.363   0.131   0.079 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 2:</span></span>
-<span><span class="co">#&gt; another    &lt;/s&gt;     one    this       a </span></span>
-<span><span class="co">#&gt;   0.620   0.130   0.111   0.055   0.041 </span></span>
+<span><span class="co">#&gt;   anoth     one sentenc    &lt;/s&gt; </span></span>
+<span><span class="co">#&gt;   0.452   0.291   0.211   0.046 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 3:</span></span>
-<span><span class="co">#&gt;     this     &lt;/s&gt;  another       is sentence </span></span>
-<span><span class="co">#&gt;    0.358    0.239    0.124    0.114    0.069 </span></span>
+<span><span class="co">#&gt;    &lt;/s&gt;     one sentenc   anoth </span></span>
+<span><span class="co">#&gt;   0.660   0.163   0.139   0.039 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 4:</span></span>
-<span><span class="co">#&gt; another    this    &lt;/s&gt;     one      is </span></span>
-<span><span class="co">#&gt;   0.343   0.168   0.167   0.121   0.098</span></span></code></pre></div>
+<span><span class="co">#&gt;     one    &lt;/s&gt; sentenc   anoth </span></span>
+<span><span class="co">#&gt;    0.52    0.22    0.15    0.11</span></span></code></pre></div>
 <p>We can see from the topics that they are vectors of the tokens
 (words) with associated probabilities. If you want to access the topics,
 you can do this:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wdl_fit</span><span class="op">$</span><span class="va">topics</span></span>
-<span><span class="co">#&gt;              topic1     topic2     topic3     topic4</span></span>
-<span><span class="co">#&gt; a        0.07021960 0.04082612 0.06733181 0.03903212</span></span>
-<span><span class="co">#&gt; one      0.10845734 0.11074871 0.02812378 0.12068278</span></span>
-<span><span class="co">#&gt; another  0.10403697 0.62005355 0.12403799 0.34305199</span></span>
-<span><span class="co">#&gt; sentence 0.08809656 0.02024121 0.06926678 0.06338548</span></span>
-<span><span class="co">#&gt; is       0.01420343 0.02331677 0.11404292 0.09835958</span></span>
-<span><span class="co">#&gt; this     0.30392984 0.05453664 0.35799228 0.16825826</span></span>
-<span><span class="co">#&gt; &lt;/s&gt;     0.31105626 0.13027700 0.23920443 0.16722978</span></span></code></pre></div>
+<span><span class="co">#&gt;             topic1     topic2     topic3    topic4</span></span>
+<span><span class="co">#&gt; anoth   0.36337276 0.45247625 0.03918154 0.1077225</span></span>
+<span><span class="co">#&gt; one     0.42653605 0.29081991 0.16272523 0.5167396</span></span>
+<span><span class="co">#&gt; sentenc 0.07892702 0.21085570 0.13856620 0.1533639</span></span>
+<span><span class="co">#&gt; &lt;/s&gt;    0.13116417 0.04584815 0.65952702 0.2221740</span></span></code></pre></div>
 <p>Alternatively, you can also obtain the weights of the topics used to
 re-construct the input data:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wdl_fit</span><span class="op">$</span><span class="va">weights</span></span>
 <span><span class="co">#&gt;              [,1]       [,2]</span></span>
-<span><span class="co">#&gt; topic1 0.08664043 0.07950508</span></span>
-<span><span class="co">#&gt; topic2 0.03458663 0.59189857</span></span>
-<span><span class="co">#&gt; topic3 0.05828124 0.07508092</span></span>
-<span><span class="co">#&gt; topic4 0.82049170 0.25351543</span></span></code></pre></div>
+<span><span class="co">#&gt; topic1 0.42835430 0.31270288</span></span>
+<span><span class="co">#&gt; topic2 0.11177570 0.05975748</span></span>
+<span><span class="co">#&gt; topic3 0.42987922 0.40321258</span></span>
+<span><span class="co">#&gt; topic4 0.02999078 0.22432706</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>

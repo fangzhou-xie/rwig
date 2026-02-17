@@ -20,20 +20,20 @@ wdl_fit
 #> WDL model topics:
 #> 
 #> Topic 1:
-#>     </s>     this      one  another sentence 
-#>    0.311    0.304    0.108    0.104    0.088 
+#>     one   anoth    </s> sentenc 
+#>   0.427   0.363   0.131   0.079 
 #> 
 #> Topic 2:
-#> another    </s>     one    this       a 
-#>   0.620   0.130   0.111   0.055   0.041 
+#>   anoth     one sentenc    </s> 
+#>   0.452   0.291   0.211   0.046 
 #> 
 #> Topic 3:
-#>     this     </s>  another       is sentence 
-#>    0.358    0.239    0.124    0.114    0.069 
+#>    </s>     one sentenc   anoth 
+#>   0.660   0.163   0.139   0.039 
 #> 
 #> Topic 4:
-#> another    this    </s>     one      is 
-#>   0.343   0.168   0.167   0.121   0.098
+#>     one    </s> sentenc   anoth 
+#>    0.52    0.22    0.15    0.11
 ```
 
 We can see from the topics that they are vectors of the tokens (words)
@@ -42,14 +42,11 @@ do this:
 
 ``` r
 wdl_fit$topics
-#>              topic1     topic2     topic3     topic4
-#> a        0.07021960 0.04082612 0.06733181 0.03903212
-#> one      0.10845734 0.11074871 0.02812378 0.12068278
-#> another  0.10403697 0.62005355 0.12403799 0.34305199
-#> sentence 0.08809656 0.02024121 0.06926678 0.06338548
-#> is       0.01420343 0.02331677 0.11404292 0.09835958
-#> this     0.30392984 0.05453664 0.35799228 0.16825826
-#> </s>     0.31105626 0.13027700 0.23920443 0.16722978
+#>             topic1     topic2     topic3    topic4
+#> anoth   0.36337276 0.45247625 0.03918154 0.1077225
+#> one     0.42653605 0.29081991 0.16272523 0.5167396
+#> sentenc 0.07892702 0.21085570 0.13856620 0.1533639
+#> </s>    0.13116417 0.04584815 0.65952702 0.2221740
 ```
 
 Alternatively, you can also obtain the weights of the topics used to
@@ -58,10 +55,10 @@ re-construct the input data:
 ``` r
 wdl_fit$weights
 #>              [,1]       [,2]
-#> topic1 0.08664043 0.07950508
-#> topic2 0.03458663 0.59189857
-#> topic3 0.05828124 0.07508092
-#> topic4 0.82049170 0.25351543
+#> topic1 0.42835430 0.31270288
+#> topic2 0.11177570 0.05975748
+#> topic3 0.42987922 0.40321258
+#> topic4 0.02999078 0.22432706
 ```
 
 ## See Also

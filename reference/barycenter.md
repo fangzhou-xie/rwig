@@ -12,8 +12,8 @@ barycenter(
   C,
   w,
   b_ext = NULL,
-  barycenter_control = list(reg = 0.1, with_grad = FALSE, n_threads = 0, method = "auto",
-    threshold = 0.1, max_iter = 1000, zero_tol = 1e-06, verbose = 0)
+  barycenter_control = list(reg = 0.1, with_grad = FALSE, use_cuda = TRUE, n_threads = 0,
+    method = "auto", threshold = 0.1, max_iter = 1000, zero_tol = 1e-06, verbose = 0)
 )
 ```
 
@@ -124,8 +124,8 @@ reg <- .1
 sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
 #> `method` is automatically switched to "log"
 #> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.015, avg speed: 0.015
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.001
+#> iter: 1, err: 0.3207, last speed: 0.025, avg speed: 0.025
+#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.002
 #> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.001
 
 # you can also supply arguments to control the computation

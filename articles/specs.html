@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
     <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
     <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
+    <li><a class="dropdown-item" href="../articles/cuda.html">CUDA Acceleration</a></li>
   </ul>
 </li>
       </ul>
@@ -142,7 +143,7 @@ information</li>
 <h2 id="tokenizer_control">
 <code>tokenizer_control</code><a class="anchor" aria-label="anchor" href="#tokenizer_control"></a>
 </h2>
-<p>Arguments for <code><a href="https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html" class="external-link">tokenizers::tokenize_words()</a></code>.</p>
+<p>Arguments for <code><a href="https://docs.ropensci.org/tokenizers/reference/stem-tokenizers.html" class="external-link">tokenizers::tokenize_word_stems()</a></code>.</p>
 </div>
 <div class="section level2">
 <h2 id="word2vec_control">
@@ -162,8 +163,7 @@ following default parameters:</p>
 <p>Identical to <code>barycenter_control</code> in
 <code><a href="../reference/barycenter.html">barycenter()</a></code> function, but with default</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">with_grad</span> <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span><span class="va">max_iter</span> <span class="op">=</span> <span class="fl">20</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">with_grad</span> <span class="op">=</span> <span class="cn">TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="optimizer_control">

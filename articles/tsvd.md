@@ -16,7 +16,7 @@ is computed.
 I implemented two versions: one as in `scikit-learn`, and another from
 Bro et al. (2008). The `scikit-learn` version specifies the maximum
 entry (in absolute value) should always be positive, and Bro et
-al. (2008) entails an specific algorithm for resolving the signs.
+al. (2008) entails a specific algorithm for resolving the signs.
 
 ``` r
 A <- rbind(c(1,3), c(2,-4))

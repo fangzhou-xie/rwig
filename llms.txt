@@ -115,6 +115,11 @@ Algorithms (No. arXiv:2504.08722). *arXiv*.
 - [`tsvd()`](https://fangzhou-xie.github.io/rwig/reference/tsvd.md) :
   Truncated SVD
 
+## Check CUDA availability
+
+- [`check_cuda()`](https://fangzhou-xie.github.io/rwig/reference/check_cuda.md)
+  : Check if CUDA is available
+
 # Articles
 
 ### Get Started
@@ -142,3 +147,6 @@ Algorithms (No. arXiv:2504.08722). *arXiv*.
   Gradients](https://fangzhou-xie.github.io/rwig/articles/gradient.md):
 
 - [Truncated SVD](https://fangzhou-xie.github.io/rwig/articles/tsvd.md):
+
+- [CUDA
+  Acceleration](https://fangzhou-xie.github.io/rwig/articles/cuda.md):

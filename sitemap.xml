@@ -3,6 +3,7 @@
 <url><loc>https://fangzhou-xie.github.io/rwig/LICENSE-text.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/LICENSE.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/articles/barycenter.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/rwig/articles/cuda.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/articles/gradient.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/articles/index.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/articles/sinkhorn.html</loc></url>
@@ -14,6 +15,7 @@
 <url><loc>https://fangzhou-xie.github.io/rwig/authors.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/index.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/reference/barycenter.html</loc></url>
+<url><loc>https://fangzhou-xie.github.io/rwig/reference/check_cuda.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/reference/headlines.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/reference/index.html</loc></url>
 <url><loc>https://fangzhou-xie.github.io/rwig/reference/rwig-package.html</loc></url>

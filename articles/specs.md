@@ -65,7 +65,7 @@ and
 ## `tokenizer_control`
 
 Arguments for
-[`tokenizers::tokenize_words()`](https://docs.ropensci.org/tokenizers/reference/basic-tokenizers.html).
+[`tokenizers::tokenize_word_stems()`](https://docs.ropensci.org/tokenizers/reference/stem-tokenizers.html).
 
 ## `word2vec_control`
 
@@ -87,7 +87,6 @@ function, but with default
 
 ``` r
 with_grad = TRUE
-max_iter = 20
 ```
 
 ## `optimizer_control`

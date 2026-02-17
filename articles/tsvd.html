@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/threading.html">Multi-threading Support</a></li>
     <li><a class="dropdown-item" href="../articles/gradient.html">Computation of the Gradients</a></li>
     <li><a class="dropdown-item" href="../articles/tsvd.html">Truncated SVD</a></li>
+    <li><a class="dropdown-item" href="../articles/cuda.html">CUDA Acceleration</a></li>
   </ul>
 </li>
       </ul>
@@ -84,7 +85,7 @@ how SVD is computed.</p>
 <p>I implemented two versions: one as in <code>scikit-learn</code>, and
 another from Bro et al. (2008). The <code>scikit-learn</code> version
 specifies the maximum entry (in absolute value) should always be
-positive, and Bro et al. (2008) entails an specific algorithm for
+positive, and Bro et al. (2008) entails a specific algorithm for
 resolving the signs.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="op">-</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>

@@ -8,7 +8,7 @@ Control the parameters of WDL and WIG models
 wdl_specs(
   wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, verbose
     = FALSE),
-  tokenizer_control = list(),
+  tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, n_threads = 0, method = "auto",
     threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
@@ -20,7 +20,7 @@ wig_specs(
   wig_control = list(group_unit = "month", svd_method = "docs", standardize = TRUE),
   wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, rng_seed = 123, verbose
     = FALSE),
-  tokenizer_control = list(),
+  tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, method = "auto", threshold =
     0.1, max_iter = 20, zero_tol = 1e-06),

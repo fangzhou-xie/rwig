@@ -5,16 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Multi-threading Support • rwig</title>
+<title>CUDA Acceleration • rwig</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multi-threading Support">
-<meta name="description" content="Advanced setting to set up the threads for faster processing in Sinkhorn, Barycenter, WDL, and WIG models.
-">
-<meta property="og:description" content="Advanced setting to set up the threads for faster processing in Sinkhorn, Barycenter, WDL, and WIG models.
-">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="CUDA Acceleration">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -69,56 +65,29 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Multi-threading Support</h1>
+      <h1>CUDA Acceleration</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/fangzhou-xie/rwig/blob/main/vignettes/threading.Rmd" class="external-link"><code>vignettes/threading.Rmd</code></a></small>
-      <div class="d-none name"><code>threading.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/fangzhou-xie/rwig/blob/main/vignettes/cuda.Rmd" class="external-link"><code>vignettes/cuda.Rmd</code></a></small>
+      <div class="d-none name"><code>cuda.Rmd</code></div>
     </div>
 
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/fangzhou-xie/rwig" class="external-link">rwig</a></span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The log methods for <code><a href="../reference/sinkhorn.html">sinkhorn()</a></code> and
-<code><a href="../reference/barycenter.html">barycenter()</a></code> both require row-by-row and column-by-column
-<em>soft-minimum</em> operations for each iteration of the algorithm,
-and therefore suffer from slow computation time compared to the
-vanilla/parallel version.</p>
-<p>If the dimensions of
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math>
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
-are large (recall that cost matrix <strong>C</strong> is of size
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>×</mo><mi>N</mi></mrow><annotation encoding="application/x-tex">M \times N</annotation></semantics></math>),
-we can use multi-threading to process the rows and columns
-simultaneously.</p>
-<p>This can be done by setting <code>n_threads</code> to an integer
-bigger than 0. By default it is 0, and it means that threading is
-disabled. Also, setting <code>n_threads</code> for “vanilla” or
-“parallel” methods will be ignored automatically.</p>
-<p>But you might ask: if multi-threading is so wonderful, why don’t you
-set threading as the default? This is because threading comes with an
-overhead, and sometimes for small problems, it can even be slower than
-serial processing. So be sure to benchmark your code and see if
-threading actually helps.</p>
-<div class="section level2">
-<h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
-</h2>
-<p>See also <code><a href="../articles/sinkhorn.html">vignette("sinkhorn")</a></code>,
-<code><a href="../articles/barycenter.html">vignette("barycenter")</a></code>.</p>
-</div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<p>Peyré, G., &amp; Cuturi, M. (2019). Computational Optimal Transport:
-With Applications to Data Science. <em>Foundations and Trends® in
-Machine Learning</em>, 11(5–6), 355–607. <a href="https://doi.org/10.1561/2200000073" class="external-link uri">https://doi.org/10.1561/2200000073</a></p>
-<p>Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
-Transport Algorithms (No. arXiv:2504.08722). <em>arXiv</em>. <a href="https://doi.org/10.48550/arXiv.2504.08722" class="external-link uri">https://doi.org/10.48550/arXiv.2504.08722</a></p>
-</div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
-    </nav></aside>
+<p>The Wasserstein Index Generation (WIG) model relies on the
+computationally expensive Optimal Transport methods, and could be
+potentially very slow if the dimension of the problem is very large. In
+order to speed up the computation, I have implemented some functions in
+CUDA for faster processing with GPU. This is currently only available on
+Linux machines, with CUDA installed.</p>
+<p>To see if the <code>rwig</code> package on your machine is built with
+CUDA, you can use the following function to check</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/check_cuda.html">check_cuda</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+  </main>
 </div>
 
 
