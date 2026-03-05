@@ -67,7 +67,7 @@ wdl_specs <- function(
     verbose = FALSE
   ),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
-  word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
+  word2vec_control = list(type = "cbow", dim = 10, min_count = 3),
   barycenter_control = list(
     reg = .1,
     with_grad = TRUE,

@@ -11,9 +11,9 @@ wig(.data, date_col, docs_col, ...)
 
 \method{wig}{data.frame}(.data, date_col, docs_col, specs = wig_specs(), ...)
 
-\method{print}{wig}(x, topic = 1, token_per_topic = 5, ...)
+\method{print}{wig}(x, topic = 1, token_per_topic = 10, ...)
 
-\method{summary}{wig}(object, topic = 1, token_per_topic = 5, ...)
+\method{summary}{wig}(object, topic = 1, token_per_topic = 10, ...)
 }
 \arguments{
 \item{.data}{a dataframe containing the dates/datetimes and documents}

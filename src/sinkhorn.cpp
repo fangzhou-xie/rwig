@@ -44,8 +44,7 @@ Rcpp::List sinkhorn_vanilla_cpu(const SEXP &a, const SEXP &b, const SEXP &C,
 }
 
 // only have the CUDA version when they are detected
-#ifdef HAVE_CUBLAS
-#ifdef HAVE_CUDA_RUNTIME
+#if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
 
 #include "cuda_interface.cuh"
 
@@ -110,7 +109,6 @@ Rcpp::List sinkhorn_vanilla_cuda(const SEXP &a, const SEXP &b, const SEXP &C,
 }
 
 #endif
-#endif
 
 /*
 Interfaces for the R side
@@ -130,12 +128,11 @@ Rcpp::List sinkhorn_vanilla_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
     res = sinkhorn_vanilla_cuda(a, b, C, reg, withgrad, maxiter, zerotol,
                                 verbose);
   } else {
-    res = sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol,
-                               verbose);
+    res =
+        sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
   }
 #else
-  res =
-      sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
+  res = sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
 #endif
 
   return res;

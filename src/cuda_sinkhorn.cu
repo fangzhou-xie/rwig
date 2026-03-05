@@ -286,6 +286,7 @@ void cuda_sinkhorn_vanilla(double *P, double *grad_a, double *u, double *v,
              d_PbarK, d_C, d_P, d_K, d_Kv, d_KTu, M, N, reg, stream, handle);
   }
 
+  cudaMemsetAsync(d_loss, 0, sizeof(double), stream);
   update_loss(d_loss, d_C, d_P, M, N, reg, stream);
 
   /* step 6: copy data back to host */

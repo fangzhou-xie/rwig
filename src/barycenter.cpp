@@ -60,8 +60,7 @@ Rcpp::List barycenter_parallel_cpu(const SEXP &A, const SEXP &C, const SEXP &w,
 }
 
 // only have the CUDA version when they are detected
-#ifdef HAVE_CUBLAS
-#ifdef HAVE_CUDA_RUNTIME
+#if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
 
 #include "cuda_interface.cuh"
 
@@ -137,7 +136,6 @@ Rcpp::List barycenter_parallel_cuda(const SEXP &A, const SEXP &C, const SEXP &w,
 }
 
 #endif
-#endif
 
 /*
 Interfaces for the R side
@@ -160,8 +158,8 @@ Rcpp::List barycenter_parallel_cpp(const SEXP &A, const SEXP &C, const SEXP &w,
                                   zerotol, verbose);
   }
 #else
-  res = barycenter_parallel_cpu(A, C, w, reg, b_ext, withgrad, maxiter,
-                                zerotol, verbose);
+  res = barycenter_parallel_cpu(A, C, w, reg, b_ext, withgrad, maxiter, zerotol,
+                                verbose);
 #endif
   return res;
 }

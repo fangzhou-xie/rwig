@@ -12,8 +12,8 @@ class TicToc {
 
 private:
 
-  std::chrono::duration<double> _sec_last;                    // last time
-  std::chrono::duration<double> _secs;                        // elapsed time
+  std::chrono::duration<double> _sec_last{0.0};               // last time
+  std::chrono::duration<double> _secs{0.0};                   // elapsed time
   std::chrono::time_point<std::chrono::steady_clock> _t1;     // tic time
   std::chrono::time_point<std::chrono::steady_clock> _t2;     // toc time
 

@@ -11,7 +11,71 @@ bool cuda_available_cpp() {
 #endif
 }
 
-// #include "cuda_kernels.hpp"
+// #include "cuda_kernels.cuh"
+
+// // [[Rcpp::export]]
+// SEXP test_cuda_softmax(SEXP A) {
+//   double *A_ptr = REAL(A);
+//   int n = LENGTH(A);
+
+//   int M = Rf_nrows(A);
+//   int N = Rf_ncols(A);
+
+//   double *A_cuda;
+//   double *out_cuda;
+//   cudaMalloc(&A_cuda, n * sizeof(double));
+//   cudaMalloc(&out_cuda, n * sizeof(double));
+//   cudaMemcpy(A_cuda, A_ptr, n * sizeof(double), cudaMemcpyHostToDevice);
+
+//   softmax(out_cuda, A_cuda, M, N);
+
+//   SEXP out_ = PROTECT(Rf_allocVector(REALSXP, n));
+//   double *out_ptr = REAL(out_);
+//   cudaMemcpy(out_ptr, out_cuda, n * sizeof(double), cudaMemcpyDeviceToHost);
+
+//   SEXP dims = PROTECT(Rf_allocVector(INTSXP, 2));
+//   INTEGER(dims)[0] = M;
+//   INTEGER(dims)[1] = N;
+//   Rf_setAttrib(out_, R_DimSymbol, dims);
+//   UNPROTECT(2);
+
+//   cudaFree(A_cuda);
+//   cudaFree(out_cuda);
+
+//   return out_;
+// }
+
+// // [[Rcpp::export]]
+// SEXP test_cuda_softmax_jac(SEXP a) {
+//   double *a_ptr = REAL(a);
+//   int n = LENGTH(a);
+
+//   int M = Rf_nrows(a);
+//   int N = Rf_ncols(a);
+
+//   double *a_cuda;
+//   double *out_cuda;
+//   cudaMalloc(&a_cuda, n * sizeof(double));
+//   cudaMalloc(&out_cuda, n * sizeof(double));
+//   cudaMemcpy(a_cuda, a_ptr, n * sizeof(double), cudaMemcpyHostToDevice);
+
+//   softmax_jac(out_cuda, a_cuda, M, N);
+
+//   SEXP out_ = PROTECT(Rf_allocVector(REALSXP, n));
+//   double *out_ptr = REAL(out_);
+//   cudaMemcpy(out_ptr, out_cuda, n * sizeof(double), cudaMemcpyDeviceToHost);
+
+//   SEXP dims = PROTECT(Rf_allocVector(INTSXP, 2));
+//   INTEGER(dims)[0] = M;
+//   INTEGER(dims)[1] = N;
+//   Rf_setAttrib(out_, R_DimSymbol, dims);
+//   UNPROTECT(2);
+
+//   cudaFree(a_cuda);
+//   cudaFree(out_cuda);
+
+//   return out_;
+// }
 
 // // [[Rcpp::export]]
 // SEXP test_cuda_dgemm(SEXP A, SEXP B, const bool transA, const bool transB,

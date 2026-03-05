@@ -127,6 +127,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
     wdl_args$epochs, # epochs
     # brc_args$method, # sinkhorn_mode
     brc_args$method_int, # sinkhorn_mode_threshold
+    brc_args$use_cuda, # useCuda
     brc_args$max_iter, # maxIter of Sinkhorn
     brc_args$zero_tol, # zeroTol of Sinkhorn
     opt_args$optimizer_int, # optimizer
@@ -135,8 +136,8 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
     opt_args$beta1, # beta1: used in Adam/AdamW
     opt_args$beta2, # beta2: used in Adam/AdamW
     opt_args$eps, # eps: used in Adam/AdamW
-    # wdl_args$rng_seed, # rng_seed: seed for reproducibility
-    wdl_args$verbose # verbose: print information in wdl
+    wdl_args$verbose, # verbose: print information in wdl
+    wdl_args$seed # seed: random seed for reproducibility
   )
   topics <- res$A
   weights <- res$W
@@ -172,7 +173,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
 #' @param token_per_topic int, number of tokens to be printed
 #'
 #' @export
-print.wdl <- function(x, topic = 0, token_per_topic = 5, ...) {
+print.wdl <- function(x, topic = 0, token_per_topic = 10, ...) {
   # `topic`: which topic to list (default all)
   # `token_per_topic`: number of tokens shown per topic
 
@@ -189,7 +190,7 @@ print.wdl <- function(x, topic = 0, token_per_topic = 5, ...) {
   }
 
   if (topic == 0) {
-    for (topic in 1:ncol(x$topics)) {
+    for (topic in seq_len(ncol(x$topics))) {
       print_topic(topic)
     }
   } else {
@@ -204,7 +205,7 @@ print.wdl <- function(x, topic = 0, token_per_topic = 5, ...) {
 #' @param token_per_topic int, number of tokens to be printed
 #'
 #' @export
-summary.wdl <- function(object, topic = 1, token_per_topic = 5, ...) {
+summary.wdl <- function(object, topic = 1, token_per_topic = 10, ...) {
   # `topic`: which topic to list (default all)
   # `token_per_topic`: number of tokens shown per topic
 

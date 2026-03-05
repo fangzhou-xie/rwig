@@ -3,15 +3,92 @@
 # R -d "valgrind --leak-check=full --track-origins=yes" -f test_memory.R
 
 # test cuda
-
-6288 / (6288 + 1307)
-
-
 Rcpp::compileAttributes()
 devtools::document()
 
 devtools::unload("rwig")
 devtools::load_all()
+
+# test WDL
+
+headlines_df <- rwig::headlines |>
+  dplyr::filter(dplyr::row_number() <= 1000)
+headlines_df <- rwig::headlines
+toks <- tokenizers::tokenize_words(headlines_df$headline)
+model <- word2vec::word2vec(toks, min_count = 5)
+emb <- as.matrix(model)
+distmat <- rwig:::euclidean(emb)
+docdist <- rwig:::doc2dist(toks, rownames(emb))[, 1:10]
+
+distmat |> dim()
+docdist |> dim()
+
+set.seed(1)
+sol <- rwig:::wdl_cpp(
+  docdist,
+  distmat,
+  .1,
+  4, # S
+  2, # threads
+  5, # batch size
+  1,
+  1,
+  TRUE,
+  20,
+  1e-6,
+  2,
+  .001,
+  .01,
+  .9,
+  .999,
+  1e-8,
+  TRUE,
+  42
+)
+sol |> names()
+sol$A[1:5, ]
+
+set.seed(1)
+N <- 500
+M <- 20
+S <- 4
+softmax <- function(A) {
+  # each col
+  for (j in seq_len(ncol(A))) {
+    expAj <- exp(A[, j] - max(A[, j]))
+    A[, j] <- expAj / sum(expAj)
+  }
+  A
+}
+A <- matrix(rnorm(N * S), N, S) |> softmax()
+C <- matrix(rnorm(N * N), N, N) |> abs()
+W <- matrix(rnorm(S * M), S, M) |> softmax()
+
+library(tidyverse) |> suppressPackageStartupMessages()
+# rwig::headlines |> nrow()
+headlines_df <- headlines |>
+  as_tibble() |>
+  mutate(headline = str_to_lower(headline))
+# head(1000)
+
+wdl_fit <- wdl(
+  headlines_df$headline,
+  wdl_specs(
+    wdl_control = list(
+      verbose = TRUE,
+      batch_size = 100,
+      epochs = 2
+    ),
+    barycenter_control = list(
+      # use_cuda = TRUE,
+      use_cuda = FALSE,
+      method = "parallel",
+      max_iter = 20
+    )
+  )
+)
+
+wdl_fit
 
 brc1 <- list(
   reg = reg,
@@ -74,14 +151,6 @@ w <- c(.4, .6)
 b <- c(.2, .2, .2, .2, .2)
 reg <- .1
 
-softmax <- function(A) {
-  # each col
-  for (j in 1:ncol(A)) {
-    expAj <- exp(A[, j] - max(A[, j]))
-    A[, j] <- expAj / sum(expAj)
-  }
-  A
-}
 
 set.seed(1)
 M <- 2000
@@ -154,6 +223,25 @@ bench::mark(
   sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh2),
 )
 
+sol1 <- sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh1)
+sol2 <- sinkhorn(a = a, b = b, C = C, sinkhorn_control = skh2)
+names(sol1)
+sol1$return_status
+sol2$return_status
+
+sol1$grad_a
+sol2$grad_a
+
+sol1$grad_a[1:10]
+sol2$grad_a[1:10]
+
+sol1$P[1:10, 1:10]
+sol2$P[1:10, 1:10]
+
+sol1$loss
+sol2$loss
+
+testthat::expect_equal(sol1, sol2)
 
 #############################################################
 # test WIG EPU
@@ -165,7 +253,7 @@ library(rwig)
 headlines_df <- headlines |>
   as_tibble() |>
   mutate(headline = str_to_lower(headline)) |>
-  head(1000)
+  head(200)
 
 wig_fit <- headlines_df |>
   wig(

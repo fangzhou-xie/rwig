@@ -173,7 +173,7 @@ wig.data.frame <- function(
 #' @param token_per_topic int, number of tokens to be printed
 #'
 #' @export
-print.wig <- function(x, topic = 1, token_per_topic = 5, ...) {
+print.wig <- function(x, topic = 1, token_per_topic = 10, ...) {
   cat(sprintf(
     "WIG model from %s to %s\n",
     as.character(min(x$index$ref_date)),
@@ -191,7 +191,7 @@ print.wig <- function(x, topic = 1, token_per_topic = 5, ...) {
 #' @param token_per_topic int, number of tokens to be printed
 #'
 #' @export
-summary.wig <- function(object, topic = 1, token_per_topic = 5, ...) {
+summary.wig <- function(object, topic = 1, token_per_topic = 10, ...) {
   cat("Summary of WDL topics:\n")
 
   summary.wdl(object$wdl_model, topic, token_per_topic, ...)

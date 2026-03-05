@@ -28,7 +28,15 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
 // TODO: maybe the intermediate barycenter interface too (for WDL)
 // TODO: implement wdl (high priority)
 
-void cuda_wdl();
+void cuda_wdl(
+    double *A, double *W, double *Yhat,
+    const double *Y, const double *C,
+    const int N, const int M, const int S,
+    const double reg, const int max_iter, const double zero_tol,
+    const int B, const int E,
+    const int opt, const double eta, const double gamma,
+    const double beta1, const double beta2, const double eps,
+    const int seed, const bool verbose);
 
 // TODO: implement log methods (low priority)
 

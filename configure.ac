@@ -6,6 +6,7 @@ if test -z "${R_HOME}"; then
   AC_MSG_ERROR([cannot determine R_HOME. Make sure you use R CMD INSTALL!])
 fi
 RBIN="${R_HOME}/bin/R"
+R_INCL=`"${RBIN}" CMD config --cppflags`
 
 # AC_PATH_PROG([PKG_CONFIG], [pkg-config])
 AC_LANG(C++)
@@ -39,9 +40,9 @@ case "${host_os}" in
 					CUDA_DEFS="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include ${R_INCL} -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
-OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_wdl.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
+OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_optimizer.o cuda_wdl.o \$(patsubst %.cpp,%.o,\$(wildcard *.cpp))
 
 .PHONY: all
 
@@ -55,6 +56,9 @@ cuda_sinkhorn.o: cuda_sinkhorn.cu
 	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
 
 cuda_barycenter.o: cuda_barycenter.cu
+	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
+
+cuda_optimizer.o: cuda_optimizer.cu
 	\$(NVCC) \$(NVCC_FLAGS) -c \$< -o \$@
 
 cuda_wdl.o: cuda_wdl.cu

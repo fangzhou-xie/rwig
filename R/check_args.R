@@ -36,8 +36,9 @@ check_wdl_args <- function(wdl_args) {
   if (is.null(wdl_args$shuffle)) {
     wdl_args$shuffle <- TRUE
   }
-  # if (is.null(wdl_args$rng_seed))
-  #   wdl_args$rng_seed <- 123L
+  if (is.null(wdl_args$seed)) {
+    wdl_args$seed <- 42L
+  }
   if (is.null(wdl_args$verbose)) {
     wdl_args$verbose <- FALSE
   }

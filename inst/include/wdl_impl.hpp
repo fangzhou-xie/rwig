@@ -62,6 +62,9 @@ private:
   mat _Lambda;      // S * M
   vec _onesM;       // vector of ones
 
+  // precomputed Gibbs kernel
+  mat _K;           // N * N, exp(-C / reg)
+
   // TicToc timer class
   TicToc _timer;    // used for logging each iteration time
 
@@ -98,6 +101,7 @@ private:
 
   void _compute_serial();
   void _train_batch_serial(Barycenter& bc, int batch_id);
+  void _train_batch_batched(int batch_id);
   // void _train_batch_compute(Barycenter& bc, vec& y, vec& w);
   // optimizer step
   void _optimize() {

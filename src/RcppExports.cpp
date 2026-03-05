@@ -136,8 +136,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // wdl_cpp
-Rcpp::List wdl_cpp(const SEXP& Y, const SEXP& C, const double reg, const int S, const int n_threads, const int batch_size, const int epochs, int sinkhorn_mode, bool usecuda, const int max_iter, const double zero_tol, const int optimizer, const double eta, const double gamma, const double beta1, const double beta2, const double eps, const bool verbose);
-RcppExport SEXP _rwig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP usecudaSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP) {
+Rcpp::List wdl_cpp(const SEXP& Y, const SEXP& C, const double reg, const int S, const int n_threads, const int batch_size, const int epochs, int sinkhorn_mode, bool usecuda, const int max_iter, const double zero_tol, const int optimizer, const double eta, const double gamma, const double beta1, const double beta2, const double eps, const bool verbose, const int seed);
+RcppExport SEXP _rwig_wdl_cpp(SEXP YSEXP, SEXP CSEXP, SEXP regSEXP, SEXP SSEXP, SEXP n_threadsSEXP, SEXP batch_sizeSEXP, SEXP epochsSEXP, SEXP sinkhorn_modeSEXP, SEXP usecudaSEXP, SEXP max_iterSEXP, SEXP zero_tolSEXP, SEXP optimizerSEXP, SEXP etaSEXP, SEXP gammaSEXP, SEXP beta1SEXP, SEXP beta2SEXP, SEXP epsSEXP, SEXP verboseSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -159,7 +159,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type beta2(beta2SEXP);
     Rcpp::traits::input_parameter< const double >::type eps(epsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(wdl_cpp(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, usecuda, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose));
+    Rcpp::traits::input_parameter< const int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(wdl_cpp(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode, usecuda, max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2, eps, verbose, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -173,7 +174,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rwig_tsvd_cpp", (DL_FUNC) &_rwig_tsvd_cpp, 3},
     {"_rwig_euclidean_cpp", (DL_FUNC) &_rwig_euclidean_cpp, 1},
     {"_rwig_doc2dist_cpp", (DL_FUNC) &_rwig_doc2dist_cpp, 2},
-    {"_rwig_wdl_cpp", (DL_FUNC) &_rwig_wdl_cpp, 18},
+    {"_rwig_wdl_cpp", (DL_FUNC) &_rwig_wdl_cpp, 19},
     {NULL, NULL, 0}
 };
 

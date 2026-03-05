@@ -81,15 +81,13 @@ void update_Vbar_l(double *Vbar, double *Ubar, double *Uhist, double *Vhist,
 }
 
 void update_bbar_l(double *bbar, double *Vbar, double *Uhist, double *KTUhist,
-                   int l, double *K, double *KTU, double *ones_S, int M, int N,
-                   int S, cudaStream_t &stream, cublasHandle_t &handle) {
-  // KTU
-  // dgemm(KTU, 1.0, K, true, Uhist + l * M * S, false, N, S, M, 0.0, handle);
+                   int l, double *K, double *KTU, int M, int N, int S,
+                   cudaStream_t &stream, cublasHandle_t &handle) {
   // tmp_NS = Vbar / KTU
   nip_div(KTU, Vbar, KTUhist + l * N * S, N * S, stream);
-  // TODO: replace dgemv with custom kernel for row sum (remove ones_S)
-  // bbar = sum_rows(tmp_NS) => tmp_NS * ones_S
-  dgemv(bbar, 1.0, KTU, N, S, false, ones_S, 0.0, handle);
+  // bbar = row_sum(tmp_NS)
+  // dgemv(bbar, 1.0, KTU, N, S, false, ones_S, 0.0, handle);
+  nip_row_sum(bbar, KTU, N, S, stream);
 }
 
 void update_Ubar_l(double *Ubar, double *Vbar, double *bbar, double *Vhist,
@@ -107,9 +105,9 @@ void update_Ubar_l(double *Ubar, double *Vbar, double *bbar, double *Vhist,
   dgemm(Ubar, -1.0, K, false, KTU, false, M, S, N, 0.0, handle);
 }
 
-void update_Abar(double *Abar, double *Ubar, double *Vhist, double *KVhist,
-                 int l, double *K, double *KV, int M, int N, int S,
-                 cudaStream_t &stream, cublasHandle_t &handle) {
+void update_Abar(double *Abar, double *Ubar, double *KVhist, int l, double *KV,
+                 int M, int N, int S, cudaStream_t &stream,
+                 cublasHandle_t &handle) {
   // update KV
   // dgemm(KV, 1.0, K, false, Vhist + (l - 1) * N * S, false, M, S, N, 0.0,
   //       handle);
@@ -207,52 +205,66 @@ void forward(int &iter, double &err, double *U, double *V, double *b,
 void backward(int &iter, double *Ubar, double *Vbar, double *bbar, double *Abar,
               double *wbar, double *Uhist, double *Vhist, double *bhist,
               double *KVhist, double *KTUhist, double *w, double *b_ext,
-              double *K, double *KV, double *KTU, double *ones_S, int M, int N,
-              int S, cudaStream_t &stream, cublasHandle_t &handle) {
+              double *K, double *KV, double *KTU, int M, int N, int S,
+              cudaStream_t &stream, cublasHandle_t &handle) {
   // backward pass
   for (int l = iter; l > 0; --l) {
     if (l == iter) {
       update_bbar_L(bbar, bhist, l, b_ext, N, stream);
       update_Ubar_L(Ubar, bbar, Vhist, l, w, K, KTU, M, N, S, stream, handle);
-      // compute KTU for `update_wbar`
-      // dgemm(KTU, 1.0, K, true, Uhist + l * M * S, false, N, S, M, 0.0,
-      // handle);
     } else {
       update_Vbar_l(Vbar, Ubar, Uhist, Vhist, KVhist, l, K, KV, M, N, S, stream,
                     handle);
-      update_bbar_l(bbar, Vbar, Uhist, KTUhist, l, K, KTU, ones_S, M, N, S,
-                    stream, handle);
+      update_bbar_l(bbar, Vbar, Uhist, KTUhist, l, K, KTU, M, N, S, stream,
+                    handle);
       update_Ubar_l(Ubar, Vbar, bbar, Vhist, KTUhist, l, w, K, KTU, M, N, S,
                     stream, handle);
     }
 
-    update_Abar(Abar, Ubar, Vhist, KVhist, l, K, KV, M, N, S, stream, handle);
+    update_Abar(Abar, Ubar, KVhist, l, KV, M, N, S, stream, handle);
     update_wbar(wbar, bbar, bhist, KTUhist, l, KTU, N, S, stream, handle);
   }
 }
 
-// output for barycenter: U, V, b, grad_A, grad_w
-// output for WDL: b, grad_A, grad_w
-// NOTE: maybe two different functions?
-
+// main interface for barycenter (forward + backward)
 void impl_barycenter(int &iter, double &err, double *U, double *V, double *b,
                      double *Ubar, double *Vbar, double *bbar, double *Abar,
                      double *wbar, double *Uhist, double *Vhist, double *bhist,
                      double *KVhist, double *KTUhist, double *A, double *w,
-                     double *b_ext, double *K, double *KV, double *KTU,
-                     double *ones_S, int M, int N, int S, const int max_iter,
-                     const double zero_tol, bool withgrad, cudaStream_t &stream,
+                     double *b_ext, double *K, double *KV, double *KTU, int M,
+                     int N, int S, const int max_iter, const double zero_tol,
+                     bool withgrad, cudaStream_t &stream,
                      cublasHandle_t &handle) {
+
+  auto D2D = cudaMemcpyDeviceToDevice;
+
+  if (withgrad) {
+    cudaMemsetAsync(Ubar, 0, sizeof(double) * M * S, stream);
+    cudaMemsetAsync(Vbar, 0, sizeof(double) * N * S, stream);
+    cudaMemsetAsync(bbar, 0, sizeof(double) * N, stream);
+    cudaMemsetAsync(Abar, 0, sizeof(double) * M * S, stream);
+    cudaMemsetAsync(wbar, 0, sizeof(double) * S, stream);
+  }
+
+  // init U, V to ones
+  init_ones(U, M * S, stream);
+  init_ones(V, N * S, stream);
+  if (withgrad) {
+    cudaMemcpyAsync(Uhist, U, sizeof(double) * M * S, D2D, stream);
+    cudaMemcpyAsync(Vhist, V, sizeof(double) * N * S, D2D, stream);
+  }
+
   forward(iter, err, U, V, b, Uhist, Vhist, bhist, KVhist, KTUhist, A, w, K, KV,
           KTU, M, N, S, max_iter, zero_tol, withgrad, stream, handle);
   if (withgrad) {
     backward(iter, Ubar, Vbar, bbar, Abar, wbar, Uhist, Vhist, bhist, KVhist,
-             KTUhist, w, b_ext, K, KV, KTU, ones_S, M, N, S, stream, handle);
+             KTUhist, w, b_ext, K, KV, KTU, M, N, S, stream, handle);
   }
   // rescale at the end
   normalize(b, N, handle);
 }
 
+// interface to be called from C++
 void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
                               double *grad_w, double *loss, int *iter_out,
                               double *err_out, const double *A, const double *w,
@@ -270,7 +282,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   cudaStream_t stream;
   auto H2D = cudaMemcpyHostToDevice;
   auto D2H = cudaMemcpyDeviceToHost;
-  auto D2D = cudaMemcpyDeviceToDevice;
 
   int iter = 0;
   double err = 1000.;
@@ -282,7 +293,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   double *d_U = nullptr, *d_V = nullptr;     // scaling vectors
   double *d_b = nullptr;                     // barycenter
   double *d_KV = nullptr, *d_KTU = nullptr;  // temp matrices
-  double *d_ones_S = nullptr;                // ones_S
   double *d_loss = nullptr;                  // loss
 
   // history of U, V, b
@@ -312,9 +322,7 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   cudaMallocAsync((void **)&d_b, sizeof(double) * N, stream);
   cudaMallocAsync((void **)&d_KV, sizeof(double) * M * S, stream);
   cudaMallocAsync((void **)&d_KTU, sizeof(double) * N * S, stream);
-  cudaMallocAsync((void **)&d_ones_S, sizeof(double) * S, stream);
   cudaMallocAsync((void **)&d_loss, sizeof(double), stream);
-  cudaMemsetAsync(d_loss, 0, sizeof(double), stream);
 
   if (withgrad) {
     cudaMallocAsync((void **)&d_U_hist, sizeof(double) * (max_iter + 1) * M * S,
@@ -332,12 +340,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
     cudaMallocAsync((void **)&d_bbar, sizeof(double) * N, stream);
     cudaMallocAsync((void **)&d_Abar, sizeof(double) * M * S, stream);
     cudaMallocAsync((void **)&d_wbar, sizeof(double) * S, stream);
-
-    cudaMemsetAsync(d_Ubar, 0, sizeof(double) * M * S, stream);
-    cudaMemsetAsync(d_Vbar, 0, sizeof(double) * N * S, stream);
-    cudaMemsetAsync(d_bbar, 0, sizeof(double) * N, stream);
-    cudaMemsetAsync(d_Abar, 0, sizeof(double) * M * S, stream);
-    cudaMemsetAsync(d_wbar, 0, sizeof(double) * S, stream);
   }
 
   /* step 4: copy data to device */
@@ -351,20 +353,12 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   update_K(d_K, M, N, reg, stream);
   // print_device_matrix(d_K, M, N, "K");
 
-  // init U, V to ones
-  init_ones(d_U, M * S, stream);
-  init_ones(d_V, N * S, stream);
-  init_ones(d_ones_S, S, stream);
-  if (withgrad) {
-    cudaMemcpyAsync(d_U_hist, d_U, sizeof(double) * M * S, D2D, stream);
-    cudaMemcpyAsync(d_V_hist, d_V, sizeof(double) * N * S, D2D, stream);
-  }
-
   /* step 5: computation*/
   impl_barycenter(iter, err, d_U, d_V, d_b, d_Ubar, d_Vbar, d_bbar, d_Abar,
                   d_wbar, d_U_hist, d_V_hist, d_b_hist, d_KV_hist, d_KTU_hist,
-                  d_A, d_w, d_b_ext, d_K, d_KV, d_KTU, d_ones_S, M, N, S,
-                  max_iter, zero_tol, withgrad, stream, handle);
+                  d_A, d_w, d_b_ext, d_K, d_KV, d_KTU, M, N, S, max_iter,
+                  zero_tol, withgrad, stream, handle);
+  cudaMemsetAsync(d_loss, 0, sizeof(double), stream);
   update_loss(d_loss, d_b, d_b_ext, N, stream);
 
   /* step 6: copy data back to host */
@@ -393,7 +387,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   cudaFreeAsync(d_b, stream);
   cudaFreeAsync(d_KV, stream);
   cudaFreeAsync(d_KTU, stream);
-  cudaFreeAsync(d_ones_S, stream);
   if (withgrad) {
     cudaFreeAsync(d_U_hist, stream);
     cudaFreeAsync(d_V_hist, stream);

@@ -33,14 +33,17 @@ arma::mat tsvd_cpp(const arma::mat& M,
   arma::vec s;
   arma::svd(U, s, V, M);
 
+  // clamp k to available singular values
+  int kk = std::min(k, (int)s.n_elem);
+
   if (flip_sign == 0) {
     // auto mode
-    arma::mat Y = M - U.cols(0,k-1) * diagmat(s.rows(0,k-1)) * (V.cols(0,k-1)).t();
+    arma::mat Y = M - U.cols(0,kk-1) * diagmat(s.rows(0,kk-1)) * (V.cols(0,kk-1)).t();
     double sk_left, sk_right;
     double uTy = 0.;
     double vTy = 0.;
 
-    for (int K = 0; K < k; ++K) {
+    for (int K = 0; K < kk; ++K) {
 
       sk_left = 0.;
       for (size_t j = 0; j < Y.n_cols; ++j) {
@@ -65,10 +68,10 @@ arma::mat tsvd_cpp(const arma::mat& M,
       U.col(K) *= arma::sign(sk_left);
       V.col(K) *= arma::sign(sk_right);
     }
-    Msvd = U.cols(0,k-1) * diagmat(s.rows(0,k-1));
+    Msvd = U.cols(0,kk-1) * diagmat(s.rows(0,kk-1));
 
   } else if (flip_sign == 1) {
-    Msvd = U.cols(0,k-1) * diagmat(s.rows(0,k-1));
+    Msvd = U.cols(0,kk-1) * diagmat(s.rows(0,kk-1));
 
     for (size_t i = 0; i < Msvd.n_cols; ++i) {
       if (Msvd.col(i)(abs(Msvd.col(i)).index_max()) < 0) {
@@ -76,7 +79,7 @@ arma::mat tsvd_cpp(const arma::mat& M,
       }
     }
   } else {
-    Msvd = U.cols(0,k-1) * diagmat(s.rows(0,k-1));
+    Msvd = U.cols(0,kk-1) * diagmat(s.rows(0,kk-1));
   }
   // return as_doubles_matrix(Msvd);
   return Msvd;

@@ -1,9 +1,8 @@
 
 // definition file for the utility functions
 
-
-#include <vector> // std::vector
 #include <string> // std::string
+#include <vector> // std::vector
 
 #include "common.hpp"
 
@@ -15,7 +14,7 @@
 
 // Euclidean matrix based on embeddings
 // [[Rcpp::export]]
-arma::mat euclidean_cpp(const arma::mat& A) {
+arma::mat euclidean_cpp(const arma::mat &A) {
   // convert AR to A
   // mat A = as_Mat(AR);
 
@@ -27,8 +26,8 @@ arma::mat euclidean_cpp(const arma::mat& A) {
     for (size_t j = 0; j < A.n_rows; ++j) {
       if (i < j) {
         c = sqrt(accu(square(A.row(i) - A.row(j))));
-        euc(i,j) = c;
-        euc(j,i) = c;
+        euc(i, j) = c;
+        euc(j, i) = c;
       }
     }
   }
@@ -36,7 +35,6 @@ arma::mat euclidean_cpp(const arma::mat& A) {
   return euc;
 }
 
-// TODO: re-implement the `doc2dist` function directly using `cpp11::strings`
 // [[Rcpp::export]]
 arma::mat doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict) {
   // docs: list of character vectors
@@ -68,7 +66,6 @@ arma::mat doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict) {
   // return as_doubles_matrix(docmat);
   return docmat;
 }
-
 
 // /////////////////////////////////////////////////////////////////////
 // // Optimizers

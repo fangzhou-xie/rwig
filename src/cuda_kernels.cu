@@ -55,6 +55,15 @@ __global__ void nip_dot_div(int n, double *xbar, double *x, double *y,
     z[i] = (xbar[i] * x[i]) / y[i];
 }
 
+// kernel: res = x .* y - z
+__global__ void nip_dot_minus(int n, double *res, double *x, double *y,
+                              double *z) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int i = index; i < n; i += stride)
+    res[i] = x[i] * y[i] - z[i];
+}
+
 __global__ void nip_sumsq(int n, double *loss, double *x, double *y) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int stride = blockDim.x * gridDim.x;
@@ -85,6 +94,18 @@ __global__ void nip_b_div_KTU(int m, int n, double *V, double *b, double *KTU) {
     int i = k % m; // row
     // int j = k / m; // col
     V[k] = b[i] / KTU[k];
+  }
+}
+
+// row sum of column-major matrix: result[i] = sum_j A[i + j*m]
+__global__ void nip_row_sum(int m, int n, double *A, double *result) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int i = index; i < m; i += stride) {
+    double sum = 0.0;
+    for (int j = 0; j < n; j++)
+      sum += A[i + j * m];
+    result[i] = sum;
   }
 }
 
@@ -150,6 +171,13 @@ __global__ void nip_minus_2(int n, double *z, double *x, double *y) {
 }
 
 // all the `inplace_*`  functions are in-place
+__global__ void ip_add(int n, double *x, double *y) {
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int i = index; i < n; i += stride)
+    y[i] = x[i] + y[i];
+}
+
 __global__ void ip_dot(int n, double *x, double *y) {
   int index = blockIdx.x * blockDim.x + threadIdx.x;
   int stride = blockDim.x * gridDim.x;
@@ -192,15 +220,6 @@ __global__ void ip_gibbs(int n, double *x, const double reg) {
   int stride = blockDim.x * gridDim.x;
   for (int i = index; i < n; i += stride)
     x[i] = exp(-x[i] / reg);
-}
-
-// kernel: res = x .* y - z
-__global__ void ip_dot_minus(int n, double *res, double *x, double *y,
-                             double *z) {
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-  int stride = blockDim.x * gridDim.x;
-  for (int i = index; i < n; i += stride)
-    res[i] = x[i] * y[i] - z[i];
 }
 
 // kernel: res = norm2(x .* y - z)
@@ -258,7 +277,6 @@ __global__ void ip_sinkloss(int n, double *loss, double *C, double *P,
   double sum = 0.;
   for (int i = index; i < n; i += stride)
     sum += C[i] * P[i] + reg * P[i] * (log(P[i]) - 1.0);
-  *loss = 0.;
   atomicAdd(loss, sum);
 }
 
@@ -309,6 +327,14 @@ void nip_dot_div(double *z, double *xbar, double *x, double *y, int n,
   nip_dot_div<<<numBlocks, blockSize, 0, stream>>>(n, xbar, x, y, z);
 }
 
+void nip_dot_minus(double *res, double *x, double *y, double *z, int n,
+                   cudaStream_t &stream) {
+  int blockSize = BLOCK_SIZE;
+  int numBlocks = (n + blockSize - 1) / blockSize;
+
+  nip_dot_minus<<<numBlocks, blockSize, 0, stream>>>(n, res, x, y, z);
+}
+
 void nip_sumsq(double *loss, double *x, double *y, int n,
                cudaStream_t &stream) {
   int blockSize = BLOCK_SIZE;
@@ -331,6 +357,13 @@ void nip_b_div_KTU(double *V, double *b, double *KTU, int m, int n,
   int numBlocks = (m * n + blockSize - 1) / blockSize;
 
   nip_b_div_KTU<<<numBlocks, blockSize, 0, stream>>>(m, n, V, b, KTU);
+}
+
+void nip_row_sum(double *x, double *A, int m, int n, cudaStream_t &stream) {
+  int blockSize = BLOCK_SIZE;
+  int numBlocks = (m + blockSize - 1) / blockSize;
+
+  nip_row_sum<<<numBlocks, blockSize, 0, stream>>>(m, n, A, x);
 }
 
 void nip_row_prod(double *x, double *A, int m, int n, cudaStream_t &stream) {
@@ -373,6 +406,13 @@ void nip_minus_2(double *z, double *x, double *y, int N, cudaStream_t &stream) {
   wrappers for the inplace kernels
 */
 
+void ip_add(double *y, double *x, int n, cudaStream_t &stream) {
+  int blockSize = BLOCK_SIZE;
+  int numBlocks = (n + blockSize - 1) / blockSize;
+
+  ip_add<<<numBlocks, blockSize, 0, stream>>>(n, x, y);
+}
+
 void ip_dot(double *y, double *x, int n, cudaStream_t &stream) {
   int blockSize = BLOCK_SIZE;
   int numBlocks = (n + blockSize - 1) / blockSize;
@@ -413,14 +453,6 @@ void ip_gibbs(double *x, int n, double reg, cudaStream_t &stream) {
   int numBlocks = (n + blockSize - 1) / blockSize;
 
   ip_gibbs<<<numBlocks, blockSize, 0, stream>>>(n, x, reg);
-}
-
-void ip_dot_minus(double *res, double *x, double *y, double *z, int n,
-                  cudaStream_t &stream) {
-  int blockSize = BLOCK_SIZE;
-  int numBlocks = (n + blockSize - 1) / blockSize;
-
-  ip_dot_minus<<<numBlocks, blockSize, 0, stream>>>(n, res, x, y, z);
 }
 
 void ip_dot_minus_sum(double *res, double *x, double *y, double *z, int n,
@@ -475,6 +507,11 @@ void ip_sinkloss(double *loss, double *C, double *P, int m, int n, double reg,
 */
 
 // BLAS-1: dnrm2
+void daxpy(double *y, double alpha, double *x, int n, cublasHandle_t &handle) {
+  const int inc = 1;
+  cublasDaxpy(handle, n, &alpha, x, inc, y, inc);
+}
+
 void dscal(double *y, int n, double alpha, cublasHandle_t &handle) {
   const int inc = 1;
   cublasDscal(handle, n, &alpha, y, inc);
@@ -504,10 +541,22 @@ void dgemv(double *y, double alpha, double *A, int M, int N, bool transA,
   cublasDgemv(handle, TN, M, N, &alpha, A, M, x, inc, &beta, y, inc);
 }
 
+void dsymv(double *y, double alpha, double *A, int N, double *x, double beta,
+           cublasHandle_t &handle) {
+  const int inc = 1;
+  cublasDsymv(handle, CUBLAS_FILL_MODE_LOWER, N, &alpha, A, N, x, inc, &beta, y,
+              inc);
+}
+
 void dger(double *A, int M, int N, double alpha, double *x, double *y,
           cublasHandle_t &handle) {
   const int inc = 1;
   cublasDger(handle, M, N, &alpha, x, inc, y, inc, A, M);
+}
+
+void dsyr(double *A, int N, double alpha, double *x, cublasHandle_t &handle) {
+  const int inc = 1;
+  cublasDsyr(handle, CUBLAS_FILL_MODE_LOWER, N, &alpha, x, inc, A, N);
 }
 
 // BLAS-3: dgemm
@@ -525,6 +574,16 @@ void dgemm(double *C, double alpha, double *A, bool transA, double *B,
   int ldc = M;              // C is always M x N
 
   cublasDgemm(handle, opA, opB, M, N, K, &alpha, A, lda, B, ldb, &beta, C, ldc);
+}
+
+void dsymm(double *C, double alpha, double *A, double *B, int M, int N,
+           double beta, cublasHandle_t &handle) {
+  int lda = M;
+  int ldb = M;
+  int ldc = M;
+
+  cublasDsymm(handle, CUBLAS_SIDE_LEFT, CUBLAS_FILL_MODE_LOWER, M, N, &alpha, A,
+              lda, B, ldb, &beta, C, ldc);
 }
 
 /*

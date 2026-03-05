@@ -11,9 +11,9 @@ wdl(docs, ...)
 
 \method{wdl}{character}(docs, specs = wdl_specs(), verbose = TRUE, ...)
 
-\method{print}{wdl}(x, topic = 0, token_per_topic = 5, ...)
+\method{print}{wdl}(x, topic = 0, token_per_topic = 10, ...)
 
-\method{summary}{wdl}(object, topic = 1, token_per_topic = 5, ...)
+\method{summary}{wdl}(object, topic = 1, token_per_topic = 10, ...)
 }
 \arguments{
 \item{docs}{character vector, sentences to be analyzed}
