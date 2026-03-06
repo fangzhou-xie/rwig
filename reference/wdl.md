@@ -11,10 +11,10 @@ wdl(docs, ...)
 wdl(docs, specs = wdl_specs(), verbose = TRUE, ...)
 
 # S3 method for class 'wdl'
-print(x, topic = 0, token_per_topic = 5, ...)
+print(x, topic = 0, token_per_topic = 10, ...)
 
 # S3 method for class 'wdl'
-summary(object, topic = 1, token_per_topic = 5, ...)
+summary(object, topic = 1, token_per_topic = 10, ...)
 ```
 
 ## Arguments
@@ -91,6 +91,22 @@ https://doi.org/10.48550/arXiv.2504.08722
 ``` r
 # simple WDL example
 sentences <- c("this is a sentence", "this is another one")
-wdl_fit <- wdl(sentences)
+wdl_fit <- wdl(
+   sentences,
+   specs = wdl_specs(wdl_control = list(num_topics = 2),word2vec_control = list(min_count = 1)),
+   verbose = TRUE)
+#> Preprocessing the data...
+#> Running tokenizer on the sentences...
+#> Running Word2Vec for the embeddings and distance matrix...
 #> `method` is automatically switched to "log"
+#> Running WDL in CPU mode...
+#> This might take a while depending on the problem size...
+#> Running in serial mode...
+#> Initializing WDL model with 4 vocabs, 2 docs, and 2 topics...
+#> Training WDL model with 2 epochs, 1 batches
+#> Epoch 1 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Epoch 2 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Inference on the dataset
 ```

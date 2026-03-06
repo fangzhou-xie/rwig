@@ -12,28 +12,36 @@ of topic models. Here, we consider the Wasserstein Dicionary Learning
 
 ``` r
 # a very simple example
-sentences <- c("this is a sentence", "this is another one")
-wdl_fit <- wdl(sentences)
+sentences <- c("this is a sentence", "this is another one", "yet another sentence")
+wdl_fit <- wdl(sentences, specs = wdl_specs(
+  wdl_control = list(num_topics = 2),
+  word2vec_control = list(min_count = 1)
+))
+#> Preprocessing the data...
+#> Running tokenizer on the sentences...
+#> Running Word2Vec for the embeddings and distance matrix...
 #> `method` is automatically switched to "log"
+#> Running WDL in CPU mode...
+#> This might take a while depending on the problem size...
+#> Running in serial mode...
+#> Initializing WDL model with 5 vocabs, 3 docs, and 2 topics...
+#> Training WDL model with 2 epochs, 1 batches
+#> Epoch 1 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Epoch 2 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Inference on the dataset
 
 wdl_fit
 #> WDL model topics:
 #> 
 #> Topic 1:
-#>     one   anoth    </s> sentenc 
-#>   0.427   0.363   0.131   0.079 
+#>     one   anoth    </s> sentenc     yet 
+#>   0.861   0.064   0.040   0.018   0.018 
 #> 
 #> Topic 2:
-#>   anoth     one sentenc    </s> 
-#>   0.452   0.291   0.211   0.046 
-#> 
-#> Topic 3:
-#>    </s>     one sentenc   anoth 
-#>   0.660   0.163   0.139   0.039 
-#> 
-#> Topic 4:
-#>     one    </s> sentenc   anoth 
-#>    0.52    0.22    0.15    0.11
+#>   anoth    </s>     one     yet sentenc 
+#>   0.472   0.272   0.121   0.103   0.032
 ```
 
 We can see from the topics that they are vectors of the tokens (words)
@@ -42,11 +50,12 @@ do this:
 
 ``` r
 wdl_fit$topics
-#>             topic1     topic2     topic3    topic4
-#> anoth   0.36337276 0.45247625 0.03918154 0.1077225
-#> one     0.42653605 0.29081991 0.16272523 0.5167396
-#> sentenc 0.07892702 0.21085570 0.13856620 0.1533639
-#> </s>    0.13116417 0.04584815 0.65952702 0.2221740
+#>             topic1     topic2
+#> one     0.86095053 0.12081874
+#> yet     0.01765965 0.10340129
+#> anoth   0.06374897 0.47177225
+#> sentenc 0.01766044 0.03191506
+#> </s>    0.03998041 0.27209266
 ```
 
 Alternatively, you can also obtain the weights of the topics used to
@@ -54,11 +63,9 @@ re-construct the input data:
 
 ``` r
 wdl_fit$weights
-#>              [,1]       [,2]
-#> topic1 0.42835430 0.31270288
-#> topic2 0.11177570 0.05975748
-#> topic3 0.42987922 0.40321258
-#> topic4 0.02999078 0.22432706
+#>              [,1]      [,2]      [,3]
+#> topic1 0.06483132 0.4800256 0.2159625
+#> topic2 0.93516868 0.5199744 0.7840375
 ```
 
 ## See Also

@@ -9,13 +9,13 @@ autogeneration
 wig(.data, date_col, docs_col, ...)
 
 # S3 method for class 'data.frame'
-wig(.data, date_col, docs_col, specs = wig_specs(), ...)
+wig(.data, date_col, docs_col, specs = wig_specs(), verbose = TRUE, ...)
 
 # S3 method for class 'wig'
-print(x, topic = 1, token_per_topic = 5, ...)
+print(x, topic = 1, token_per_topic = 10, ...)
 
 # S3 method for class 'wig'
-summary(object, topic = 1, token_per_topic = 5, ...)
+summary(object, topic = 1, token_per_topic = 10, ...)
 ```
 
 ## Arguments
@@ -41,6 +41,10 @@ summary(object, topic = 1, token_per_topic = 5, ...)
   list, model specification for WIG see
   [`wig_specs`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)
   for reference
+
+- verbose:
+
+  bool, whether to print useful info
 
 - x:
 
@@ -79,9 +83,9 @@ https://doi.org/10.1016/j.econlet.2019.108874
 # create a small dataset
 wigdf <- data.frame(
   ref_date = as.Date(c("2012-01-01", "2012-02-01")),
-  docs = c("this is a sentence", "this is another sentence")
-)
+  docs = c("this is a sentence", "this is another sentence"))
 
-wigfit <- wig(wigdf, ref_date, docs)
-#> `method` is automatically switched to "log"
+wigfit <- wig(wigdf, ref_date, docs,
+  specs = wig_specs(wdl_control = list(num_topics = 2),word2vec_control = list(min_count = 1)),
+  verbose = FALSE)
 ```

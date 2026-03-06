@@ -83,47 +83,54 @@ of topic models. Here, we consider the Wasserstein Dicionary Learning
 (WDL) model.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># a very simple example</span></span>
-<span><span class="va">sentences</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"this is a sentence"</span>, <span class="st">"this is another one"</span><span class="op">)</span></span>
-<span><span class="va">wdl_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wdl.html">wdl</a></span><span class="op">(</span><span class="va">sentences</span><span class="op">)</span></span>
+<span><span class="va">sentences</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"this is a sentence"</span>, <span class="st">"this is another one"</span>, <span class="st">"yet another sentence"</span><span class="op">)</span></span>
+<span><span class="va">wdl_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wdl.html">wdl</a></span><span class="op">(</span><span class="va">sentences</span>, specs <span class="op">=</span> <span class="fu"><a href="../reference/wdl_specs.html">wdl_specs</a></span><span class="op">(</span></span>
+<span>  wdl_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num_topics <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  word2vec_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>min_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Preprocessing the data...</span></span>
+<span><span class="co">#&gt; Running tokenizer on the sentences...</span></span>
+<span><span class="co">#&gt; Running Word2Vec for the embeddings and distance matrix...</span></span>
 <span><span class="co">#&gt; `method` is automatically switched to "log"</span></span>
+<span><span class="co">#&gt; Running WDL in CPU mode...</span></span>
+<span><span class="co">#&gt; This might take a while depending on the problem size...</span></span>
+<span><span class="co">#&gt; Running in serial mode...</span></span>
+<span><span class="co">#&gt; Initializing WDL model with 5 vocabs, 3 docs, and 2 topics...</span></span>
+<span><span class="co">#&gt; Training WDL model with 2 epochs, 1 batches</span></span>
+<span><span class="co">#&gt; Epoch 1 of 2, batch 1 of 1:</span></span>
+<span><span class="co">#&gt; avg speed: 0.00 sec, last speed: 0.00 sec</span></span>
+<span><span class="co">#&gt; Epoch 2 of 2, batch 1 of 1:</span></span>
+<span><span class="co">#&gt; avg speed: 0.00 sec, last speed: 0.00 sec</span></span>
+<span><span class="co">#&gt; Inference on the dataset</span></span>
 <span></span>
 <span><span class="va">wdl_fit</span></span>
 <span><span class="co">#&gt; WDL model topics:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 1:</span></span>
-<span><span class="co">#&gt;     one   anoth    &lt;/s&gt; sentenc </span></span>
-<span><span class="co">#&gt;   0.427   0.363   0.131   0.079 </span></span>
+<span><span class="co">#&gt;     one   anoth    &lt;/s&gt; sentenc     yet </span></span>
+<span><span class="co">#&gt;   0.861   0.064   0.040   0.018   0.018 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 2:</span></span>
-<span><span class="co">#&gt;   anoth     one sentenc    &lt;/s&gt; </span></span>
-<span><span class="co">#&gt;   0.452   0.291   0.211   0.046 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Topic 3:</span></span>
-<span><span class="co">#&gt;    &lt;/s&gt;     one sentenc   anoth </span></span>
-<span><span class="co">#&gt;   0.660   0.163   0.139   0.039 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Topic 4:</span></span>
-<span><span class="co">#&gt;     one    &lt;/s&gt; sentenc   anoth </span></span>
-<span><span class="co">#&gt;    0.52    0.22    0.15    0.11</span></span></code></pre></div>
+<span><span class="co">#&gt;   anoth    &lt;/s&gt;     one     yet sentenc </span></span>
+<span><span class="co">#&gt;   0.472   0.272   0.121   0.103   0.032</span></span></code></pre></div>
 <p>We can see from the topics that they are vectors of the tokens
 (words) with associated probabilities. If you want to access the topics,
 you can do this:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wdl_fit</span><span class="op">$</span><span class="va">topics</span></span>
-<span><span class="co">#&gt;             topic1     topic2     topic3    topic4</span></span>
-<span><span class="co">#&gt; anoth   0.36337276 0.45247625 0.03918154 0.1077225</span></span>
-<span><span class="co">#&gt; one     0.42653605 0.29081991 0.16272523 0.5167396</span></span>
-<span><span class="co">#&gt; sentenc 0.07892702 0.21085570 0.13856620 0.1533639</span></span>
-<span><span class="co">#&gt; &lt;/s&gt;    0.13116417 0.04584815 0.65952702 0.2221740</span></span></code></pre></div>
+<span><span class="co">#&gt;             topic1     topic2</span></span>
+<span><span class="co">#&gt; one     0.86095053 0.12081874</span></span>
+<span><span class="co">#&gt; yet     0.01765965 0.10340129</span></span>
+<span><span class="co">#&gt; anoth   0.06374897 0.47177225</span></span>
+<span><span class="co">#&gt; sentenc 0.01766044 0.03191506</span></span>
+<span><span class="co">#&gt; &lt;/s&gt;    0.03998041 0.27209266</span></span></code></pre></div>
 <p>Alternatively, you can also obtain the weights of the topics used to
 re-construct the input data:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wdl_fit</span><span class="op">$</span><span class="va">weights</span></span>
-<span><span class="co">#&gt;              [,1]       [,2]</span></span>
-<span><span class="co">#&gt; topic1 0.42835430 0.31270288</span></span>
-<span><span class="co">#&gt; topic2 0.11177570 0.05975748</span></span>
-<span><span class="co">#&gt; topic3 0.42987922 0.40321258</span></span>
-<span><span class="co">#&gt; topic4 0.02999078 0.22432706</span></span></code></pre></div>
+<span><span class="co">#&gt;              [,1]      [,2]      [,3]</span></span>
+<span><span class="co">#&gt; topic1 0.06483132 0.4800256 0.2159625</span></span>
+<span><span class="co">#&gt; topic2 0.93516868 0.5199744 0.7840375</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>

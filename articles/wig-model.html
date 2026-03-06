@@ -87,15 +87,31 @@ reconstruct the Economic Policy Uncertain (EPU) index.</p>
 <span>  docs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"this is a sentence"</span>, <span class="st">"this is another sentence"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">wigfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wig.html">wig</a></span><span class="op">(</span><span class="va">wigdf</span>, <span class="va">ref_date</span>, <span class="va">docs</span><span class="op">)</span></span>
+<span><span class="va">wigfit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/wig.html">wig</a></span><span class="op">(</span><span class="va">wigdf</span>, <span class="va">ref_date</span>, <span class="va">docs</span>, specs <span class="op">=</span> <span class="fu"><a href="../reference/wdl_specs.html">wig_specs</a></span><span class="op">(</span></span>
+<span>  wdl_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>num_topics <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  word2vec_control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>min_count <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Preprocessing the data...</span></span>
+<span><span class="co">#&gt; Running tokenizer on the sentences...</span></span>
+<span><span class="co">#&gt; Running Word2Vec for the embeddings and distance matrix...</span></span>
 <span><span class="co">#&gt; `method` is automatically switched to "log"</span></span>
+<span><span class="co">#&gt; Running WDL in CPU mode...</span></span>
+<span><span class="co">#&gt; This might take a while depending on the problem size...</span></span>
+<span><span class="co">#&gt; Running in serial mode...</span></span>
+<span><span class="co">#&gt; Initializing WDL model with 3 vocabs, 2 docs, and 2 topics...</span></span>
+<span><span class="co">#&gt; Training WDL model with 2 epochs, 1 batches</span></span>
+<span><span class="co">#&gt; Epoch 1 of 2, batch 1 of 1:</span></span>
+<span><span class="co">#&gt; avg speed: 0.00 sec, last speed: 0.00 sec</span></span>
+<span><span class="co">#&gt; Epoch 2 of 2, batch 1 of 1:</span></span>
+<span><span class="co">#&gt; avg speed: 0.00 sec, last speed: 0.00 sec</span></span>
+<span><span class="co">#&gt; Inference on the dataset</span></span>
 <span><span class="va">wigfit</span></span>
 <span><span class="co">#&gt; WIG model from 2012-01-01 to 2012-02-01</span></span>
 <span><span class="co">#&gt; WDL model topics:</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Topic 1:</span></span>
 <span><span class="co">#&gt; sentenc    &lt;/s&gt;   anoth </span></span>
-<span><span class="co">#&gt;   0.794   0.132   0.074</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.796   0.130   0.074</span></span></code></pre></div>
 <div class="section level2">
 <h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>

@@ -16,15 +16,31 @@ wigdf <- data.frame(
   docs = c("this is a sentence", "this is another sentence")
 )
 
-wigfit <- wig(wigdf, ref_date, docs)
+wigfit <- wig(wigdf, ref_date, docs, specs = wig_specs(
+  wdl_control = list(num_topics = 2),
+  word2vec_control = list(min_count = 1)
+))
+#> Preprocessing the data...
+#> Running tokenizer on the sentences...
+#> Running Word2Vec for the embeddings and distance matrix...
 #> `method` is automatically switched to "log"
+#> Running WDL in CPU mode...
+#> This might take a while depending on the problem size...
+#> Running in serial mode...
+#> Initializing WDL model with 3 vocabs, 2 docs, and 2 topics...
+#> Training WDL model with 2 epochs, 1 batches
+#> Epoch 1 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Epoch 2 of 2, batch 1 of 1:
+#> avg speed: 0.00 sec, last speed: 0.00 sec
+#> Inference on the dataset
 wigfit
 #> WIG model from 2012-01-01 to 2012-02-01
 #> WDL model topics:
 #> 
 #> Topic 1:
 #> sentenc    </s>   anoth 
-#>   0.794   0.132   0.074
+#>   0.796   0.130   0.074
 ```
 
 ## See Also
