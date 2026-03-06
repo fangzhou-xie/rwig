@@ -579,7 +579,8 @@ S["LIBOBJS"]=""
 S["CUDA_RULES"]="NVCC = /usr/local/cuda/bin/nvcc\n"\
 "NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include -I/usr/share/R/include -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME\n"\
 "\n"\
-"OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_optimizer.o cuda_wdl.o $(patsubst %.cpp,%.o,$(wildcard *.cpp))\n"\
+"OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_optimizer.o cuda_wdl.o barycenter.o barycenter_impl_log.o barycenter_impl_parallel.o"\
+" check_cuda.o RcppExports.o sinkhorn.o sinkhorn_impl_log.o sinkhorn_impl_vanilla.o tsvd.o utils.o wdl.o wdl_impl.o\n"\
 "\n"\
 ".PHONY: all\n"\
 "\n"\

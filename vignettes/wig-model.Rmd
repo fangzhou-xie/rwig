@@ -31,7 +31,10 @@ wigdf <- data.frame(
   docs = c("this is a sentence", "this is another sentence")
 )
 
-wigfit <- wig(wigdf, ref_date, docs)
+wigfit <- wig(wigdf, ref_date, docs, specs = wig_specs(
+  wdl_control = list(num_topics = 2),
+  word2vec_control = list(min_count = 1)
+))
 wigfit
 ```
 
@@ -41,12 +44,12 @@ See also `vignette("wdl-model")`, `vignette("specs")`.
 
 ## References
 
-Baker, S. R., Bloom, N., & Davis, S. J. (2016). 
-Measuring economic policy uncertainty. 
-*The Quarterly Journal of Economics*, 131(4), 1593–1636. 
+Baker, S. R., Bloom, N., & Davis, S. J. (2016).
+Measuring economic policy uncertainty.
+_The Quarterly Journal of Economics_, 131(4), 1593–1636.
 https://doi.org/10.1093/qje/qjw024
 
 Xie, F. (2020). Wasserstein index generation model: Automatic generation of
 time-series index with application to economic policy uncertainty.
-*Economics Letters*, 186, 108874.
+_Economics Letters_, 186, 108874.
 https://doi.org/10.1016/j.econlet.2019.108874

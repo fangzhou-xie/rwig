@@ -3,7 +3,7 @@
 check_wig_args <- function(wig_args) {
   # check WIG arguments
   if (is.null(wig_args$group_time)) {
-    wig_args$group_time <- "months"
+    wig_args$group_time <- "month"
   }
   if (is.null(wig_args$svd_method)) {
     wig_args$svd_method <- "topics"
@@ -11,13 +11,14 @@ check_wig_args <- function(wig_args) {
   if (is.null(wig_args$standardize)) {
     wig_args$standardize <- TRUE
   }
-  # if (is.null(wig_args$verbose)) {
-  #   wig_args$verbose <- FALSE
-  # }
+
+  # check if the `svd_method` is valid
+  if (!wig_args$svd_method %in% c("topics", "docs")) {
+    stop("`svd_method` must be from: \"topics\" or \"docs\"")
+  }
 
   wig_args
 }
-
 
 check_wdl_args <- function(wdl_args) {
   # check WDL arguments: hyper-parameters
@@ -30,30 +31,12 @@ check_wdl_args <- function(wdl_args) {
   if (is.null(wdl_args$epochs)) {
     wdl_args$epochs <- 2
   }
-  if (is.null(wdl_args$n_threads)) {
-    wdl_args$n_threads <- 0
-  }
   if (is.null(wdl_args$shuffle)) {
     wdl_args$shuffle <- TRUE
   }
   if (is.null(wdl_args$seed)) {
     wdl_args$seed <- 42L
   }
-  if (is.null(wdl_args$verbose)) {
-    wdl_args$verbose <- FALSE
-  }
-
-  # if `verbose` is NA, abort!
-  if (is.na(wdl_args$verbose)) {
-    stop("`verbose` argument cannot be NA!")
-  }
-
-  # # map verbose into integer
-  # if (wdl_args$verbose) {
-  #   wdl_args$verbose_int <- 1L
-  # } else {
-  #   wdl_args$verbose_int <- 0L
-  # }
 
   wdl_args
 }
@@ -74,7 +57,7 @@ check_w2v_args <- function(w2v_args) {
     w2v_args$dim <- 10
   }
   if (is.null(w2v_args$min_count)) {
-    w2v_args$min_count <- 5
+    w2v_args$min_count <- 3
   }
   if (is.null(w2v_args$type)) {
     w2v_args$type <- "cbow"
@@ -206,7 +189,7 @@ check_sinkhorn_args <- function(skh_args) {
 }
 
 #' @keywords internal
-#' used for \code{\link{barycenter()}} and \code{\link{wdl()}}
+#' used for \code{\link{barycenter()}}
 check_barycenter_args <- function(brc_args) {
   # check the parameters for the Barycenter algorithm
   args <- c(

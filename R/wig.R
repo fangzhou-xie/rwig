@@ -26,16 +26,18 @@ aggregate_by_period <- function(datetimes, values, unit = "month") {
 #' @param docs_col name of the column for the texts/documents
 #' @param specs list, model specification for WIG
 #' see \code{\link{wig_specs}} for reference
+#' @param verbose bool, whether to print useful info
 #' @param ... only for compatibility
 #'
 #' @examples
 #' # create a small dataset
 #' wigdf <- data.frame(
 #'   ref_date = as.Date(c("2012-01-01", "2012-02-01")),
-#'   docs = c("this is a sentence", "this is another sentence")
-#' )
+#'   docs = c("this is a sentence", "this is another sentence"))
 #'
-#' wigfit <- wig(wigdf, ref_date, docs)
+#' wigfit <- wig(wigdf, ref_date, docs,
+#'   specs = wig_specs(wdl_control = list(num_topics = 2),word2vec_control = list(min_count = 1)),
+#'   verbose = FALSE)
 #'
 #' @seealso
 #' \code{vignette("wdl-model")}
@@ -53,6 +55,7 @@ wig.data.frame <- function(
   date_col,
   docs_col,
   specs = wig_specs(),
+  verbose = TRUE,
   ...
 ) {
   # load all the parameters needed for the model
@@ -85,7 +88,7 @@ wig.data.frame <- function(
   }
 
   # run the WDL model, obtain A and W
-  wdl_fit <- wdl(docs_vec, specs = wdl_specs)
+  wdl_fit <- wdl(docs_vec, specs = wdl_specs, verbose = verbose)
   A <- wdl_fit$topics
   W <- wdl_fit$weights
   Yhat <- wdl_fit$docs_pred

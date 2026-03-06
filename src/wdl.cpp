@@ -135,24 +135,32 @@ Rcpp::List wdl_cpp(const SEXP &Y, // document matrix N * M
 
 #if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
   if (usecuda) {
-    Rcpp::message(Rf_mkString("Running WDL in CUDA mode..."));
-    Rcpp::message(Rf_mkString(
-        "This might take a while depending on the problem size..."));
+    if (verbose) {
+      Rcpp::message(Rf_mkString("Running WDL in CUDA mode..."));
+      Rcpp::message(Rf_mkString(
+          "This might take a while depending on the problem size..."));
+    }
+
     res = wdl_cpp_cuda(Y, C, reg, S, batch_size, epochs, sinkhorn_mode,
                        max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2,
                        eps, verbose, seed);
   } else {
-    Rcpp::message(Rf_mkString("Running WDL in CPU mode..."));
-    Rcpp::message(Rf_mkString(
-        "This might take a while depending on the problem size..."));
+    if (verbose) {
+      Rcpp::message(Rf_mkString("Running WDL in CPU mode..."));
+      Rcpp::message(Rf_mkString(
+          "This might take a while depending on the problem size..."));
+    }
     res = wdl_cpp_cpu(Y, C, reg, S, n_threads, batch_size, epochs,
                       sinkhorn_mode, max_iter, zero_tol, optimizer, eta, gamma,
                       beta1, beta2, eps, verbose);
   }
 #else
-  Rcpp::message(Rf_mkString("Running WDL in CPU mode..."));
-  Rcpp::message(
-      Rf_mkString("This might take a while depending on the problem size..."));
+  if (verbose) {
+    Rcpp::message(Rf_mkString("Running WDL in CPU mode..."));
+    Rcpp::message(Rf_mkString(
+        "This might take a while depending on the problem size..."));
+  }
+
   res = wdl_cpp_cpu(Y, C, reg, S, n_threads, batch_size, epochs, sinkhorn_mode,
                     max_iter, zero_tol, optimizer, eta, gamma, beta1, beta2,
                     eps, verbose);

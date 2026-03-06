@@ -48,7 +48,10 @@ for \code{\link{barycenter}})
 \examples{
 # simple WDL example
 sentences <- c("this is a sentence", "this is another one")
-wdl_fit <- wdl(sentences)
+wdl_fit <- wdl(
+   sentences,
+   specs = wdl_specs(wdl_control = list(num_topics = 2),word2vec_control = list(min_count = 1)),
+   verbose = TRUE)
 
 }
 \references{

@@ -38,7 +38,10 @@
 #' @examples
 #' # simple WDL example
 #' sentences <- c("this is a sentence", "this is another one")
-#' wdl_fit <- wdl(sentences)
+#' wdl_fit <- wdl(
+#'    sentences,
+#'    specs = wdl_specs(wdl_control = list(num_topics = 2),word2vec_control = list(min_count = 1)),
+#'    verbose = TRUE)
 #'
 #' @seealso
 #' \code{vignette("wdl-model")}
@@ -63,7 +66,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   brc_args <- specs$barycenter_control
   opt_args <- specs$optimizer_control
 
-  if (wdl_args$verbose) {
+  if (verbose) {
     message("Preprocessing the data...")
     message("Running tokenizer on the sentences...")
   }
@@ -73,7 +76,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   tok_args <- append(list(x = docs), tok_args)
   toks <- do.call(tokenizers::tokenize_word_stems, args = tok_args)
 
-  if (wdl_args$verbose) {
+  if (verbose) {
     message("Running Word2Vec for the embeddings and distance matrix...")
   }
 
@@ -115,6 +118,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
       if (verbose) message("`method` is automatically switched to \"parallel\"")
     }
   }
+  # browser()
 
   # running the WDL model here
   res <- wdl_cpp(
@@ -122,7 +126,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
     distmat,
     brc_args$reg, # reg
     wdl_args$num_topics, # S
-    wdl_args$n_threads, # num of threads
+    brc_args$n_threads, # num of threads
     wdl_args$batch_size, # batch_size
     wdl_args$epochs, # epochs
     # brc_args$method, # sinkhorn_mode
@@ -136,7 +140,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
     opt_args$beta1, # beta1: used in Adam/AdamW
     opt_args$beta2, # beta2: used in Adam/AdamW
     opt_args$eps, # eps: used in Adam/AdamW
-    wdl_args$verbose, # verbose: print information in wdl
+    verbose, # verbose: print information in wdl
     wdl_args$seed # seed: random seed for reproducibility
   )
   topics <- res$A

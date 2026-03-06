@@ -64,13 +64,14 @@ wdl_specs <- function(
     batch_size = 64,
     epochs = 2,
     shuffle = TRUE,
-    verbose = FALSE
+    rng_seed = 42
   ),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 3),
   barycenter_control = list(
     reg = .1,
     with_grad = TRUE,
+    use_cuda = TRUE,
     n_threads = 0,
     method = "auto",
     threshold = .1,
@@ -89,6 +90,8 @@ wdl_specs <- function(
   # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
   barycenter_control <- check_barycenter_args(barycenter_control)
   barycenter_control$with_grad <- TRUE
+  barycenter_control$method <- "parallel"
+  barycenter_control$max_iter <- 20L
 
   # barycenter `verbose` is ignored in WDL
 
@@ -111,21 +114,22 @@ wdl_specs <- function(
 wig_specs <- function(
   wig_control = list(
     group_unit = "month",
-    svd_method = "docs",
+    svd_method = "topics",
     standardize = TRUE
   ),
   wdl_control = list(
     num_topics = 4,
     batch_size = 64,
     epochs = 2,
-    rng_seed = 123,
-    verbose = FALSE
+    shuffle = TRUE,
+    rng_seed = 42
   ),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
   barycenter_control = list(
     reg = .1,
     with_grad = TRUE,
+    use_cuda = TRUE,
     method = "auto",
     threshold = .1,
     max_iter = 20,
@@ -146,6 +150,8 @@ wig_specs <- function(
   # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
   barycenter_control <- check_barycenter_args(barycenter_control)
   barycenter_control$with_grad <- TRUE
+  barycenter_control$method <- "parallel"
+  barycenter_control$max_iter <- 20L
 
   # barycenter `verbose` is ignored in WIG
 

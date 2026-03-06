@@ -26,8 +26,11 @@ Here, we consider the Wasserstein Dicionary Learning (WDL) model.
 
 ```{r}
 # a very simple example
-sentences <- c("this is a sentence", "this is another one")
-wdl_fit <- wdl(sentences)
+sentences <- c("this is a sentence", "this is another one", "yet another sentence")
+wdl_fit <- wdl(sentences, specs = wdl_specs(
+  wdl_control = list(num_topics = 2),
+  word2vec_control = list(min_count = 1)
+))
 
 wdl_fit
 ```
@@ -52,25 +55,24 @@ wdl_fit$weights
 
 See also `vignette("specs")`.
 
-
 ## References
 
-Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). 
-Latent dirichlet allocation. 
-*Journal of Machine Learning Research*, 3(Jan), 993–1022.
+Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003).
+Latent dirichlet allocation.
+_Journal of Machine Learning Research_, 3(Jan), 993–1022.
 
 Peyré, G., & Cuturi, M. (2019). Computational Optimal Transport:
 With Applications to Data Science.
-*Foundations and Trends® in Machine Learning*, 11(5–6), 355–607.
+_Foundations and Trends® in Machine Learning_, 11(5–6), 355–607.
 https://doi.org/10.1561/2200000073
 
 Schmitz, M. A., Heitz, M., Bonneel, N., Ngolè, F., Coeurjolly, D.,
 Cuturi, M., Peyré, G., & Starck, J.-L. (2018).
 Wasserstein dictionary learning:
 Optimal transport-based unsupervised nonlinear dictionary learning.
-*SIAM Journal on Imaging Sciences*, 11(1), 643–678.
+_SIAM Journal on Imaging Sciences_, 11(1), 643–678.
 https://doi.org/10.1137/17M1140431
 
 Xie, F. (2025). Deriving the Gradients of Some Popular Optimal
-Transport Algorithms (No. arXiv:2504.08722). *arXiv*.
+Transport Algorithms (No. arXiv:2504.08722). _arXiv_.
 https://doi.org/10.48550/arXiv.2504.08722

@@ -6,24 +6,24 @@
 \title{Model Specs for WDL and WIG models}
 \usage{
 wdl_specs(
-  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, verbose
-    = FALSE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE,
+    rng_seed = 42),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 3),
-  barycenter_control = list(reg = 0.1, with_grad = TRUE, n_threads = 0, method = "auto",
-    threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
+  barycenter_control = list(reg = 0.1, with_grad = TRUE, use_cuda = TRUE, n_threads = 0,
+    method = "auto", threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
   optimizer_control = list(optimizer = "adamw", lr = 0.005, decay = 0.01, beta1 = 0.9,
     beta2 = 0.999, eps = 1e-08)
 )
 
 wig_specs(
-  wig_control = list(group_unit = "month", svd_method = "docs", standardize = TRUE),
-  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, rng_seed = 123, verbose
-    = FALSE),
+  wig_control = list(group_unit = "month", svd_method = "topics", standardize = TRUE),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE,
+    rng_seed = 42),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
-  barycenter_control = list(reg = 0.1, with_grad = TRUE, method = "auto", threshold =
-    0.1, max_iter = 20, zero_tol = 1e-06),
+  barycenter_control = list(reg = 0.1, with_grad = TRUE, use_cuda = TRUE, method =
+    "auto", threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
   optimizer_control = list(optimizer = "adamw", lr = 0.005, decay = 0.01, beta1 = 0.9,
     beta2 = 0.999, eps = 1e-08)
 )

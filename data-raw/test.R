@@ -11,6 +11,38 @@ devtools::load_all()
 
 # test WDL
 
+sentences <- c(
+  "this is a sentence",
+  "this is another one",
+  "yet another sentence"
+)
+wdl_fit <- wdl(
+  sentences,
+  specs = wdl_specs(
+    wdl_control = list(num_topics = 2),
+    word2vec_control = list(min_count = 1),
+    barycenter_control = list(use_cuda = FALSE)
+  ),
+  verbose = FALSE
+)
+
+wigdf <- data.frame(
+  ref_date = as.Date(c("2012-01-01", "2012-02-01")),
+  docs = c("this is a sentence", "this is another sentence")
+)
+
+wigfit <- wig(
+  wigdf,
+  ref_date,
+  docs,
+  specs = wig_specs(
+    wdl_control = list(num_topics = 2),
+    word2vec_control = list(min_count = 1),
+    barycenter_control = list(use_cuda = TRUE)
+  ),
+  verbose = FALSE
+)
+
 headlines_df <- rwig::headlines |>
   dplyr::filter(dplyr::row_number() <= 1000)
 headlines_df <- rwig::headlines
