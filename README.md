@@ -13,6 +13,7 @@ version](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https:
 status](https://github.com/fangzhou-xie/rwig/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/fangzhou-xie/rwig/actions)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://cran.r-project.org/web/licenses/MIT)
+
 <!-- badges: end -->
 
 The `rwig` package implements the Sinkhorn algorithms for regularized
@@ -34,21 +35,13 @@ on multi-threading for faster processing.
 ## Installation
 
 <!-- This package is on [CRAN](https://cran.rstudio.com/), and I recommened  -->
-
 <!-- to use the `pak` to install it: -->
-
 <!-- ``` r -->
-
 <!-- # install pak if not already done so -->
-
 <!-- # install.packages("pak") -->
-
 <!-- pak::pak("rwig") -->
-
 <!-- # or you can install it in the classic way -->
-
 <!-- install.packages("rwig") -->
-
 <!-- ``` -->
 
 The package is currently under heavy development and can only be

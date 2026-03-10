@@ -3,7 +3,7 @@ Type: Package
 Title: Wasserstein Index Generation (WIG) Model in R
 Version: 0.1.0
 Authors@R: 
-    person("Fangzhou", "Xie", , "fangzhou.xie@rutgers.edu", role = c("aut", "cre"))
+    person("Fangzhou", "Xie", , "fangzhou.xie@rutgers.edu", role = c("aut", "cre", "cph"))
 Description: Efficient implementation of several Optimal Transport algorithms in  
     Fangzhou Xie (2025) <doi:10.48550/arXiv.2504.08722> and
     the Wasserstein Index Generation (WIG) model in 

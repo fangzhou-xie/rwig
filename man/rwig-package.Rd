@@ -18,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Fangzhou Xie \email{fangzhou.xie@rutgers.edu}
+\strong{Maintainer}: Fangzhou Xie \email{fangzhou.xie@rutgers.edu} [copyright holder]
 
 }
 \keyword{internal}
