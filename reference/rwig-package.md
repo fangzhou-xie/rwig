@@ -19,4 +19,5 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Fangzhou Xie <fangzhou.xie@rutgers.edu>
+**Maintainer**: Fangzhou Xie <fangzhou.xie@rutgers.edu> \[copyright
+holder\]

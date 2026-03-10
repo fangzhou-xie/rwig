@@ -2,7 +2,7 @@
 
 ## Authors
 
-- **Fangzhou Xie**. Author, maintainer.
+- **Fangzhou Xie**. Author, maintainer, copyright holder.
 
 ## Citation
 

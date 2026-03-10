@@ -51,11 +51,11 @@ do this:
 ``` r
 wdl_fit$topics
 #>             topic1     topic2
-#> one     0.86095053 0.12081874
-#> yet     0.01765965 0.10340129
-#> anoth   0.06374897 0.47177225
+#> one     0.86095048 0.12081874
+#> yet     0.01765971 0.10340129
+#> anoth   0.06374896 0.47177225
 #> sentenc 0.01766044 0.03191506
-#> </s>    0.03998041 0.27209266
+#> </s>    0.03998040 0.27209266
 ```
 
 Alternatively, you can also obtain the weights of the topics used to
