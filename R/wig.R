@@ -29,6 +29,8 @@ aggregate_by_period <- function(datetimes, values, unit = "month") {
 #' @param verbose bool, whether to print useful info
 #' @param ... only for compatibility
 #'
+#' @return "wig" class, i.e. list of the index and the WDL model
+#'
 #' @examples
 #' # create a small dataset
 #' wigdf <- data.frame(

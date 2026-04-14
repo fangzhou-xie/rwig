@@ -9,3 +9,6 @@
   sub-directories of 1Mb or more:
   libs 12.7Mb
 - URLs returning 403 are all doi.org links that block automated requests. They resolve correctly in a browser.
+- Removed "in R" in the title
+- Removed extra spaces in the description
+- Addedd the "\value" field in the wig.R doc (wig.Rd)

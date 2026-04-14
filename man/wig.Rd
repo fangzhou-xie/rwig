@@ -37,6 +37,9 @@ see \code{\link{wig_specs}} for reference}
 
 \item{object}{WIG model}
 }
+\value{
+"wig" class, i.e. list of the index and the WDL model
+}
 \description{
 Wasserstein Index Generation (WIG) model for time-series sentiment index
 autogeneration

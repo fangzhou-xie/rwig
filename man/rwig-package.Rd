@@ -4,7 +4,7 @@
 \name{rwig-package}
 \alias{rwig}
 \alias{rwig-package}
-\title{rwig: Wasserstein Index Generation (WIG) Model in R}
+\title{rwig: Wasserstein Index Generation (WIG) Model}
 \description{
 Efficient implementation of several Optimal Transport algorithms in Fangzhou Xie (2025) \doi{10.48550/arXiv.2504.08722} and the Wasserstein Index Generation (WIG) model in Fangzhou Xie (2020) \doi{10.1016/j.econlet.2019.108874}.
 }
