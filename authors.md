@@ -9,11 +9,11 @@
 Source:
 [`DESCRIPTION`](https://github.com/fangzhou-xie/rwig/blob/main/DESCRIPTION)
 
-Xie F (2026). *rwig: Wasserstein Index Generation (WIG) Model in R*. R
+Xie F (2026). *rwig: Wasserstein Index Generation (WIG) Model*. R
 package version 0.1.0, <https://github.com/fangzhou-xie/rwig>.
 
     @Manual{,
-      title = {rwig: Wasserstein Index Generation (WIG) Model in R},
+      title = {rwig: Wasserstein Index Generation (WIG) Model},
       author = {Fangzhou Xie},
       year = {2026},
       note = {R package version 0.1.0},

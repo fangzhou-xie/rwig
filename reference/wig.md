@@ -62,6 +62,10 @@ summary(object, topic = 1, token_per_topic = 10, ...)
 
   WIG model
 
+## Value
+
+"wig" class, i.e. list of the index and the WDL model
+
 ## Details
 
 This is the re-implementation of WIG model from scratch in R.

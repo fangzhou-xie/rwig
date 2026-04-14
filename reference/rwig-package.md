@@ -1,4 +1,4 @@
-# rwig: Wasserstein Index Generation (WIG) Model in R
+# rwig: Wasserstein Index Generation (WIG) Model
 
 Efficient implementation of several Optimal Transport algorithms in
 Fangzhou Xie (2025)
