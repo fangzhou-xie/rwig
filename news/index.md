@@ -2,6 +2,8 @@
 
 ## rwig 0.1.0
 
+CRAN release: 2026-04-21
+
 - Initial CRAN submission.
 - Efficient implementation of several Optimal Transport algorithms in  
   Fangzhou Xie (2025) <doi:10.48550/arXiv.2504.08722> and the

@@ -18,9 +18,20 @@ on multi-threading for faster processing.
 
 ## Installation
 
-The package is currently under heavy development and can only be
-considered as alpha stage. You can install the development version of
-`rwig` from [GitHub](https://github.com/) with:
+This package is on [CRAN](https://cran.rstudio.com/), and I recommend to
+use the `pak` to install it:
+
+``` r
+# install pak if not already done so
+# install.packages("pak")
+pak::pak("rwig")
+
+# or you can install it in the classic way
+install.packages("rwig")
+```
+
+You can install the development version of `rwig` from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("pak")
