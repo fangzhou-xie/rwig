@@ -26,6 +26,25 @@ const int BLOCK_SIZE = 512;
 // grid size for a 1-D grid-stride kernel over n elements
 inline int nblocks(int n) { return (n + BLOCK_SIZE - 1) / BLOCK_SIZE; }
 
+// Block size for the one-block-per-column reduction kernels (softmax and
+// its Jacobian). Those kernels need a power-of-two block; a block much wider
+// than the column length only idles threads and adds sync rounds, so size
+// it from the reduction length: the smallest power of two >= `length`,
+// clamped to [32, BLOCK_SIZE] and to what the device allows.
+inline int reduce_block(int length) {
+  static int max_threads = 0; // queried once per process
+  if (max_threads == 0) {
+    int dev = 0;
+    if (cudaGetDevice(&dev) != cudaSuccess ||
+        cudaDeviceGetAttribute(&max_threads, cudaDevAttrMaxThreadsPerBlock,
+                               dev) != cudaSuccess)
+      max_threads = BLOCK_SIZE;
+  }
+  int bs = 32;
+  while (bs < length && bs < BLOCK_SIZE) bs <<= 1;
+  return bs < max_threads ? bs : max_threads;
+}
+
 // wrappers for the non-inplace kernels
 void nip_minus(double *z, double *x, double *y, int n, cudaStream_t &stream);
 void nip_div(double *z, double *x, double *y, int n, cudaStream_t &stream);

@@ -21,8 +21,8 @@ static bool check_interrupt() {
 */
 
 // column-wise softmax: out[:,s] = softmax(in[:,s])
-// launch with ncols blocks, BLOCK_SIZE threads, shared mem = BLOCK_SIZE *
-// sizeof(double)
+// launch with ncols blocks, a power-of-two block (reduce_block), shared mem =
+// blockDim.x * sizeof(double)
 __global__ void softmax(int nrows, double *out, double *in) {
   int s = blockIdx.x;
   extern __shared__ double sdata[];
@@ -222,9 +222,9 @@ __global__ void replicate_col(int nrows, int ncols, double *out, double *col) {
 // out[:, j] = a_j % g[:, j] - a_j * (a_j . g[:, j]), a_j = a[:, j % period]
 void update_softmax_jac(double *out, const double *g, const double *a, int n,
                         int ncols, int period, cudaStream_t &stream) {
-  size_t sharedMem = BLOCK_SIZE * sizeof(double);
-  batched_softmax_jac<<<ncols, BLOCK_SIZE, sharedMem, stream>>>(n, period, out,
-                                                                 g, a);
+  const int bs = reduce_block(n);
+  batched_softmax_jac<<<ncols, bs, bs * sizeof(double), stream>>>(n, period,
+                                                                  out, g, a);
 }
 
 // batched KV: KVB = K * VB
@@ -338,8 +338,8 @@ void update_wBbar(double *wbar, double *bBbar, double *bBhist, double *KTUBhist,
 // column-wise softmax: out = softmax(in), each column independently
 void softmax(double *out, double *in, int nrows, int ncols,
              cudaStream_t &stream) {
-  size_t sharedMem = BLOCK_SIZE * sizeof(double);
-  softmax<<<ncols, BLOCK_SIZE, sharedMem, stream>>>(nrows, out, in);
+  const int bs = reduce_block(nrows);
+  softmax<<<ncols, bs, bs * sizeof(double), stream>>>(nrows, out, in);
 }
 
 // broadcast: out (nrows x ncols) = col * ones^T
