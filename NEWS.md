@@ -17,7 +17,8 @@
   matrix had more columns than rows.
 - Fixed: the CUDA build passes an explicit GPU architecture to `nvcc`
   (recent CUDA toolkits default to `sm_52`, which lacks double-precision
-  `atomicAdd`). Set `RWIG_CUDA_ARCH` to override the detected flag.
+  `atomicAdd`). Set `RWIG_CUDA_ARCH` to override the detected flag, or
+  `RWIG_NO_CUDA=1` to build without GPU support even when CUDA is installed.
 
 # rwig 0.1.0
 

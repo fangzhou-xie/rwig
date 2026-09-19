@@ -27,7 +27,9 @@ case "${host_os}" in
 	linux*)
 		AC_MSG_NOTICE([Linux detected, checking for CUDA...])
 
-		if test -z "$CUDA_FLAGS"; then
+		if test -n "$RWIG_NO_CUDA"; then
+			AC_MSG_NOTICE([RWIG_NO_CUDA is set, building without GPU support])
+		elif test -z "$CUDA_FLAGS"; then
 			AC_MSG_RESULT([no])
 
 			# Fallback: manual search
@@ -83,7 +85,9 @@ cuda_wdl.o: cuda_wdl.cu
 			fi
 		fi
 
-		if test -n "$CUDA_FLAGS"; then
+		if test -n "$RWIG_NO_CUDA"; then
+			:
+		elif test -n "$CUDA_FLAGS"; then
 			AC_MSG_NOTICE([CUDA support enabled])
 			AC_MSG_NOTICE([  CUDA_FLAGS: $CUDA_FLAGS])
 			AC_MSG_NOTICE([  CUDA_LIBS: $CUDA_LIBS])

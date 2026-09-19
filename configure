@@ -1756,7 +1756,10 @@ case "${host_os}" in
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Linux detected, checking for CUDA..." >&5
 printf "%s\n" "$as_me: Linux detected, checking for CUDA..." >&6;}
 
-		if test -z "$CUDA_FLAGS"; then
+		if test -n "$RWIG_NO_CUDA"; then
+			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: RWIG_NO_CUDA is set, building without GPU support" >&5
+printf "%s\n" "$as_me: RWIG_NO_CUDA is set, building without GPU support" >&6;}
+		elif test -z "$CUDA_FLAGS"; then
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 
@@ -1817,7 +1820,9 @@ printf "%s\n" "no" >&6; }
 			fi
 		fi
 
-		if test -n "$CUDA_FLAGS"; then
+		if test -n "$RWIG_NO_CUDA"; then
+			:
+		elif test -n "$CUDA_FLAGS"; then
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: CUDA support enabled" >&5
 printf "%s\n" "$as_me: CUDA support enabled" >&6;}
 			{ printf "%s\n" "$as_me:${as_lineno-$LINENO}:   CUDA_FLAGS: $CUDA_FLAGS" >&5
