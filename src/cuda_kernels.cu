@@ -78,16 +78,26 @@ __global__ void nip_row_sum(int m, int n, double *A, double *result) {
   }
 }
 
-// b[i] = prod_j A[i, j] ^ w[j]   (A is m x n column-major, not modified)
-__global__ void nip_rowprod_pow(int m, int n, double *b, const double *A,
-                                const double *w) {
+// b[i] = prod_j A[i, j] ^ w[j] = exp(sum_j w[j] * log A[i, j])  (A m x n,
+// not modified). Two passes: tmp[k] = w[j] * log(A[k]) over all m*n elements,
+// then a row sum + exp over m rows. Both are fully parallel and avoid the
+// slow double-precision pow().
+__global__ void wlog(int m, int n, double *tmp, const double *A,
+                     const double *w) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int k = idx; k < m * n; k += stride)
+    tmp[k] = w[k / m] * log(A[k]);
+}
+
+__global__ void row_expsum(int m, int n, double *b, const double *tmp) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   int stride = blockDim.x * gridDim.x;
   for (int i = idx; i < m; i += stride) {
-    double prod = 1.0;
+    double acc = 0.0;
     for (int j = 0; j < n; j++)
-      prod *= pow(A[i + j * m], w[j]);
-    b[i] = prod;
+      acc += tmp[i + j * m];
+    b[i] = exp(acc);
   }
 }
 
@@ -218,9 +228,10 @@ void nip_row_sum(double *x, double *A, int m, int n, cudaStream_t &stream) {
   nip_row_sum<<<nblocks(m), BLOCK_SIZE, 0, stream>>>(m, n, A, x);
 }
 
-void nip_row_prod_pow(double *b, double *KTU, double *w, int m, int n,
-                      cudaStream_t &stream) {
-  nip_rowprod_pow<<<nblocks(m), BLOCK_SIZE, 0, stream>>>(m, n, b, KTU, w);
+void nip_row_prod_pow(double *b, double *KTU, double *w, double *tmp, int m,
+                      int n, cudaStream_t &stream) {
+  wlog<<<nblocks(m * n), BLOCK_SIZE, 0, stream>>>(m, n, tmp, KTU, w);
+  row_expsum<<<nblocks(m), BLOCK_SIZE, 0, stream>>>(m, n, b, tmp);
 }
 
 void nip_diag_scale(double *P, double *u, double *K, double *v, int m, int n,

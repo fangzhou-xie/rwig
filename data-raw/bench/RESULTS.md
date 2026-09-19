@@ -77,3 +77,30 @@ runs FP64 at 1/64 rate). Inference is the bottleneck: 512 documents x ~18
 iterations, each with two GEMV-shaped GEMMs, a latency-bound `pow` kernel
 launched on 2 blocks, and a synchronizing norm. Batching inference over
 documents (as training already is) removes ~9000 of the ~9200 syncs.
+
+# After batching GPU inference and the log/exp product of powers (2026-09-19)
+
+GPU WDL, RTX 3090 Ti, wall time:
+
+| problem                                   | before  | after   | speed-up |
+|-------------------------------------------|--------:|--------:|---------:|
+| N = 2000, 4096 docs, S = 4, B = 64, L = 20 | 93.1 s | 27.8 s  |   3.35x |
+| N = 1000, 512 docs, S = 4, B = 64, L = 20  |  3.10 s |  1.66 s |   1.9x  |
+
+GPU time is now 94% cuBLAS/cutlass FP64 GEMMs (training and batched
+inference), which run at the card's double-precision peak; the former
+inference kernels (`nrm2`, GEMV-shaped GEMMs, `pow`) are gone from the top
+of the profile. Batched inference reproduces the per-document CPU
+barycenters to 4e-10.
+
+CPU with OpenBLAS 0.3.26 (single BLAS thread, as the package sets at attach):
+
+| case                 | reference BLAS | OpenBLAS |
+|----------------------|---------------:|---------:|
+| sinkhorn log, serial |        14.56 s |  14.18 s |
+| sinkhorn vanilla     |         1.47 s |   0.61 s |
+| barycenter parallel  |         1.03 s |   0.46 s |
+| wdl (CPU)            |        22.34 s |   4.31 s |
+
+The log-domain kernels are unchanged (exp-bound, no BLAS in the forward);
+everything GEMM/GEMV-bound gained 2-5x from the BLAS swap alone.

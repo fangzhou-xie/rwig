@@ -60,9 +60,9 @@ void nip_row_sum(double *x, double *A, int m, int n, cudaStream_t &stream);
 void nip_diag_scale(double *P, double *u, double *K, double *v, int m, int n,
                     cudaStream_t &stream);
 void nip_minus_2(double *z, double *x, double *y, int N, cudaStream_t &stream);
-// b[i] = prod_s KTU[i, s] ^ w[s]  (KTU is m x n, left untouched)
-void nip_row_prod_pow(double *b, double *KTU, double *w, int m, int n,
-                      cudaStream_t &stream);
+// b[i] = prod_s KTU[i, s] ^ w[s]  (KTU is m x n, left untouched; tmp is m*n scratch)
+void nip_row_prod_pow(double *b, double *KTU, double *w, double *tmp, int m,
+                      int n, cudaStream_t &stream);
 
 // wrappers for the inplace kernels: last pointer being replaced!
 void ip_add(double *y, double *x, int n, cudaStream_t &stream);
@@ -105,7 +105,7 @@ void optimizer_step(double *d_theta, double *d_g, double *d_m, double *d_v,
                     double beta2, double eps, int step, cudaStream_t &stream);
 
 // internal barycenter interface (also used by cuda_wdl for inference)
-// tmp_MS is an M*S scratch buffer used for the convergence check.
+// tmp_MS is a max(M, N)*S scratch buffer (convergence check, product of powers).
 // The history buffers are only touched when withgrad is true.
 void impl_barycenter(int &iter, double &err, double *U, double *V, double *b,
                      double *Ubar, double *Vbar, double *bbar, double *Abar,

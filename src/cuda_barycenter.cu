@@ -27,10 +27,10 @@ void update_KTU(double *KTU, double *K, double *U, int N, int S, int M,
   dgemm(KTU, 1.0, K, true, U, false, N, S, M, 0.0, handle);
 }
 
-void update_b(double *b, double *w, double *KTU, int N, int S,
+void update_b(double *b, double *w, double *KTU, double *tmp, int N, int S,
               cudaStream_t &stream) {
   // b_i = prod_s KTU_is ^ w_s, leaving KTU intact for the V update
-  nip_row_prod_pow(b, KTU, w, N, S, stream);
+  nip_row_prod_pow(b, KTU, w, tmp, N, S, stream);
 }
 
 void update_V(double *V, double *b, double *KTU, int N, int S,
@@ -146,7 +146,7 @@ void forward(int &iter, double &err, double *U, double *V, double *b,
       cudaMemcpyAsync(KTUhist + (iter + 1) * N * S, KTU, sizeof(double) * N * S,
                       D2D, stream);
     }
-    update_b(b, w, KTU, N, S, stream);
+    update_b(b, w, KTU, tmp_MS, N, S, stream);
     if (withgrad) {
       cudaMemcpyAsync(bhist + (iter + 1) * N, b, sizeof(double) * N, D2D,
                       stream);
@@ -279,7 +279,8 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   CUDA_CHECK(cudaMallocAsync((void **)&d_b, sizeof(double) * N, stream));
   CUDA_CHECK(cudaMallocAsync((void **)&d_KV, sizeof(double) * M * S, stream));
   CUDA_CHECK(cudaMallocAsync((void **)&d_KTU, sizeof(double) * N * S, stream));
-  CUDA_CHECK(cudaMallocAsync((void **)&d_tmp, sizeof(double) * M * S, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_tmp, sizeof(double) * (M > N ? M : N) * S,
+                             stream));
   CUDA_CHECK(cudaMallocAsync((void **)&d_loss, sizeof(double), stream));
 
   if (withgrad) {

@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <random>
+#include <vector>
 
 #include <R.h>
 #include <Rinternals.h>
@@ -111,21 +112,69 @@ __global__ void batched_row_sum(int N, int S, int D, double *bbar, double *X) {
   }
 }
 
-// batched row product with powers per doc: b[i, d] = prod_s KTU[i, d*S+s] ^ w[s, d]
-// KTU is N x (S*D) and is NOT modified; w is S x D
-__global__ void batched_row_prod_pow(int N, int S, int D, double *b,
-                                     const double *KTU, const double *w) {
+// batched product of powers per doc: b[i, d] = prod_s KTU[i, d*S+s] ^ w[s, d].
+// tmp[k] = w * log(KTU[k]) over the N x (S*D) stack (column j = d*S+s has
+// weight wB[s + d*S] = wB[j]), then per (i, d) a sum over s and exp.
+__global__ void batched_wlog(int N, int SD, double *tmp, const double *KTU,
+                             const double *w) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
   int stride = blockDim.x * gridDim.x;
-  int total = N * D;
-  for (int k = idx; k < total; k += stride) {
-    int i = k % N; // row
-    int d = k / N; // doc
-    double prod = 1.0;
+  for (int k = idx; k < N * SD; k += stride)
+    tmp[k] = w[k / N] * log(KTU[k]);
+}
+
+__global__ void batched_row_expsum(int N, int S, int D, double *b,
+                                   const double *tmp) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int k = idx; k < N * D; k += stride) {
+    int i = k % N, d = k / N;
+    double acc = 0.0;
     for (int s = 0; s < S; s++)
-      prod *= pow(KTU[i + (d * S + s) * N], w[s + d * S]);
-    b[i + d * N] = prod;
+      acc += tmp[i + (d * S + s) * N];
+    b[k] = exp(acc);
   }
+}
+
+// per-doc squared residual of the fixed point: err[d] = sum_{i,s} (U % KV - A)^2
+// over doc d's N x S block (one block per doc, block reduction)
+__global__ void batched_sq_err(int N, int S, double *err, const double *U,
+                               const double *KV, const double *A) {
+  int d = blockIdx.x;
+  extern __shared__ double sdata[];
+  const double *Ud = U + (size_t)d * N * S;
+  const double *KVd = KV + (size_t)d * N * S;
+  double local = 0.0;
+  for (int k = threadIdx.x; k < N * S; k += blockDim.x) {
+    double r = Ud[k] * KVd[k] - A[k];
+    local += r * r;
+  }
+  sdata[threadIdx.x] = local;
+  __syncthreads();
+  for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride)
+      sdata[threadIdx.x] += sdata[threadIdx.x + stride];
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) err[d] = sdata[0];
+}
+
+// per-doc normalization: b[:, d] /= sum(b[:, d]) (one block per doc)
+__global__ void batched_normalize(int N, double *b) {
+  int d = blockIdx.x;
+  extern __shared__ double sdata[];
+  double *bd = b + (size_t)d * N;
+  double local = 0.0;
+  for (int i = threadIdx.x; i < N; i += blockDim.x) local += bd[i];
+  sdata[threadIdx.x] = local;
+  __syncthreads();
+  for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+    if (threadIdx.x < stride)
+      sdata[threadIdx.x] += sdata[threadIdx.x + stride];
+    __syncthreads();
+  }
+  const double inv = 1.0 / sdata[0];
+  for (int i = threadIdx.x; i < N; i += blockDim.x) bd[i] *= inv;
 }
 
 // tmp = UBbar % UB_hist[l+1] / KVB_hist[l] with UB_hist[l+1] = A_tiled / KVB_hist[l]
@@ -249,11 +298,14 @@ void update_UB(double *UB, double *A, double *KVB, int N, int S, int D,
 }
 
 // batched b update: bB[i, d] = prod_s KTUB[i, d*S+s] ^ wB[s, d]
-// KTUB is N x (S*D) and left intact (needed for the V update), wB is S x D
-void update_bB(double *bB, double *KTUB, double *wB, int N, int S, int D,
-               cudaStream_t &stream) {
-  batched_row_prod_pow<<<nblocks(N * D), BLOCK_SIZE, 0, stream>>>(N, S, D, bB, KTUB,
-                                                             wB);
+// KTUB is N x (S*D) and left intact (needed for the V update), wB is S x D,
+// tmp is N*S*D scratch
+void update_bB(double *bB, double *KTUB, double *wB, double *tmp, int N, int S,
+               int D, cudaStream_t &stream) {
+  batched_wlog<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(N, S * D, tmp,
+                                                              KTUB, wB);
+  batched_row_expsum<<<nblocks(N * D), BLOCK_SIZE, 0, stream>>>(N, S, D, bB,
+                                                                tmp);
 }
 
 // batched bbar at final iteration: bBbar[i,d] = 2*(bB[i,d] - b_ext[i,d])
@@ -349,6 +401,56 @@ void replicate_col(double *out, double *col, int nrows, int ncols,
 }
 
 /*
+  wdl_infer_batch: barycenters of D documents at once (forward only).
+
+  Same batched forward as training, but iterated until every document in
+  the batch satisfies ||U % KV - A||_F <= zero_tol (or max_iter), with one
+  host read of D residuals per iteration instead of one per document.
+  Documents that converge early keep iterating with the batch, which only
+  moves them closer to their fixed point. The barycenters (normalized to
+  sum 1) are written to Yhat.
+*/
+
+void wdl_infer_batch(double *Yhat, double *A, double *W, double *K,
+                     double *UB, double *VB, double *bB, double *KVB,
+                     double *KTUB, double *tmp, double *d_err,
+                     std::vector<double> &h_err,
+                     int batch_id, int B, int M, int N, int S, int max_iter,
+                     double zero_tol, cudaStream_t &stream,
+                     cublasHandle_t &handle) {
+  auto D2D = cudaMemcpyDeviceToDevice;
+  auto D2H = cudaMemcpyDeviceToHost;
+  const int D = (batch_id == (M / B)) ? (M % B) : B;
+  if (D <= 0) return;
+  double *wB = W + batch_id * B * S; // S x D
+
+  init_ones(UB, N * S * D, stream);
+  init_ones(VB, N * S * D, stream);
+  update_KVB(KVB, K, VB, N, S, D, handle);
+
+  const int bs = reduce_block(N * S);
+  double err = 1000.0;
+  for (int iter = 0; iter < max_iter && err > zero_tol; ++iter) {
+    update_UB(UB, A, KVB, N, S, D, stream);
+    update_KTUB(KTUB, K, UB, N, S, D, handle);
+    update_bB(bB, KTUB, wB, tmp, N, S, D, stream);
+    update_VB(VB, bB, KTUB, N, S, D, stream);
+    update_KVB(KVB, K, VB, N, S, D, handle);
+    // err = max over docs of the per-doc residual norm
+    batched_sq_err<<<D, bs, bs * sizeof(double), stream>>>(N, S, d_err, UB,
+                                                            KVB, A);
+    cudaMemcpyAsync(h_err.data(), d_err, sizeof(double) * D, D2H, stream);
+    cudaStreamSynchronize(stream);
+    err = 0.0;
+    for (int d = 0; d < D; ++d) err = fmax(err, sqrt(h_err[d]));
+  }
+  const int bsn = reduce_block(N);
+  batched_normalize<<<D, bsn, bsn * sizeof(double), stream>>>(N, bB);
+  cudaMemcpyAsync(Yhat + (size_t)batch_id * B * N, bB, sizeof(double) * N * D,
+                  D2D, stream);
+}
+
+/*
   wdl_batch: process one batch of D documents simultaneously
 
   Uses batched barycenter forward + backward with fixed iterations.
@@ -424,8 +526,8 @@ void wdl_batch(
     cudaMemcpyAsync(KTUB_hist + (size_t)(l + 1) * N * S * D, KTUB,
                     sizeof(double) * N * S * D, D2D, stream);
 
-    // b = row_prod(KTU^w)  (KTUB left intact)
-    update_bB(bB, KTUB, wB, N, S, D, stream);
+    // b = row_prod(KTU^w)  (KTUB left intact; UBbar is free scratch here)
+    update_bB(bB, KTUB, wB, UBbar, N, S, D, stream);
     cudaMemcpyAsync(bB_hist + (size_t)(l + 1) * N * D, bB,
                     sizeof(double) * N * D, D2D, stream);
 
@@ -549,8 +651,8 @@ void cuda_wdl(
   // batched adjoint buffers
   double *d_UBbar = nullptr, *d_VBbar = nullptr, *d_bBbar = nullptr;
   double *d_ABbar = nullptr, *d_wBbar = nullptr;
-  // inference output
-  double *d_Yhat = nullptr;
+  // inference output and per-doc residuals of a batch
+  double *d_Yhat = nullptr, *d_err = nullptr;
 
   // variables declared here so goto cleanup doesn't bypass initialization
   std::mt19937 rng(seed);
@@ -559,6 +661,7 @@ void cuda_wdl(
   int L = max_iter + 1; // history depth
   int batches = (M % B) ? (M / B + 1) : (M / B);
   int step = 0;
+  std::vector<double> h_err((size_t)B);
 
   /* step 3: allocate device memory */
 
@@ -619,8 +722,9 @@ void cuda_wdl(
       cudaMallocAsync((void **)&d_ABbar, sizeof(double) * N * S * B, stream));
   CUDA_CHECK(
       cudaMallocAsync((void **)&d_wBbar, sizeof(double) * S * B, stream));
-  // inference output
+  // inference output and per-doc residuals
   CUDA_CHECK(cudaMallocAsync((void **)&d_Yhat, sizeof(double) * N * M, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_err, sizeof(double) * B, stream));
 
   /* step 4: initialize data on device */
 
@@ -709,29 +813,18 @@ void cuda_wdl(
   if (verbose)
     Rprintf("Inference on the dataset\n");
 
-  for (int m = 0; m < M; ++m) {
-    double *d_w_m = d_W + m * S;
-
-    // reset scaling vectors (reuse batched buffers for single doc)
-    init_ones(d_UB, N * S, stream);
-    init_ones(d_VB, N * S, stream);
-
-    int iter = 0;
-    double err = 1000.0;
-
-    // forward only (withgrad = false): history/adjoint buffers not accessed,
-    // d_ABbar (N*S*B >= N*S) serves as the err scratch
-    impl_barycenter(iter, err, d_UB, d_VB, d_bB, nullptr, nullptr, nullptr,
-                    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-                    nullptr, d_A, d_w_m, d_Y + m * N, d_K, d_KVB, d_KTUB,
-                    d_ABbar, N, N, S, max_iter, zero_tol, false, stream,
-                    handle);
-
-    // store barycenter into Yhat column
-    cudaMemcpyAsync(d_Yhat + m * N, d_bB, sizeof(double) * N, D2D, stream);
-
-    if (verbose && ((m + 1) % B == 0 || m == M - 1))
-      Rprintf("  Inference: %d of %d docs done\n", m + 1, M);
+  for (int batch_id = 0; batch_id < batches; ++batch_id) {
+    cudaStreamSynchronize(stream);
+    if (check_interrupt()) {
+      if (verbose)
+        Rprintf("User interrupt detected, cleaning up...\n");
+      goto cleanup;
+    }
+    wdl_infer_batch(d_Yhat, d_A, d_W, d_K, d_UB, d_VB, d_bB, d_KVB, d_KTUB,
+                    d_UBbar, d_err, h_err, batch_id, B, M, N, S, max_iter,
+                    zero_tol, stream, handle);
+    if (verbose)
+      Rprintf("  Inference: batch %d of %d done\n", batch_id + 1, batches);
   }
 
   /* step 7: copy results to host */
@@ -769,6 +862,7 @@ cleanup:
   cudaFreeAsync(d_ABbar, stream);
   cudaFreeAsync(d_wBbar, stream);
   cudaFreeAsync(d_Yhat, stream);
+  cudaFreeAsync(d_err, stream);
 
   cudaStreamDestroy(stream);
   cublasDestroy(handle);
