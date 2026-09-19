@@ -34,3 +34,46 @@ Notes
   The Armadillo template instantiations were the bulk of the old binary.
   After also dropping Rcpp (native .Call interface) the CUDA build is
   3.8 MB unstripped.
+
+# Profiling (2026-09-19, same machine)
+
+Tools: `data-raw/bench/cpu_blocks.cpp` times each per-iteration building block
+with the package's own headers (build with
+`g++ -std=c++17 -O2 -pthread -I inst/include -I $(R RHOME)/include cpu_blocks.cpp -llapack -lblas`);
+`nsys profile --trace=cuda --stats=true Rscript <script>` for the GPU.
+
+CPU, log-domain Sinkhorn (M = N = 2000, per iteration):
+
+| threads | forward (rows + 2 cols soft-min) | backward (X^T, W products) |
+|--------:|--------------------------------:|---------------------------:|
+| 0       | 81 ms                           | 62 ms                      |
+| 4       | 33 ms                           | 29 ms                      |
+| 8       | 27 ms                           | 21 ms                      |
+| 16      | 19 ms                           | 17 ms                      |
+| 24      | 17 ms                           | 16 ms                      |
+
+The floor is `exp()`: 5.3 ns per element on one core, and the kernels run at
+about 80% of that floor. Five exponentials per matrix element per iteration
+(three forward, two backward) is the whole cost. Scaling stops at about 5x on
+12 physical cores (SMT does not help a compute-bound loop).
+
+CPU, WDL (N = 500, S = 4, B = 32): one training iteration is ~63 ms of GEMM
+(four 500x500x128 products at 4 GFLOP/s on the reference BLAS) against ~2 ms
+of everything else. An optimized BLAS is the only lever that matters here.
+
+GPU, WDL (RTX 3090 Ti, N = 1000, 512 docs, S = 4, B = 64, 20 fixed
+iterations; wall 3.5 s, GPU busy 2.6 s):
+
+| where                          | GPU time | share |
+|--------------------------------|---------:|------:|
+| training GEMMs (cutlass, FP64) |   0.77 s |   29% |
+| inference: 2 x 1000x1000x4 GEMM per doc-iteration | 0.80 s | 31% |
+| inference: `nip_rowprod_pow`   |   0.48 s |   19% |
+| inference: `dnrm2` + host sync |   0.40 s |   15% |
+| everything else                |   0.15 s |    6% |
+
+Training GEMMs run at ~0.43 TFLOP/s, close to the card's FP64 peak (GeForce
+runs FP64 at 1/64 rate). Inference is the bottleneck: 512 documents x ~18
+iterations, each with two GEMV-shaped GEMMs, a latency-bound `pow` kernel
+launched on 2 blocks, and a synchronizing norm. Batching inference over
+documents (as training already is) removes ~9000 of the ~9200 syncs.
