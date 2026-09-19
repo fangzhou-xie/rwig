@@ -32,3 +32,5 @@ Notes
   CUDA build 15 MB -> 8.2 MB unstripped (860 KB -> 680 KB stripped); the
   CPU-only build (`RWIG_NO_CUDA=1`) is 7.4 MB unstripped, 284 KB stripped.
   The Armadillo template instantiations were the bulk of the old binary.
+  After also dropping Rcpp (native .Call interface) the CUDA build is
+  3.8 MB unstripped.
