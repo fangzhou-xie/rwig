@@ -17,6 +17,19 @@
 - `wdl()` now draws its random initialization from R's RNG (`rnorm()`), so
   `set.seed()` reproduces the documented R sequence. Fits with the same seed
   therefore differ from version 0.1.0, which used Armadillo's own generator.
+- Fixed: `wdl()` returned `weights`, `docs_pred` and `docs_dist` in the
+  shuffled training order (the default `shuffle = TRUE`) next to `docs` in
+  the input order, so `wig()` summed document scores into the wrong
+  periods. Per-document outputs are now put back into the input order.
+- Fixed: `wig()` failed when `wig_control` was given without `group_unit`.
+- `wdl_specs()`/`wig_specs()` now honor the values passed in
+  `barycenter_control` (`method`, `max_iter`, ...) instead of silently
+  overriding them; the `wdl_control` seed entry is named `seed` (it was
+  documented as `rng_seed` but read as `seed`). `verbose` defaults to 0
+  when omitted from a partial `sinkhorn_control`/`barycenter_control`.
+- Dropped the dependency on lubridate: `group_unit` is now passed to
+  `cut()` (`?cut.Date`), so it accepts "day", "week", "month", "quarter",
+  "year" and multiples such as "2 months". Weeks start on Monday.
 - Fixed: threaded (`n_threads > 0`) log barycenter crashed when the cost
   matrix had more columns than rows.
 - Fixed: the CUDA build passes an explicit GPU architecture to `nvcc`

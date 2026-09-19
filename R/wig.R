@@ -1,8 +1,25 @@
-# WIG score aggregation
+# Start of the period (day, week, month, quarter, year, ...) containing each
+# date or datetime, using base R's cut() for dates. Weeks start on Monday.
+floor_period <- function(x, unit = "month") {
+  starts <- as.character(cut(x, breaks = unit))
+  if (inherits(x, "Date")) {
+    as.Date(starts)
+  } else {
+    as.POSIXct(starts, tz = attr(x, "tzone") %||% "")
+  }
+}
+
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
+# WIG score aggregation: sum the document scores within each period
 aggregate_by_period <- function(datetimes, values, unit = "month") {
-  period_starts <- lubridate::floor_date(datetimes, unit = unit)
-  result <- stats::aggregate(values, by = list(period_starts), FUN = sum)
-  result
+  out <- stats::aggregate(
+    values,
+    by = list(ref_date = floor_period(datetimes, unit)),
+    FUN = sum
+  )
+  names(out) <- c("ref_date", "WIG")
+  out
 }
 
 #' Wasserstein Index Generation model
@@ -22,7 +39,10 @@ aggregate_by_period <- function(datetimes, values, unit = "month") {
 #' https://doi.org/10.1016/j.econlet.2019.108874
 #'
 #' @param .data a dataframe containing the dates/datetimes and documents
-#' @param date_col name of the column for dates/datetimes
+#' @param date_col name of the column for dates (`Date`) or datetimes
+#' (`POSIXct`); documents are grouped by the `group_unit` of `wig_control`
+#' (see [wig_specs()]), any `breaks` accepted by [cut.Date()] such as
+#' "day", "week", "month", "quarter", "year" or "2 months"
 #' @param docs_col name of the column for the texts/documents
 #' @param specs list, model specification for WIG
 #' see \code{\link{wig_specs}} for reference
@@ -76,16 +96,12 @@ wig.data.frame <- function(
     optimizer_control = opt_args
   )
 
-  # TODO: defuse the arguments
   # defuse the column names into vectors, without using `rlang`
-  date_col <- substitute(date_col)
-  docs_col <- substitute(docs_col)
-  date_vec <- eval(date_col, .data, parent.frame())
-  docs_vec <- eval(docs_col, .data, parent.frame())
+  date_vec <- eval(substitute(date_col), .data, parent.frame())
+  docs_vec <- eval(substitute(docs_col), .data, parent.frame())
 
   # check the `date_vec` is actually date/datetime
-  # replace `xts::is.timeBased(date_vec)`
-  if (!lubridate::is.instant(date_vec)) {
+  if (!inherits(date_vec, c("Date", "POSIXt"))) {
     stop("`date_col` is not of date/datetime!")
   }
 
@@ -106,61 +122,12 @@ wig.data.frame <- function(
   } else {
     stop("`svd_method` not implemented!")
   }
-  # print(wig_doc_scores)
 
-  # TODO: maybe use `lubridate` or string manipulation instead of loop?
-  # after generating the document-wise score, regroup them by time for index
-  # dts_end_inds <- xts::endpoints(date_vec, on = wig_args$group_unit)
-  # dts_vec <- numeric(length(dts_end_inds) - 1)
-  # wig_index <- numeric(length(dts_end_inds) - 1)
-  # for (i in 2:length(dts_end_inds)) {
-  #   dts_vec[i - 1] <- date_vec[dts_end_inds[i - 1] + 1]
-  #   wig_index[i - 1] <- sum(wig_doc_scores[
-  #     (dts_end_inds[i - 1] + 1):dts_end_inds[i]
-  #   ])
-  # }
-
-  #
-  # dts_vec <- gsub("[[:digit:]]{2}$", "01", as.character(date_vec))
-  # wig_raw_df <- data.frame(ref_date = dts_vec, WIG = wig_doc_scores)
-
-  # use `xts` for auto grouping
-  # https://stackoverflow.com/questions/26982057/use-endpoints-function-to-get-start-points-instead
-  # startpoints <- function(x, on = "months", k = 1) {
-  #   head(xts::endpoints(x, on, k) + 1, -1)
-  # }
-  # date_start_vec <- startpoints(date_vec, wig_args$group_unit)
-  # date_end_vec <- xts::endpoints(date_vec, wig_args$group_unit)
-  # browser()
-  # wig_raw_df <- data.frame(
-  #   ref_date = date_start_vec,
-  #   WIG = c(xts::period.apply(wig_doc_scores, date_end_vec, FUN = sum))
-  # )
-
-  # use `lubridate` for grouping
-  wig_raw_df <- aggregate_by_period(
-    date_vec,
-    wig_doc_scores,
-    unit = wig_args$group_unit
-  )
-  colnames(wig_raw_df) <- c("ref_date", "WIG")
-
-  # base R solution to summarize
-  wig_raw_by_df <- by(wig_raw_df, wig_raw_df$ref_date, function(df) {
-    with(df, data.frame(ref_date = ref_date[[1]], WIG = sum(WIG)))
-  })
-  wig_df <- do.call(rbind, wig_raw_by_df)
-  rownames(wig_df) <- NULL # remove the row names
-
-  date_vec <- wig_df$ref_date
-  wig_index <- wig_df$WIG
+  # after generating the document-wise scores, regroup them by period
+  wig_df <- aggregate_by_period(date_vec, wig_doc_scores, unit = wig_args$group_unit)
   if (wig_args$standardize) {
-    wig_index <- (wig_index - base::mean(wig_index)) /
-      stats::sd(wig_index) +
-      100
+    wig_df$WIG <- (wig_df$WIG - mean(wig_df$WIG)) / stats::sd(wig_df$WIG) + 100
   }
-
-  wig_df <- data.frame(ref_date = date_vec, WIG = wig_index)
 
   # prep the output and set class
   out <- list(

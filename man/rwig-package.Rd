@@ -20,5 +20,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Fangzhou Xie \email{fangzhou.xie@rutgers.edu} [copyright holder]
 
+Authors:
+\itemize{
+  \item Fangzhou Xie \email{fangzhou.xie@rutgers.edu} [copyright holder]
+}
+
 }
 \keyword{internal}

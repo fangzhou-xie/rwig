@@ -1,271 +1,113 @@
-# check args and set the default args in case of missing arguments
+# Argument checking and default filling for the control lists.
+
+# Fill missing entries of `args` from `defaults`; entries the user supplied win.
+fill_defaults <- function(args, defaults) {
+  if (is.null(args)) {
+    args <- list()
+  }
+  utils::modifyList(defaults, args)
+}
+
+# The formal default of argument `name` of the calling function, so that the
+# documented default list in the signature is the single source of truth.
+formal_default <- function(name, fn = sys.function(sys.parent())) {
+  eval(formals(fn)[[name]])
+}
+
+# Stop if `args` has names outside `allowed`.
+check_arg_names <- function(args, allowed, what) {
+  bad <- setdiff(names(args), allowed)
+  if (length(bad)) {
+    stop(
+      paste0(bad, collapse = ", "),
+      " not matching one of the ", what, " arguments: ",
+      paste0("\"", allowed, "\"", collapse = ", ")
+    )
+  }
+  invisible(args)
+}
 
 check_wig_args <- function(wig_args) {
-  # check WIG arguments
-  if (is.null(wig_args$group_time)) {
-    wig_args$group_time <- "month"
-  }
-  if (is.null(wig_args$svd_method)) {
-    wig_args$svd_method <- "topics"
-  }
-  if (is.null(wig_args$standardize)) {
-    wig_args$standardize <- TRUE
-  }
-
-  # check if the `svd_method` is valid
+  wig_args <- fill_defaults(
+    wig_args,
+    list(group_unit = "month", svd_method = "topics", standardize = TRUE)
+  )
   if (!wig_args$svd_method %in% c("topics", "docs")) {
     stop("`svd_method` must be from: \"topics\" or \"docs\"")
   }
-
   wig_args
 }
 
 check_wdl_args <- function(wdl_args) {
-  # check WDL arguments: hyper-parameters
-  if (is.null(wdl_args$num_topics)) {
-    wdl_args$num_topics <- 4
-  }
-  if (is.null(wdl_args$batch_size)) {
-    wdl_args$batch_size <- 64
-  }
-  if (is.null(wdl_args$epochs)) {
-    wdl_args$epochs <- 2
-  }
-  if (is.null(wdl_args$shuffle)) {
-    wdl_args$shuffle <- TRUE
-  }
-  if (is.null(wdl_args$seed)) {
-    wdl_args$seed <- 42L
-  }
-
-  wdl_args
+  fill_defaults(
+    wdl_args,
+    list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, seed = 42L)
+  )
 }
 
 check_tok_args <- function(tok_args) {
-  # check tokenizer arguments: m
-  if (is.null(tok_args$stopwords)) {
-    tok_args$stopwords <- stopwords::stopwords()
-  }
-
-  tok_args
+  fill_defaults(tok_args, list(stopwords = stopwords::stopwords()))
 }
 
 check_w2v_args <- function(w2v_args) {
-  # check word2vec arguments: must-have: embedding depths
-  if (is.null(w2v_args$dim)) {
-    # embedding depth: hyper-parameters
-    w2v_args$dim <- 10
-  }
-  if (is.null(w2v_args$min_count)) {
-    w2v_args$min_count <- 3
-  }
-  if (is.null(w2v_args$type)) {
-    w2v_args$type <- "cbow"
-  }
-  # if (is.null(w2v_args$stopwords))
-  #   w2v_args$stopwords <- stopwords::stopwords()
-
-  w2v_args
+  fill_defaults(w2v_args, list(dim = 10, min_count = 3, type = "cbow"))
 }
 
 check_opt_args <- function(opt_args) {
-  # check the parameters for the optimizer
-  if (is.null(opt_args$lr)) {
-    opt_args$lr <- .005
-  }
-  if (is.null(opt_args$decay)) {
-    opt_args$decay <- .01
-  }
-  if (is.null(opt_args$beta1)) {
-    opt_args$beta1 <- .9
-  }
-  if (is.null(opt_args$beta2)) {
-    opt_args$beta2 <- .999
-  }
-  if (is.null(opt_args$eps)) {
-    opt_args$eps <- 1e-8
-  }
-  if (is.null(opt_args$optimizer)) {
-    opt_args$optimizer <- "adamw"
-  }
-
-  # map optimizer from character to int
-  if (opt_args$optimizer == "sgd") {
-    opt_args$optimizer_int <- 0L
-  } else if (opt_args$optimizer == "adam") {
-    opt_args$optimizer_int <- 1L
-  } else if (opt_args$optimizer == "adamw") {
-    opt_args$optimizer_int <- 2L
-  } else {
+  opt_args <- fill_defaults(
+    opt_args,
+    list(
+      optimizer = "adamw", lr = .005, decay = .01,
+      beta1 = .9, beta2 = .999, eps = 1e-8
+    )
+  )
+  optimizers <- c("sgd", "adam", "adamw")
+  if (!opt_args$optimizer %in% optimizers) {
     stop("optimizer must be from: \"sgd\", \"adam\", \"adamw\"")
   }
-
+  # integer code passed to the C++ side
+  opt_args$optimizer_int <- match(opt_args$optimizer, optimizers) - 1L
   opt_args
 }
 
-#' @keywords internal
-#' only used for \code{\link{sinkhorn()}}
-check_sinkhorn_args <- function(skh_args) {
-  # check the parameters for Sinkhorn algorithm
-  args <- c(
-    "reg",
-    "with_grad",
-    "use_cuda",
-    "n_threads",
-    "method",
-    "threshold",
-    "max_iter",
-    "zero_tol",
-    "verbose"
+# Shared checker for the sinkhorn() / barycenter() control lists.
+# `plain` is the non-stabilized method name ("vanilla" or "parallel").
+check_ot_args <- function(args, what, plain, defaults) {
+  check_arg_names(args, names(defaults), what)
+  args <- fill_defaults(args, defaults)
+
+  methods <- c("auto", plain, "log")
+  if (!args$method %in% methods) {
+    stop("method must be from: ", paste0("\"", methods, "\"", collapse = ", "))
+  }
+  if (args$verbose) {
+    if (args$method == plain && args$n_threads > 0) {
+      warning(sprintf("`n_threads` is not used in %s %s!", plain, what))
+    }
+    if (args$method == "log" && args$n_threads == 0) {
+      warning(sprintf(paste0(
+        "`n_threads = 0` for log %s might be slow! ",
+        "Considering setting `n_threads` for faster computation."
+      ), what))
+    }
+  }
+  args
+}
+
+ot_defaults <- function(max_iter = 1000L) {
+  list(
+    reg = .1, with_grad = FALSE, use_cuda = TRUE, n_threads = 0L,
+    method = "auto", threshold = .1, max_iter = max_iter, zero_tol = 1e-6,
+    verbose = 0L
   )
-  args_match <- names(skh_args) %in% args
-  if (!all(args_match)) {
-    args_print <-
-      paste0(paste0("\"", args, "\""), collapse = ", ")
-    stop(
-      paste0(names(skh_args)[!args_match], collapse = ", "),
-      " not matching one of the sinkhorn arguments: ",
-      args_print
-    )
-  }
-  # browser()
-
-  # warning messages for the `n_thread argument`
-
-  # if (skh_args$n_threads) {
-  #   # set the default is not set
-  #   if (is.null(skh_args$reg)) {
-  #     skh_args$reg <- .1
-  #   }
-  # }
-  if (is.null(skh_args$with_grad)) {
-    skh_args$with_grad <- FALSE
-  }
-  if (is.null(skh_args$use_cuda)) {
-    skh_args$use_cuda <- TRUE
-  }
-  if (is.null(skh_args$n_threads)) {
-    skh_args$n_threads <- 0L
-  }
-  if (is.null(skh_args$method)) {
-    skh_args$method <- "auto"
-  }
-  if (is.null(skh_args$threshold)) {
-    skh_args$threshold <- .1
-  }
-  if (is.null(skh_args$max_iter)) {
-    skh_args$max_iter <- 1000
-  }
-  if (is.null(skh_args$zero_tol)) {
-    skh_args$zero_tol <- 1e-6
-  }
-  if (is.null(skh_args$verbose)) {
-    skh_args$verbose <- 10L
-  }
-
-  # map sinkhorn algo type from character to integer
-  if (skh_args$method == "auto") {
-    # skh_args$method_int <- 0L
-  } else if (skh_args$method == "vanilla") {
-    # skh_args$method_int <- 1L
-    if ((skh_args$n_threads > 0) && (skh_args$verbose)) {
-      warning("`n_threads` is not used in vanilla Sinkhorn!")
-    }
-  } else if (skh_args$method == "log") {
-    # skh_args$method_int <- 2L
-    if ((skh_args$n_threads == 0) && (skh_args$verbose)) {
-      warning(
-        paste0(
-          "`n_threads = 0` for log Sinkhorn might be slow! ",
-          "Considering setting `n_threads` for faster computation."
-        )
-      )
-    }
-  } else {
-    stop("method must be from: \"auto\", \"vanilla\", or \"log\"")
-  }
-
-  skh_args
 }
 
 #' @keywords internal
-#' used for \code{\link{barycenter()}}
-check_barycenter_args <- function(brc_args) {
-  # check the parameters for the Barycenter algorithm
-  args <- c(
-    "reg",
-    "with_grad",
-    "use_cuda",
-    "n_threads",
-    "method",
-    "threshold",
-    "max_iter",
-    "zero_tol",
-    "verbose"
-  )
-  args_match <- names(brc_args) %in% args
-  if (!all(args_match)) {
-    args_print <-
-      paste0(paste0("\"", args, "\""), collapse = ", ")
-    stop(
-      paste0(names(brc_args)[!args_match], collapse = ", "),
-      " not matching one of the barycenter arguments: ",
-      args_print
-    )
-  }
+check_sinkhorn_args <- function(skh_args) {
+  check_ot_args(skh_args, "sinkhorn", "vanilla", ot_defaults())
+}
 
-  # set the default is not set
-  if (is.null(brc_args$reg)) {
-    brc_args$reg <- .1
-  }
-  if (is.null(brc_args$with_grad)) {
-    brc_args$with_grad <- FALSE
-  }
-  if (is.null(brc_args$use_cuda)) {
-    brc_args$use_cuda <- TRUE
-  }
-  if (is.null(brc_args$n_threads)) {
-    brc_args$n_threads <- 0L
-  }
-  if (is.null(brc_args$method)) {
-    brc_args$method <- "auto"
-  }
-  if (is.null(brc_args$threshold)) {
-    brc_args$threshold <- .1
-  }
-  if (is.null(brc_args$max_iter)) {
-    brc_args$max_iter <- 1000
-  }
-  if (is.null(brc_args$zero_tol)) {
-    brc_args$zero_tol <- 1e-6
-  }
-  if (is.null(brc_args$verbose)) {
-    brc_args$verbose <- 10L
-  }
-
-  # map sinkhorn algo type from character to integer
-  if (brc_args$method == "auto") {
-    brc_args$method_int <- 0L
-  } else if (brc_args$method == "parallel") {
-    brc_args$method_int <- 1L
-    if ((brc_args$n_threads > 0) && (brc_args$verbose)) {
-      if (brc_args$verbose) {
-        warning("`n_threads` is not used in parallel Barycenter!")
-      }
-    }
-  } else if (brc_args$method == "log") {
-    brc_args$method_int <- 2L
-    if ((brc_args$n_threads == 0) && (brc_args$verbose)) {
-      warning(
-        paste0(
-          "`n_threads = 0` for log Barycenter might be slow! ",
-          "Considering setting `n_threads` for faster computation."
-        )
-      )
-    }
-  } else {
-    stop("method must be from: \"auto\", \"parallel\", or \"log\"")
-  }
-
-  brc_args
+#' @keywords internal
+check_barycenter_args <- function(brc_args, defaults = ot_defaults()) {
+  check_ot_args(brc_args, "barycenter", "parallel", defaults)
 }

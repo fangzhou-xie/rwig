@@ -86,7 +86,7 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   if (length(emb) == 1) {
     stop(paste0(
       "There is no valid token for the model. ",
-      "Try to decrease `min_count` argument (default to 5)."
+      "Try to decrease the `min_count` argument (default 3)."
     ))
   }
 
@@ -94,41 +94,25 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   distmat <- euclidean(emb)
   docdist <- doc2dist(toks, rownames(emb))
 
-  # shuffle the input docs
-  if (wdl_args$shuffle) {
-    shuffled_ids <- sample.int(ncol(docdist), ncol(docdist))
-    docdist <- docdist[, shuffled_ids]
-  }
-
-  # browser()
-  k1 <- exp(-min(distmat) / brc_args$reg)
-  k2 <- exp(-max(distmat) / brc_args$reg)
+  # train on a shuffled copy of the documents; outputs are put back into
+  # the input order below
+  perm <- if (wdl_args$shuffle) sample.int(ncol(docdist)) else seq_len(ncol(docdist))
 
   # dispatch the barycenter method if "auto"
-  if (brc_args$method_int == 0) {
-    if (min(k1, k2) < brc_args$threshold) {
-      brc_args$method_int <- 2 # log
-
-      if (verbose) message("`method` is automatically switched to \"log\"")
-    } else {
-      brc_args$method_int <- 1 # parallel
-
-      if (verbose) message("`method` is automatically switched to \"parallel\"")
-    }
-  }
-  # browser()
+  brc_args$verbose <- verbose
+  brc_args <- resolve_method(brc_args, distmat, "parallel")
+  sinkhorn_mode <- if (brc_args$method == "log") 2L else 1L
 
   # running the WDL model here
   res <- wdl_cpp(
-    docdist,
+    docdist[, perm, drop = FALSE],
     distmat,
     brc_args$reg, # reg
     wdl_args$num_topics, # S
     brc_args$n_threads, # num of threads
     wdl_args$batch_size, # batch_size
     wdl_args$epochs, # epochs
-    # brc_args$method, # sinkhorn_mode
-    brc_args$method_int, # sinkhorn_mode_threshold
+    sinkhorn_mode, # barycenter algorithm: 1 parallel, 2 log
     brc_args$use_cuda, # useCuda
     brc_args$max_iter, # maxIter of Sinkhorn
     brc_args$zero_tol, # zeroTol of Sinkhorn
@@ -139,25 +123,25 @@ wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
     opt_args$beta2, # beta2: used in Adam/AdamW
     opt_args$eps, # eps: used in Adam/AdamW
     verbose, # verbose: print information in wdl
-    wdl_args$seed # seed: random seed for reproducibility
+    wdl_args$seed # seed: random seed (CUDA initialization)
   )
+  # undo the shuffle so that every per-document output lines up with `docs`
+  inv <- order(perm)
   topics <- res$A
-  weights <- res$W
-  Yhat <- res$Yhat
-
-  # browser()
+  weights <- res$W[, inv, drop = FALSE]
+  Yhat <- res$Yhat[, inv, drop = FALSE]
 
   # from the topics/weights matrices, build the topics matrix
   rownames(topics) <- rownames(emb)
   rownames(Yhat) <- rownames(emb)
-  colnames(topics) <- paste0("topic", 1:(wdl_args$num_topics))
-  rownames(weights) <- paste0("topic", 1:(wdl_args$num_topics))
+  colnames(topics) <- paste0("topic", seq_len(wdl_args$num_topics))
+  rownames(weights) <- paste0("topic", seq_len(wdl_args$num_topics))
 
   # return a whole list of everything
   out <- list(
     docs = docs,
     docs_dist = docdist,
-    docs_pred = res$Yhat,
+    docs_pred = Yhat,
     topics = topics,
     weights = weights,
     wdl_control = wdl_args,

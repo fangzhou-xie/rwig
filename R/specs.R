@@ -1,6 +1,4 @@
-# check the specs of the model args
-
-# TODO: check all the argument names are valid!
+# model specs: the control lists for wdl() and wig()
 
 #' Model Specs for WDL and WIG models
 #'
@@ -9,6 +7,12 @@
 #'
 #' @details
 #' See \code{vignette("specs")} for details on the parameters.
+#' Entries left out of a control list take the defaults shown in the usage
+#' section. In `barycenter_control`, `with_grad` is always `TRUE` (the
+#' gradients are what WDL trains on) and `max_iter` is the fixed number of
+#' barycenter iterations per training step, so keep it small: the batched
+#' training keeps a history of `max_iter` iterations for every document
+#' in a batch.
 #'
 #' @references
 #'
@@ -64,7 +68,7 @@ wdl_specs <- function(
     batch_size = 64,
     epochs = 2,
     shuffle = TRUE,
-    rng_seed = 42
+    seed = 42L
   ),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 3),
@@ -87,22 +91,24 @@ wdl_specs <- function(
     eps = 1e-8
   )
 ) {
-  # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
-  barycenter_control <- check_barycenter_args(barycenter_control)
-  barycenter_control$with_grad <- TRUE
-  barycenter_control$method <- "parallel"
-  barycenter_control$max_iter <- 20L
-
-  # barycenter `verbose` is ignored in WDL
-
-  # return the list of arguments
   list(
     wdl_control = check_wdl_args(wdl_control),
     tokenizer_control = check_tok_args(tokenizer_control),
     word2vec_control = check_w2v_args(word2vec_control),
-    barycenter_control = barycenter_control,
+    barycenter_control = check_wdl_barycenter_args(barycenter_control),
     optimizer_control = check_opt_args(optimizer_control)
   )
+}
+
+# barycenter control for WDL/WIG: defaults come from the wdl_specs() signature
+# (max_iter = 20, not the 1000 of barycenter()); `with_grad` must be TRUE
+check_wdl_barycenter_args <- function(barycenter_control) {
+  # signature defaults (max_iter = 20, ...) layered over the full set from
+  # barycenter(), so entries the signature omits (verbose) still exist
+  defaults <- fill_defaults(formal_default("barycenter_control", wdl_specs), ot_defaults())
+  barycenter_control <- check_barycenter_args(barycenter_control, defaults)
+  barycenter_control$with_grad <- TRUE
+  barycenter_control
 }
 
 
@@ -122,7 +128,7 @@ wig_specs <- function(
     batch_size = 64,
     epochs = 2,
     shuffle = TRUE,
-    rng_seed = 42
+    seed = 42L
   ),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
@@ -130,6 +136,7 @@ wig_specs <- function(
     reg = .1,
     with_grad = TRUE,
     use_cuda = TRUE,
+    n_threads = 0,
     method = "auto",
     threshold = .1,
     max_iter = 20,
@@ -144,23 +151,12 @@ wig_specs <- function(
     eps = 1e-8
   )
 ) {
-  # check if the must-have default parameters are there
-  # fill them if needed
-
-  # barycenter `with_grad` defaults to FALSE, but we need TRUE for WDL/WIG
-  barycenter_control <- check_barycenter_args(barycenter_control)
-  barycenter_control$with_grad <- TRUE
-  barycenter_control$method <- "parallel"
-  barycenter_control$max_iter <- 20L
-
-  # barycenter `verbose` is ignored in WIG
-
   list(
     wig_control = check_wig_args(wig_control),
     wdl_control = check_wdl_args(wdl_control),
     tokenizer_control = check_tok_args(tokenizer_control),
     word2vec_control = check_w2v_args(word2vec_control),
-    barycenter_control = barycenter_control,
+    barycenter_control = check_wdl_barycenter_args(barycenter_control),
     optimizer_control = check_opt_args(optimizer_control)
   )
 }

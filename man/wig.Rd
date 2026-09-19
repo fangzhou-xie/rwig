@@ -18,7 +18,10 @@ wig(.data, date_col, docs_col, ...)
 \arguments{
 \item{.data}{a dataframe containing the dates/datetimes and documents}
 
-\item{date_col}{name of the column for dates/datetimes}
+\item{date_col}{name of the column for dates (\code{Date}) or datetimes
+(\code{POSIXct}); documents are grouped by the \code{group_unit} of \code{wig_control}
+(see \code{\link[=wig_specs]{wig_specs()}}), any \code{breaks} accepted by \code{\link[=cut.Date]{cut.Date()}} such as
+"day", "week", "month", "quarter", "year" or "2 months"}
 
 \item{docs_col}{name of the column for the texts/documents}
 
