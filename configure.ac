@@ -1,4 +1,4 @@
-AC_INIT([rwig],[0.1.0],[fangzhou.xie@rutgers.edu])
+AC_INIT([rwig],[0.2.0],[fangzhou.xie@rutgers.edu])
 
 # find R home and set correct compiler + flags
 : ${R_HOME="`R RHOME`"}

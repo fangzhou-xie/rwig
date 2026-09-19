@@ -26,8 +26,9 @@ regularized Wasserstein Barycenter problems, Wasserstein Dictionary
 Learning (WDL) model, and **W**asserstein **I**ndex **G**eneration
 (**WIG**) model in **R** (see references below).
 
-All the methods are implemented from the ground up with C++ and
-Armadillo (with Rcpp and RcppArmadillo), with additional support for
+All the methods are implemented from the ground up in C++ (via Rcpp),
+calling the BLAS/LAPACK libraries shipped with R directly, with
+additional support for
 multi-threading for the log-stablized methods for
 [sinkhorn](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html)
 and

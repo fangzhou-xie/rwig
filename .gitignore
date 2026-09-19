@@ -11,3 +11,5 @@ config.status
 README.html
 data-raw/bench/golden/
 data-raw/bench/results.csv
+configure~
+autom4te.cache/
