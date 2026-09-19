@@ -37,6 +37,9 @@ private:
   // history of U and V (F/G in log) for the backward pass
   std::vector<la::Mat> _Uhist, _Vhist;    // keep track of history for U and V
   std::vector<la::Vec> _bhist, _logbhist; // history of barycenter
+  // parallel algo only: K V^l and K^T U^l from the forward pass, so the
+  // backward pass does not recompute them (3 GEMMs per step)
+  std::vector<la::Mat> _KVhist, _KTUhist;
 
   // scratch for the log algo
   la::Mat _logA;

@@ -38,18 +38,24 @@ void Barycenter::_fwd_parallel() {
     _Uhist.clear();
     _Vhist.clear();
     _bhist.clear();
+    _KVhist.clear();
+    _KTUhist.clear();
     _Uhist.reserve(_maxiter + 1);
     _Vhist.reserve(_maxiter + 1);
     _bhist.reserve(_maxiter + 1);
+    _KVhist.reserve(_maxiter + 1);
+    _KTUhist.reserve(_maxiter + 1);
     _Uhist.push_back(this->U);
     _Vhist.push_back(this->V);
     _bhist.push_back(this->b);
+    _KTUhist.push_back(la::Mat(_N, _S)); // slot 0 unused (K^T U^0 never needed)
   }
 
   _K.set(_C, _reg);
   _KV.resize(_M, _S);
   _KTU.resize(_N, _S);
   _K.mul(false, this->V, _KV);
+  if (_withgrad) _KVhist.push_back(_KV); // K V^0
   _log_stage("Forward pass:");
 
   while (_keep_going()) {
@@ -63,6 +69,7 @@ void Barycenter::_fwd_parallel() {
 
     // update b: b_i = prod_s KTU_is ^ w_s
     _K.mul(true, this->U, _KTU);
+    if (_withgrad) _KTUhist.push_back(_KTU); // K^T U^l
     for (la::idx i = 0; i < _N; ++i) {
       double prod = 1.0;
       for (la::idx s = 0; s < _S; ++s) prod *= std::pow(_KTU(i, s), _w[s]);
@@ -80,6 +87,7 @@ void Barycenter::_fwd_parallel() {
 
     // term cond: err = || U % KV - A ||_F
     _K.mul(false, this->V, _KV);
+    if (_withgrad) _KVhist.push_back(_KV); // K V^l
     double e = 0.0;
     for (la::idx k = 0; k < this->U.size(); ++k) {
       const double d = this->U[k] * _KV[k] - _A[k];
@@ -95,16 +103,17 @@ void Barycenter::_bwd_parallel() {
   this->grad_A.resize(_M, _S);
   this->grad_w.resize(_S);
   // adjoints for the intermediate vars
-  la::Mat Ubar(_M, _S), Vbar(_N, _S), KTU(_N, _S), KV(_M, _S), tmpNS(_N, _S),
-      tmpMS(_M, _S);
+  la::Mat Ubar(_M, _S), Vbar(_N, _S), tmpNS(_N, _S), tmpMS(_M, _S);
   la::Vec bbar(_N), tmpN(_N);
   _log_stage("Backward pass:");
 
   for (int l = iter; l > 0; --l) {
     _tic();
 
-    // KTU = K^T Uhist[l]
-    _K.mul(true, _Uhist[l], KTU);
+    // K^T U^l and K V^l, K V^{l-1} were stored by the forward pass
+    const la::Mat &KTU = _KTUhist[l];
+    const la::Mat &KV = _KVhist[l];
+    const la::Mat &KVprev = _KVhist[l - 1];
 
     if (l == iter) {
       for (la::idx i = 0; i < _N; ++i) bbar[i] = 2 * (this->b[i] - _b_ext[i]);
@@ -117,7 +126,6 @@ void Barycenter::_bwd_parallel() {
       _K.mul(false, tmpNS, Ubar);
     } else {
       // Vbar = -K^T ((Ubar % Uhist[l+1]) / (K Vhist[l]))
-      _K.mul(false, _Vhist[l], KV);
       for (la::idx k = 0; k < tmpMS.size(); ++k)
         tmpMS[k] = (Ubar[k] * _Uhist[l + 1][k]) / KV[k];
       _K.mul(true, tmpMS, Vbar);
@@ -143,8 +151,7 @@ void Barycenter::_bwd_parallel() {
     _toc_bwd(l);
 
     // grad_A += Ubar / (K Vhist[l-1])
-    _K.mul(false, _Vhist[l - 1], KV);
-    for (la::idx k = 0; k < Ubar.size(); ++k) this->grad_A[k] += Ubar[k] / KV[k];
+    for (la::idx k = 0; k < Ubar.size(); ++k) this->grad_A[k] += Ubar[k] / KVprev[k];
     // grad_w += log(KTU)^T (bbar % bhist[l])
     for (la::idx i = 0; i < _N; ++i) tmpN[i] = bbar[i] * _bhist[l][i];
     for (la::idx s = 0; s < _S; ++s) {

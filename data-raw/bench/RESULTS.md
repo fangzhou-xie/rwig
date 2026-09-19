@@ -104,3 +104,17 @@ CPU with OpenBLAS 0.3.26 (single BLAS thread, as the package sets at attach):
 
 The log-domain kernels are unchanged (exp-bound, no BLAS in the forward);
 everything GEMM/GEMV-bound gained 2-5x from the BLAS swap alone.
+
+# Stage 5: parallel barycenter backward reuses K V / K^T U from the forward
+
+CPU, OpenBLAS, `with_grad = TRUE`, fixed iteration count (zero_tol = 0):
+
+| problem              | recompute (5 GEMM/step) | stored history (2 GEMM/step) | speed-up |
+|----------------------|------------------------:|-----------------------------:|---------:|
+| N = 1000, S = 4, 100 it |               0.447 s |                      0.275 s |    1.6x |
+| N = 3000, S = 4, 50 it  |               3.534 s |                      2.166 s |    1.6x |
+| N = 1000, S = 32, 100 it |              1.080 s |                      0.693 s |    1.6x |
+
+Cost: two more (L + 1) x N x S histories, i.e. the gradient path's memory
+doubles (e.g. N = 3000, S = 4, 1000 iterations: ~190 MB -> ~380 MB).
+Results are unchanged (golden gate 53/53).
