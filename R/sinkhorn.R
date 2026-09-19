@@ -118,27 +118,8 @@ sinkhorn <- function(
     stop("reg must be a single value")
   }
 
-  # calculating the minimum value of the Gibbs kernel K
-  k1 <- exp(-min(C) / reg)
-  k2 <- exp(-max(C) / reg)
-
-  # auto-switch the best sinkhorn algo (between vanilla and log)
-  # alert user for the method chosen if verbose
-  if (sinkhorn_control$method == "auto") {
-    if (min(k1, k2) < sinkhorn_control$threshold) {
-      sinkhorn_control$method <- "log"
-
-      if (sinkhorn_control$verbose) {
-        message("`method` is automatically switched to \"log\"")
-      }
-    } else {
-      sinkhorn_control$method <- "vanilla"
-
-      if (sinkhorn_control$verbose) {
-        message("`method` is automatically switch to \"vanilla\"")
-      }
-    }
-  }
+  # auto-switch between the vanilla and log-stabilized algorithm
+  sinkhorn_control <- resolve_method(sinkhorn_control, C, "vanilla")
 
   if (sinkhorn_control$method == "log") {
     # use log sinkhorn
@@ -174,79 +155,3 @@ sinkhorn <- function(
   sol$method <- sinkhorn_control$method
   sol
 }
-
-# sinkhorn_vanilla <- function(
-#   a,
-#   b,
-#   C,
-#   reg,
-#   withgrad = FALSE,
-#   maxiter = 1000,
-#   zerotol = 1e-6,
-#   verbose = 0L
-# ) {
-#   if (!is.vector(a)) {
-#     stop("a must be a numeric vector!")
-#   }
-#   if (!is.vector(b)) {
-#     stop("b must be a numeric vector!")
-#   }
-#   if (!is.matrix(C)) {
-#     stop("C must be a numeric matrix!")
-#   }
-#   if ((length(a) != nrow(C)) | (length(b) != ncol(C))) {
-#     stop("a, b, C don't match in dimension!")
-#   }
-#
-#   # call the c++ routine
-#   sinkhorn_vanilla_cpp(a, b, C, reg, withgrad, maxiter, zerotol)
-# }
-
-# sinkhorn_log <- function(
-#   a,
-#   b,
-#   C,
-#   reg,
-#   withgrad = FALSE,
-#   n_threads = 0,
-#   maxiter = 1000,
-#   zerotol = 1e-6,
-#   verbose = 0L
-# ) {
-#   if (!is.vector(a)) {
-#     stop("a must be a numeric vector!")
-#   }
-#   if (!is.vector(b)) {
-#     stop("b must be a numeric vector!")
-#   }
-#   if (!is.matrix(C)) {
-#     stop("C must be a numeric matrix!")
-#   }
-#   if ((length(a) != nrow(C)) | (length(b) != ncol(C))) {
-#     stop("a, b, C don't match in dimension!")
-#   }
-#
-#   # call the c++ routine
-#   sinkhorn_log_cpp(a, b, C, reg, withgrad, n_threads, maxiter, zerotol)
-# }
-
-# sinkhorn_parallel <- function(A, B, C, reg, withgrad = FALSE,
-#                               maxIter = 1000, zeroTol = 1e-6) {
-#   if (!is.matrix(A)) stop("A must be a numeric vector!")
-#   if (!is.matrix(B)) stop("B must be a numeric vector!")
-#   if (!is.matrix(C)) stop("C must be a numeric matrix!")
-#
-#   if (withgrad) {
-#     sol <- sinkhorn_parallel_withjac_cpp(A, B, C, reg, maxIter, zeroTol)
-#   } else {
-#     sol <- sinkhorn_parallel_withoutjac_cpp(A, B, C, reg, maxIter, zeroTol)
-#   }
-#
-#   U <- sol$U
-#   V <- sol$V
-#   K <- sol$K
-#   append(
-#     list(P = Map(\(s) diag(U[,s]) %*% K %*% diag(V[,s]), 1:ncol(A))),
-#     sol
-#   )
-# }

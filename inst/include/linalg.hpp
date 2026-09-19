@@ -214,33 +214,36 @@ inline void symm(const Mat &A, const Mat &B, Mat &C, double alpha = 1.0,
 }
 
 /*
-  LAPACK: thin SVD  A (m x n) = U diag(s) V^T
-  U is m x r, s has r entries, Vt is r x n with r = min(m, n).
-  Returns the LAPACK info code (0 on success). A is left untouched.
+  LAPACK dgesdd: workspace query + call. A is destroyed. With jobz = 'N' only
+  the singular values are computed and U / Vt may be dummies.
 */
 
-inline int gesdd_thin(const Mat &A, Mat &U, Vec &s, Mat &Vt) {
-  const int m = (int)A.nrow(), n = (int)A.ncol();
+inline int gesdd(char jobz, int m, int n, double *A, double *s, double *U,
+                 int ldu, double *Vt, int ldvt) {
   const int r = std::min(m, n);
-  Mat work_A(A); // dgesdd destroys its input
-  U.resize(m, r);
-  s.resize(r);
-  Vt.resize(r, n);
-  const char jobz = 'S';
-  int info = 0;
-  int lwork = -1;
+  int info = 0, lwork = -1;
   double wkopt = 0.0;
   std::vector<int> iwork(8 * (std::size_t)r);
-  // workspace query
-  F77_CALL(dgesdd)(&jobz, &m, &n, work_A.data(), &m, s.data(), U.data(), &m,
-                   Vt.data(), &r, &wkopt, &lwork, iwork.data(), &info FCONE);
+  F77_CALL(dgesdd)(&jobz, &m, &n, A, &m, s, U, &ldu, Vt, &ldvt, &wkopt, &lwork,
+                   iwork.data(), &info FCONE);
   if (info != 0) return info;
   lwork = (int)wkopt;
   std::vector<double> work((std::size_t)lwork);
-  F77_CALL(dgesdd)(&jobz, &m, &n, work_A.data(), &m, s.data(), U.data(), &m,
-                   Vt.data(), &r, work.data(), &lwork, iwork.data(),
-                   &info FCONE);
+  F77_CALL(dgesdd)(&jobz, &m, &n, A, &m, s, U, &ldu, Vt, &ldvt, work.data(),
+                   &lwork, iwork.data(), &info FCONE);
   return info;
+}
+
+// thin SVD  A (m x n) = U diag(s) V^T with U m x r, Vt r x n, r = min(m, n).
+// Returns the LAPACK info code (0 on success). A is left untouched.
+inline int gesdd_thin(const Mat &A, Mat &U, Vec &s, Mat &Vt) {
+  const int m = (int)A.nrow(), n = (int)A.ncol();
+  const int r = std::min(m, n);
+  Mat work_A(A);
+  U.resize(m, r);
+  s.resize(r);
+  Vt.resize(r, n);
+  return gesdd('S', m, n, work_A.data(), s.data(), U.data(), m, Vt.data(), r);
 }
 
 // largest singular value of A (arma::norm(A, 2) for a matrix)
@@ -250,20 +253,58 @@ inline double spectral_norm(const Mat &A) {
   if (r == 0) return 0.0;
   Mat work_A(A);
   std::vector<double> s((std::size_t)r);
-  const char jobz = 'N';
-  int info = 0, lwork = -1;
-  double wkopt = 0.0, dummy = 0.0;
-  const int ldu = 1, ldvt = 1;
-  std::vector<int> iwork(8 * (std::size_t)r);
-  F77_CALL(dgesdd)(&jobz, &m, &n, work_A.data(), &m, s.data(), &dummy, &ldu,
-                   &dummy, &ldvt, &wkopt, &lwork, iwork.data(), &info FCONE);
-  lwork = (int)wkopt;
-  std::vector<double> work((std::size_t)lwork);
-  F77_CALL(dgesdd)(&jobz, &m, &n, work_A.data(), &m, s.data(), &dummy, &ldu,
-                   &dummy, &ldvt, work.data(), &lwork, iwork.data(),
-                   &info FCONE);
+  double dummy = 0.0;
+  gesdd('N', m, n, work_A.data(), s.data(), &dummy, 1, &dummy, 1);
   return s[0];
 }
+
+/*
+  Gibbs kernel K = exp(-C / reg) as an operator. When C is square and
+  symmetric, K is made exactly symmetric and products use dsymv/dsymm
+  (half the memory reads); K^T x == K x then, so `trans` is ignored.
+*/
+
+class KernelOp {
+public:
+  Mat K;
+  bool symmetric = false;
+
+  KernelOp() = default;
+  KernelOp(const Mat &C, double reg) { set(C, reg); }
+
+  void set(const Mat &C, double reg) {
+    K.resize(C.nrow(), C.ncol());
+    for (idx k = 0; k < K.size(); ++k) K[k] = std::exp(-C[k] / reg);
+    symmetric = C.is_symmetric();
+    if (symmetric) K.symmetrize_upper();
+  }
+
+  // y <- op(K) x
+  void mul(bool trans, const double *x, double *y) const {
+    if (symmetric) {
+      symv(K, x, y);
+    } else {
+      gemv(trans, K, x, y);
+    }
+  }
+  void mul(bool trans, const Vec &x, Vec &y) const {
+    mul(trans, x.data(), y.data());
+  }
+
+  // Y <- op(K) X on the first `cols` columns of X and Y
+  void mul(bool trans, const Mat &X, Mat &Y, idx cols) const {
+    const int n = (int)K.nrow(), c = (int)cols;
+    if (symmetric) {
+      symm(n, c, 1.0, K.data(), n, X.data(), (int)X.nrow(), 0.0, Y.data(),
+           (int)Y.nrow());
+    } else {
+      gemm(trans, false, trans ? (int)K.ncol() : (int)K.nrow(), c,
+           trans ? (int)K.nrow() : (int)K.ncol(), 1.0, K.data(), (int)K.nrow(),
+           X.data(), (int)X.nrow(), 0.0, Y.data(), (int)Y.nrow());
+    }
+  }
+  void mul(bool trans, const Mat &X, Mat &Y) const { mul(trans, X, Y, X.ncol()); }
+};
 
 } // namespace la
 

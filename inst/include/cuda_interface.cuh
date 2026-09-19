@@ -3,9 +3,6 @@
 #ifndef RWIG_CUDA_INTERFACE_CUH
 #define RWIG_CUDA_INTERFACE_CUH
 
-// #ifdef HAVE_CUBLAS
-// #ifdef HAVE_CUDA_RUNTIME
-
 /*
   interface to C++ side (then to R)
 */
@@ -25,9 +22,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
                               const bool withgrad, const int max_iter,
                               const double zero_tol);
 
-// TODO: maybe the intermediate barycenter interface too (for WDL)
-// TODO: implement wdl (high priority)
-
 void cuda_wdl(
     double *A, double *W, double *Yhat,
     const double *Y, const double *C,
@@ -37,10 +31,5 @@ void cuda_wdl(
     const int opt, const double eta, const double gamma,
     const double beta1, const double beta2, const double eps,
     const int seed, const bool verbose);
-
-// TODO: implement log methods (low priority)
-
-// #endif
-// #endif
 
 #endif // RWIG_CUDA_INTERFACE_CUH

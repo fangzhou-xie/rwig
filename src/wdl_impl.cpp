@@ -45,7 +45,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
     rr::check_interrupt();
 
     // KVB = K * VB  (one big GEMM: N x N * N x SD)
-    _Kmul(false, _VB, _KVB, SD);
+    _K.mul(false, _VB, _KVB, SD);
     std::copy(_KVB.data(), _KVB.data() + NSD, KVB_h(l));
 
     // UB[:,d*S+s] = A[:,s] / KVB[:,d*S+s]
@@ -57,7 +57,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
     }
 
     // KTUB = K^T * UB  (one big GEMM)
-    _Kmul(true, _UB, _KTUB, SD);
+    _K.mul(true, _UB, _KTUB, SD);
     std::copy(_KTUB.data(), _KTUB.data() + NSD, KTUB_h(l + 1));
 
     // bB[:,d] = prod_s( KTUB[:,d*S+s] ^ wB[s,d] )
@@ -106,7 +106,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
         double *tc = _tmpB.col(c);
         for (la::idx i = 0; i < N; ++i) tc[i] = bbd[i] * w * (bd[i] / KTUc[i]);
       }
-      _Kmul(false, _tmpB, _UBbar, SD);
+      _K.mul(false, _tmpB, _UBbar, SD);
 
     } else {
       // VBbar = -K^T * (UBbar % UB_hist[l+1] / KVB_hist[l]),
@@ -120,7 +120,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
         for (la::idx i = 0; i < N; ++i)
           tc[i] = (Ubc[i] * (As[i] / KVc[i])) / KVc[i];
       }
-      _Kmul(true, _tmpB, _VBbar, SD);
+      _K.mul(true, _tmpB, _VBbar, SD);
       for (la::idx k = 0; k < NSD; ++k) _VBbar[k] = -_VBbar[k];
 
       // bBbar[:,d] = sum_s( VBbar[:,d*S+s] / KTUB_hist[l][:,d*S+s] )
@@ -148,7 +148,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
         for (la::idx i = 0; i < N; ++i)
           tc[i] = (bbd[i] * w - Vbc[i] / KTUc[i]) * (bd[i] / KTUc[i]);
       }
-      _Kmul(false, _tmpB, _UBbar, SD);
+      _K.mul(false, _tmpB, _UBbar, SD);
     }
 
     // ABbar += UBbar / KVB_hist[l-1]
@@ -237,12 +237,7 @@ void WassersteinDictionaryLearning::_compute_serial() {
   _g_Lambda.resize(_S, _M);
 
   // precompute Gibbs kernel K = exp(-C / reg)
-  _K.resize(_N, _N);
-  for (la::idx k = 0; k < _K.size(); ++k) _K[k] = std::exp(-_C[k] / _reg);
-  _C_is_symm = _C.is_symmetric();
-  if (_C_is_symm) {
-    _K.symmetrize_upper();
-  }
+  _K.set(_C, _reg);
 
   // init the optimizers
   _opt_Alpha.init(_N, _S, _eta, _gamma, _beta1, _beta2, _eps);

@@ -49,9 +49,8 @@ private:
   la::Mat _Alpha;  // N * S
   la::Mat _Lambda; // S * M
 
-  // precomputed Gibbs kernel
-  la::Mat _K; // N * N, exp(-C / reg)
-  bool _C_is_symm;
+  // precomputed Gibbs kernel exp(-C / reg), N x N
+  la::KernelOp _K;
 
   // TicToc timer class
   TicToc _timer; // used for logging each iteration time
@@ -72,17 +71,6 @@ private:
   la::Vec _KVB_hist;  // L slots
   la::Vec _KTUB_hist; // L + 1 slots
   la::Vec _bB_hist;   // L + 1 slots of N*B
-
-  // K * X (or K^T * X) on the first `cols` columns of X / Y
-  void _Kmul(bool trans, const la::Mat &X, la::Mat &Y, la::idx cols) const {
-    const int n = (int)_N, c = (int)cols;
-    if (_C_is_symm) {
-      la::symm(n, c, 1.0, _K.data(), n, X.data(), n, 0.0, Y.data(), n);
-    } else {
-      la::gemm(trans, false, n, c, n, 1.0, _K.data(), n, X.data(), n, 0.0,
-               Y.data(), n);
-    }
-  }
 
   // column-wise softmax: out[:, j] = softmax(in[:, j])
   static void _softmax_cols(const la::Mat &in, la::Mat &out) {
@@ -121,21 +109,11 @@ private:
 
   void _compute_serial();
   void _train_batch_batched(int batch_id);
-  // optimizer step
+  // optimizer step: update _Alpha, _Lambda in place
   void _optimize() {
-    // update the params by the optimizer
-    if (_opt == 0) { // SGD
-      _opt_Alpha.sgd(_Alpha, _g_Alpha);
-      _opt_Lambda.sgd(_Lambda, _g_Lambda);
-    } else if (_opt == 1) { // Adam
-      _opt_Alpha.adam(_Alpha, _g_Alpha);
-      _opt_Lambda.adam(_Lambda, _g_Lambda);
-    } else if (_opt == 2) { // AdamW
-      _opt_Alpha.adamw(_Alpha, _g_Alpha);
-      _opt_Lambda.adamw(_Lambda, _g_Lambda);
-    }
-    // update _Alpha, _Lambda in-place
-  };
+    _opt_Alpha.step(_opt, _Alpha, _g_Alpha);
+    _opt_Lambda.step(_opt, _Lambda, _g_Lambda);
+  }
 
 public:
   // output vars

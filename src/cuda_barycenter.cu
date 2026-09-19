@@ -1,11 +1,6 @@
 // implementation of the CUDA Barycenter interface
 // `cuda_barycenter_parallel`
 
-// #include "check_cuda.hpp" // for checking cuda availability
-
-// #ifdef HAVE_CUBLAS
-// #ifdef HAVE_CUDA_RUNTIME
-
 #include "cuda_kernels.cuh"
 
 #include "cuda_interface.cuh"
@@ -54,35 +49,29 @@ void update_bbar_L(double *bbar, double *bhist, int l, double *b_ext, int N,
 void update_Ubar_L(double *Ubar, double *bbar, double *Vhist, int l, double *w,
                    double *K, double *KTU, int M, int N, int S,
                    cudaStream_t &stream, cublasHandle_t &handle) {
-  // bbar * w^T
-  cudaMemset(KTU, 0, N * S * sizeof(double));
+  // tmp_NS = (bbar w^T) % V_L
+  cudaMemsetAsync(KTU, 0, N * S * sizeof(double), stream);
   dger(KTU, N, S, 1.0, bbar, w, handle);
-  // tmp_NS = V_L % tmp_NS
   ip_dot(KTU, Vhist + l * N * S, N * S, stream);
   // Ubar = K * tmp_NS
   dgemm(Ubar, 1.0, K, false, KTU, false, M, S, N, 0.0, handle);
 }
 
-void update_Vbar_l(double *Vbar, double *Ubar, double *Uhist, double *Vhist,
-                   double *KVhist, int l, double *K, double *KV, int M, int N,
-                   int S, cudaStream_t &stream, cublasHandle_t &handle) {
-  // KV already computed in `update_Abar`
-  // dgemm(KV, 1.0, K, false, Vhist + l * N * S, false, M, S, N, 0.0, handle);
-  // KV = Ubar / KV
+void update_Vbar_l(double *Vbar, double *Ubar, double *Uhist, double *KVhist,
+                   int l, double *K, double *KV, int M, int N, int S,
+                   cudaStream_t &stream, cublasHandle_t &handle) {
+  // KV = (Ubar % Uhist[l+1]) / KVhist[l]
   nip_dot_div(KV, Ubar, Uhist + (l + 1) * M * S, KVhist + l * M * S, M * S,
               stream);
-  // ip_dot_div(KV, Ubar, Uhist + (l + 1) * M * S, M * S, stream);
   // Vbar = -K^T * KV
   dgemm(Vbar, -1.0, K, true, KV, false, N, S, M, 0.0, handle);
 }
 
-void update_bbar_l(double *bbar, double *Vbar, double *Uhist, double *KTUhist,
-                   int l, double *K, double *KTU, int M, int N, int S,
-                   cudaStream_t &stream, cublasHandle_t &handle) {
+void update_bbar_l(double *bbar, double *Vbar, double *KTUhist, int l,
+                   double *KTU, int N, int S, cudaStream_t &stream) {
   // tmp_NS = Vbar / KTU
   nip_div(KTU, Vbar, KTUhist + l * N * S, N * S, stream);
   // bbar = row_sum(tmp_NS)
-  // dgemv(bbar, 1.0, KTU, N, S, false, ones_S, 0.0, handle);
   nip_row_sum(bbar, KTU, N, S, stream);
 }
 
@@ -101,13 +90,9 @@ void update_Ubar_l(double *Ubar, double *Vbar, double *bbar, double *Vhist,
   dgemm(Ubar, -1.0, K, false, KTU, false, M, S, N, 0.0, handle);
 }
 
-void update_Abar(double *Abar, double *Ubar, double *KVhist, int l, double *KV,
-                 int M, int N, int S, cudaStream_t &stream,
-                 cublasHandle_t &handle) {
-  // update KV
-  // dgemm(KV, 1.0, K, false, Vhist + (l - 1) * N * S, false, M, S, N, 0.0,
-  //       handle);
-  // print_device_matrix(KV, M, S, "KV", stream);
+void update_Abar(double *Abar, double *Ubar, double *KVhist, int l, int M,
+                 int S, cudaStream_t &stream) {
+  // Abar += Ubar / KVhist[l-1]
   ip_accu_abar(Abar, Ubar, KVhist + (l - 1) * M * S, M * S, stream);
 }
 
@@ -181,7 +166,6 @@ void forward(int &iter, double &err, double *U, double *V, double *b,
     update_err(err, U, KV, A, tmp_MS, M, S, stream, handle);
     iter++;
   }
-  // TODO: rescale b sum to 1
 }
 
 void backward(int &iter, double *Ubar, double *Vbar, double *bbar, double *Abar,
@@ -195,15 +179,14 @@ void backward(int &iter, double *Ubar, double *Vbar, double *bbar, double *Abar,
       update_bbar_L(bbar, bhist, l, b_ext, N, stream);
       update_Ubar_L(Ubar, bbar, Vhist, l, w, K, KTU, M, N, S, stream, handle);
     } else {
-      update_Vbar_l(Vbar, Ubar, Uhist, Vhist, KVhist, l, K, KV, M, N, S, stream,
+      update_Vbar_l(Vbar, Ubar, Uhist, KVhist, l, K, KV, M, N, S, stream,
                     handle);
-      update_bbar_l(bbar, Vbar, Uhist, KTUhist, l, K, KTU, M, N, S, stream,
-                    handle);
+      update_bbar_l(bbar, Vbar, KTUhist, l, KTU, N, S, stream);
       update_Ubar_l(Ubar, Vbar, bbar, Vhist, KTUhist, l, w, K, KTU, M, N, S,
                     stream, handle);
     }
 
-    update_Abar(Abar, Ubar, KVhist, l, KV, M, N, S, stream, handle);
+    update_Abar(Abar, Ubar, KVhist, l, M, S, stream);
     update_wbar(wbar, bbar, bhist, KTUhist, l, KTU, N, S, stream, handle);
   }
 }
@@ -254,12 +237,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
                               const int N, const int S, const double reg,
                               const bool withgrad, const int max_iter,
                               const double zero_tol) {
-  // takes device pointers as input, to be exported
-  // output: U, V, b, iter, err, loss, grad_A, grad_w
-  // input: A, w, K
-  // params: M, N, S, max_iter, zero_tol
-  // flags: withgrad
-
   cublasHandle_t handle;
   cudaStream_t stream;
   auto H2D = cudaMemcpyHostToDevice;
@@ -332,7 +309,6 @@ void cuda_barycenter_parallel(double *U, double *V, double *b, double *grad_A,
   // compute the Gibbs kernel K
   cudaMemcpyAsync(d_K, C, sizeof(double) * M * N, H2D, stream);
   update_K(d_K, M, N, reg, stream);
-  // print_device_matrix(d_K, M, N, "K");
 
   /* step 5: computation*/
   impl_barycenter(iter, err, d_U, d_V, d_b, d_Ubar, d_Vbar, d_bbar, d_Abar,
@@ -386,5 +362,3 @@ cleanup:
   cublasDestroy(handle);
 }
 
-// #endif
-// #endif

@@ -125,24 +125,6 @@ barycenter <- function(
     stop("reg must be a single value")
   }
 
-  # auto-switch the best barycenter algo (between vanilla and log)
-  k1 <- exp(-min(C) / reg)
-  k2 <- exp(-max(C) / reg)
-
-  # auto-switch the best sinkhorn algo (between vanilla and log)
-  # alert user for the method chosen
-  if (barycenter_control$verbose) {
-    if (barycenter_control$method == "auto") {
-      if (min(k1, k2) < barycenter_control$threshold) {
-        message("`method` is automatically switched to \"log\"")
-        barycenter_control$method <- "log"
-      } else {
-        message("`method` is automatically switch to \"parallel\"")
-        barycenter_control$method <- "parallel"
-      }
-    }
-  }
-
   # check `b_ext` and add it if not supplied
   if (barycenter_control$with_grad && is.null(b_ext)) {
     stop("you must supply the `b_ext` with `with_grad = TRUE`!")
@@ -158,27 +140,8 @@ barycenter <- function(
     b_ext <- rep(0, 2) # only to pass to cpp function without using it
   }
 
-  # calculating the minimum value of the Gibbs kernel K
-  k1 <- exp(-min(C) / reg)
-  k2 <- exp(-max(C) / reg)
-
-  # auto-switch the best barycenter algo (between parallel and log)
-  # alert user for the method chosen if verbose
-  if (barycenter_control$method == "auto") {
-    if (min(k1, k2) < barycenter_control$threshold) {
-      barycenter_control$method <- "log"
-
-      if (barycenter_control$verbose) {
-        message("`method` is automatically switched to \"log\"")
-      }
-    } else {
-      barycenter_control$method <- "parallel"
-
-      if (barycenter_control$verbose) {
-        message("`method` is automatically switch to \"parallel\"")
-      }
-    }
-  }
+  # auto-switch between the parallel and log-stabilized algorithm
+  barycenter_control <- resolve_method(barycenter_control, C, "parallel")
 
   if (barycenter_control$method == "log") {
     # use log barycenter
@@ -215,103 +178,3 @@ barycenter <- function(
   sol$method <- barycenter_control$method
   sol
 }
-
-# barycenter_parallel <- function(
-#   A,
-#   C,
-#   w,
-#   reg,
-#   b_ext = NULL,
-#   withgrad = FALSE,
-#   maxiter = 1000,
-#   zerotol = 1e-6,
-#   verbose = 0
-# ) {
-#   # check the input types
-#   if (!is.matrix(A)) {
-#     stop("A must be a numeric matrix!")
-#   }
-#   if (!is.matrix(C)) {
-#     stop("C must be a numeric matrix!")
-#   }
-#   if (!is.vector(w)) {
-#     stop("w must be a numeric vector!")
-#   }
-#   if (nrow(A) != nrow(C)) {
-#     stop("number of rows of A and C must equal!")
-#   }
-#
-#   if (withgrad && is.null(b_ext)) {
-#     stop("you must supply the `b_ext` with `withgrad = TRUE`!")
-#   } else if (!withgrad && !is.null(b_ext)) {
-#     warning(
-#       "you have supplied `b_ext`, but it will not be used as `withgrad = FALSE`!"
-#     )
-#   } else if (!withgrad && is.null(b_ext)) {
-#     b_ext <- rep(0, 2)
-#   }
-#
-#   # call the C++ routine
-#   barycenter_parallel_cpp(
-#     A,
-#     C,
-#     w,
-#     reg,
-#     b_ext,
-#     withgrad,
-#     maxiter,
-#     zerotol,
-#     verbose
-#   )
-# }
-
-# barycenter_log <- function(
-#   A,
-#   C,
-#   w,
-#   reg,
-#   b_ext = NULL,
-#   withgrad = FALSE,
-#   n_threads = 0,
-#   maxiter = 1000,
-#   zerotol = 1e-6,
-#   verbose = 0
-# ) {
-#   # check the input types
-#   if (!is.matrix(A)) {
-#     stop("A must be a numeric matrix!")
-#   }
-#   if (!is.matrix(C)) {
-#     stop("C must be a numeric matrix!")
-#   }
-#   if (!is.vector(w)) {
-#     stop("w must be a numeric vector!")
-#   }
-#   if (nrow(A) != nrow(C)) {
-#     stop("number of rows of A and C must equal!")
-#   }
-#
-#   if (withgrad && is.null(b_ext)) {
-#     stop("you must supply the `b_ext` with `withgrad = TRUE`!")
-#   } else if (!withgrad && !is.null(b_ext)) {
-#     warning(
-#       "you have supplied `b_ext`, but it will not be used as `withgrad = FALSE`!"
-#     )
-#   } else if (!withgrad && is.null(b_ext)) {
-#     b_ext <- rep(0, 2)
-#   }
-#
-#   # call the C++ routine
-#   barycenter_log_cpp(
-#     A,
-#     C,
-#     w,
-#     reg,
-#     b_ext,
-#     withgrad,
-#     n_threads,
-#     maxiter,
-#     zerotol,
-#     verbose
-#   )
-# }

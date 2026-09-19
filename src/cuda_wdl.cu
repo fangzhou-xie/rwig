@@ -20,14 +20,6 @@ static bool check_interrupt() {
   WDL kernels
 */
 
-// elementwise diag(a) * b: out[i] = a[i] * b[i]
-// launch with ceil(n / blockDim.x) blocks, blockDim.x threads
-__global__ void diagmul(int n, double *out, double *a, double *b) {
-  int i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i < n)
-    out[i] = a[i] * b[i];
-}
-
 // column-wise softmax: out[:,s] = softmax(in[:,s])
 // launch with ncols blocks, BLOCK_SIZE threads, shared mem = BLOCK_SIZE *
 // sizeof(double)
@@ -102,23 +94,6 @@ __global__ void batched_b_div_KTU(int N, int S, int D, double *V, double *b,
   }
 }
 
-// batched row product per doc: b[i, d] = prod_s KTU[i, d*S+s]
-// KTU is N x (S*D) (already powered), b is N x D
-// S is small so a serial loop per (i,d) pair is efficient
-__global__ void batched_row_prod(int N, int S, int D, double *b, double *KTU) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int stride = blockDim.x * gridDim.x;
-  int total = N * D;
-  for (int k = idx; k < total; k += stride) {
-    int i = k % N; // row
-    int d = k / N; // doc
-    double prod = 1.0;
-    for (int s = 0; s < S; s++)
-      prod *= KTU[i + (d * S + s) * N];
-    b[i + d * N] = prod;
-  }
-}
-
 // batched row sum per doc: bbar[i, d] = sum_s X[i, d*S+s]
 // X is N x (S*D), bbar is N x D
 // S is small so a serial loop per (i,d) pair is efficient
@@ -133,37 +108,6 @@ __global__ void batched_row_sum(int N, int S, int D, double *bbar, double *X) {
     for (int s = 0; s < S; s++)
       sum += X[i + (d * S + s) * N];
     bbar[k] = sum;
-  }
-}
-
-// batched outer product: out[i, d*S+s] = bbar[i, d] * w[s, d]
-// bbar is N x D, w is S x D (column-major), out is N x (S*D)
-__global__ void batched_bbar_wT(int N, int S, int D, double *out, double *bbar,
-                                double *w) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int stride = blockDim.x * gridDim.x;
-  int total = N * S * D;
-  for (int k = idx; k < total; k += stride) {
-    int i = k % N;  // row
-    int ds = k / N; // column in stacked matrix
-    int s = ds % S; // topic index
-    int d = ds / S; // doc index
-    out[k] = bbar[i + d * N] * w[s + d * S];
-  }
-}
-
-// batched minus outer product
-__global__ void batched_div_bbar_wT(int N, int S, int D, double *Vbar,
-                                    double *KTU, double *bbar, double *w) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  int stride = blockDim.x * gridDim.x;
-  int total = N * S * D;
-  for (int k = idx; k < total; k += stride) {
-    int i = k % N;  // row
-    int ds = k / N; // column in stacked matrix
-    int s = ds % S; // topic index
-    int d = ds / S; // doc index
-    KTU[k] = Vbar[k] / KTU[k] - bbar[i + d * N] * w[s + d * S];
   }
 }
 
@@ -274,16 +218,6 @@ __global__ void replicate_col(int nrows, int ncols, double *out, double *col) {
   Wrapper functions for WDL kernels
 */
 
-void diagmul(double *out, double *a, double *b, int n, cudaStream_t &stream) {
-  int numBlocks = (n + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  diagmul<<<numBlocks, BLOCK_SIZE, 0, stream>>>(n, out, a, b);
-}
-
-// wrapper for softmax
-void softmax(double *out, double *in, int nrows, int ncols) {
-  softmax<<<ncols, BLOCK_SIZE, BLOCK_SIZE * sizeof(double)>>>(nrows, out, in);
-}
-
 // Jacobian of softmax is diag(a) - a*a^T, applied to every column of g:
 // out[:, j] = a_j % g[:, j] - a_j * (a_j . g[:, j]), a_j = a[:, j % period]
 void update_softmax_jac(double *out, const double *g, const double *a, int n,
@@ -291,23 +225,6 @@ void update_softmax_jac(double *out, const double *g, const double *a, int n,
   size_t sharedMem = BLOCK_SIZE * sizeof(double);
   batched_softmax_jac<<<ncols, BLOCK_SIZE, sharedMem, stream>>>(n, period, out,
                                                                  g, a);
-}
-
-// batched outer product: out[i, d*S+s] = bbar[i,d] * w[s,d]
-// bbar: N x D, w: S x D, out: N x (S*D)
-void nip_bbarwT(double *out, double *bbar, double *w, int N, int S, int D,
-                cudaStream_t &stream) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_bbar_wT<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, out, bbar, w);
-}
-
-void ip_div_bbarwT(double *KTU, double *Vbar, double *bbar, double *w, int N,
-                   int S, int D, cudaStream_t &stream) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_div_bbar_wT<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, Vbar, KTU,
-                                                            bbar, w);
 }
 
 // batched KV: KVB = K * VB
@@ -328,18 +245,14 @@ void update_KTUB(double *KTUB, double *K, double *UB, int N, int S, int D,
 // A: N x S (tiled), KVB: N x (S*D), UB: N x (S*D)
 void update_UB(double *UB, double *A, double *KVB, int N, int S, int D,
                cudaStream_t &stream) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_A_div_KV<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, UB, A, KVB);
+  batched_A_div_KV<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(N, S, D, UB, A, KVB);
 }
 
 // batched b update: bB[i, d] = prod_s KTUB[i, d*S+s] ^ wB[s, d]
 // KTUB is N x (S*D) and left intact (needed for the V update), wB is S x D
 void update_bB(double *bB, double *KTUB, double *wB, int N, int S, int D,
                cudaStream_t &stream) {
-  int total = N * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_row_prod_pow<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, bB, KTUB,
+  batched_row_prod_pow<<<nblocks(N * D), BLOCK_SIZE, 0, stream>>>(N, S, D, bB, KTUB,
                                                              wB);
 }
 
@@ -356,9 +269,7 @@ void update_UBbar_L(double *UBbar, double *bBbar, double *bBhist,
                     double *KTUBhist, int l, double *wB, double *K,
                     double *KTUB, int N, int S, int D, cudaStream_t &stream,
                     cublasHandle_t &handle) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_UBbar_L_tmp<<<numBlocks, BLOCK_SIZE, 0, stream>>>(
+  batched_UBbar_L_tmp<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(
       N, S, D, KTUB, bBbar, wB, bBhist + (size_t)l * N * D,
       KTUBhist + (size_t)l * N * S * D);
   dgemm(UBbar, 1.0, K, false, KTUB, false, N, S * D, N, 0.0, handle);
@@ -368,9 +279,7 @@ void update_UBbar_L(double *UBbar, double *bBbar, double *bBhist,
 void update_VBbar_l(double *VBbar, double *UBbar, double *A, double *KVBhist,
                     int l, double *K, double *KVB, int N, int S, int D,
                     cudaStream_t &stream, cublasHandle_t &handle) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_UBbar_A_div_KV2<<<numBlocks, BLOCK_SIZE, 0, stream>>>(
+  batched_UBbar_A_div_KV2<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(
       N, S, D, KVB, UBbar, A, KVBhist + (size_t)l * N * S * D);
   dgemm(VBbar, -1.0, K, true, KVB, false, N, S * D, N, 0.0, handle);
 }
@@ -383,9 +292,7 @@ void update_bBbar_l(double *bBbar, double *VBbar, double *KTUBhist, int l,
   // step 1: KTUB = VBbar / KTUBhist_l (elementwise)
   nip_div(KTUB, VBbar, KTUBhist + (size_t)l * N * S * D, N * S * D, stream);
   // step 2: bBbar[i,d] = sum_s KTUB[i, d*S+s] (batched row sum)
-  int total = N * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_row_sum<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, bBbar, KTUB);
+  batched_row_sum<<<nblocks(N * D), BLOCK_SIZE, 0, stream>>>(N, S, D, bBbar, KTUB);
 }
 
 // UBbar = K * ((bBbar wB^T - VBbar / KTUB_hist[l]) % VB_hist[l])
@@ -393,9 +300,7 @@ void update_UBbar_l(double *UBbar, double *VBbar, double *bBbar, double *bBhist,
                     double *KTUBhist, int l, double *wB, double *K,
                     double *KTUB, int N, int S, int D, cudaStream_t &stream,
                     cublasHandle_t &handle) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_UBbar_l_tmp<<<numBlocks, BLOCK_SIZE, 0, stream>>>(
+  batched_UBbar_l_tmp<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(
       N, S, D, KTUB, bBbar, wB, VBbar, bBhist + (size_t)l * N * D,
       KTUBhist + (size_t)l * N * S * D);
   dgemm(UBbar, 1.0, K, false, KTUB, false, N, S * D, N, 0.0, handle);
@@ -405,9 +310,7 @@ void update_UBbar_l(double *UBbar, double *VBbar, double *bBbar, double *bBhist,
 // bB: N x D, KTUB: N x (S*D), VB: N x (S*D)
 void update_VB(double *VB, double *bB, double *KTUB, int N, int S, int D,
                cudaStream_t &stream) {
-  int total = N * S * D;
-  int numBlocks = (total + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  batched_b_div_KTU<<<numBlocks, BLOCK_SIZE, 0, stream>>>(N, S, D, VB, bB,
+  batched_b_div_KTU<<<nblocks(N * S * D), BLOCK_SIZE, 0, stream>>>(N, S, D, VB, bB,
                                                           KTUB);
 }
 
@@ -442,9 +345,7 @@ void softmax(double *out, double *in, int nrows, int ncols,
 // broadcast: out (nrows x ncols) = col * ones^T
 void replicate_col(double *out, double *col, int nrows, int ncols,
                    cudaStream_t &stream) {
-  int n = nrows * ncols;
-  int numBlocks = (n + BLOCK_SIZE - 1) / BLOCK_SIZE;
-  replicate_col<<<numBlocks, BLOCK_SIZE, 0, stream>>>(nrows, ncols, out, col);
+  replicate_col<<<nblocks(nrows * ncols), BLOCK_SIZE, 0, stream>>>(nrows, ncols, out, col);
 }
 
 /*

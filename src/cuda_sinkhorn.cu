@@ -1,11 +1,6 @@
 // implementation of the CUDA Sinkhorn interface
 // `cuda_sinkhorn_vanilla`
 
-// #include "check_cuda.hpp" // for checking cuda availability
-
-// #ifdef HAVE_CUBLAS
-// #ifdef HAVE_CUDA_RUNTIME
-
 #include "cuda_kernels.cuh"
 
 #include "cuda_interface.cuh"
@@ -304,5 +299,3 @@ cleanup:
   cublasDestroy(handle);
 }
 
-// #endif
-// #endif
