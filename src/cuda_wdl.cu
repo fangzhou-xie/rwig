@@ -624,7 +624,7 @@ void cuda_wdl(
   cudaStream_t stream;
   auto H2D = cudaMemcpyHostToDevice;
   auto D2H = cudaMemcpyDeviceToHost;
-  auto D2D = cudaMemcpyDeviceToDevice;
+  // auto D2D = cudaMemcpyDeviceToDevice;
 
   /* step 1: create cublas handle, bind a stream */
   cublasCreate(&handle);
