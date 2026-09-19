@@ -27,6 +27,11 @@
   overriding them; the `wdl_control` seed entry is named `seed` (it was
   documented as `rng_seed` but read as `seed`). `verbose` defaults to 0
   when omitted from a partial `sinkhorn_control`/`barycenter_control`.
+- Dropped the dependency on RhpcBLASctl: `rwig` no longer sets the BLAS
+  thread count to 1 for the whole session when attached. The startup message
+  now explains the recommendation and, if RhpcBLASctl is installed (it is
+  now only suggested), reports the current thread count and the call to
+  change it.
 - Dropped the dependency on lubridate: `group_unit` is now passed to
   `cut()` (`?cut.Date`), so it accepts "day", "week", "month", "quarter",
   "year" and multiples such as "2 months". Weeks start on Monday.

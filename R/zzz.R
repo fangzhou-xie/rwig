@@ -13,43 +13,66 @@ inform_startup <- function(msg, ...) {
   rlang::inform(msg, ..., class = "packageStartupMessage")
 }
 
-startup_warning_message <- function() {
+# Advice on the BLAS backend and its thread count. rwig does not change the
+# BLAS thread count itself (that is a session-wide setting owned by the
+# user); it only recommends a single BLAS thread and points to RhpcBLASctl.
+startup_warning_message <- function(
+  blas_ctl = requireNamespace("RhpcBLASctl", quietly = TRUE)
+) {
   warn_rule <- cli::rule(
-    left = cli::style_bold("WARNING:"),
+    left = cli::style_bold("NOTE:"),
     right = cli::format_inline("{.pkg rwig}"),
     col = "cyan",
     line = 2
   )
 
-  warn_blas <- paste0(
-    c(
+  blas <- utils::sessionInfo()$BLAS
+  optimized <- grepl("openblas|mkl|atlas|blis|accelerate|flexiblas", blas,
+                     ignore.case = TRUE)
+  warn_blas <- if (optimized) {
+    paste0(" Your current BLAS backend is: ", blas, " (optimized).")
+  } else {
+    paste(
       " Your current BLAS backend is:",
-      paste0("", utils::sessionInfo()$BLAS, ".", collapse = ""),
+      paste0(blas, "."),
       "For better performance,",
       "it's recommended to use an optimized BLAS library,",
-      "such as Inter MKL or OpenBLAS.",
+      "such as Intel MKL or OpenBLAS.",
       "For example, you can consider",
       "{.href [ropenblas](https://github.com/prdm0/ropenblas)}."
-    ),
-    collapse = " "
-  )
+    )
+  }
 
-  # TODO: add vignette link for user to click directly
-  # TODO: refer to the documentation page instead of help
-  warn_thread <- paste0(
-    c(
-      " Automatically setting BLAS thread to be 1,",
-      "and this is recommended for most users.",
-      "If you want to set up threading for faster processing,",
-      "you can set `n_threads` argument in functions:",
-      "{.href [sinkhorn()](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html)}",
-      "and {.href [barycenter()](https://fangzhou-xie.github.io/rwig/reference/barycenter.html)}.",
+  # rwig runs its own worker threads (`n_threads`) and its BLAS calls are
+  # mostly small, so one BLAS thread is usually fastest and avoids
+  # oversubscribing the cores
+  why_one <- paste(
+    "{.pkg rwig} does its own multi-threading through the `n_threads` argument of",
+    "{.href [sinkhorn()](https://fangzhou-xie.github.io/rwig/reference/sinkhorn.html)}",
+    "and {.href [barycenter()](https://fangzhou-xie.github.io/rwig/reference/barycenter.html)},",
+    "so a single BLAS thread is recommended to avoid oversubscribing the cores."
+  )
+  warn_thread <- if (blas_ctl) {
+    n <- RhpcBLASctl::blas_get_num_procs()
+    paste(
+      sprintf(" Your BLAS is currently set to use %d thread%s.", n, if (n == 1) "" else "s"),
+      why_one,
+      if (n != 1) "You can set it for this session with {.code RhpcBLASctl::blas_set_num_threads(1)}." else "",
       "Please read the",
       "{.href [vignette](https://fangzhou-xie.github.io/rwig/articles/threading.html)}",
       "for advanced usage on threading."
-    ),
-    collapse = " "
-  )
+    )
+  } else {
+    paste(
+      "", why_one,
+      "To control the BLAS thread count, install {.pkg RhpcBLASctl}",
+      "({.code install.packages(\"RhpcBLASctl\")}) and call",
+      "{.code RhpcBLASctl::blas_set_num_threads(1)}.",
+      "Please read the",
+      "{.href [vignette](https://fangzhou-xie.github.io/rwig/articles/threading.html)}",
+      "for advanced usage on threading."
+    )
+  }
   warns <- paste0(
     cli::col_yellow("!"),
     c(
@@ -110,10 +133,7 @@ startup_info_message <- function() {
 }
 
 .onAttach <- function(...) {
-  # warn user about the change in the threads
-  RhpcBLASctl::blas_set_num_threads(1)
-
-  # TODO: add vignette link about the threading (advanced)
+  # advice only: rwig never changes the session's BLAS thread count
   warn_msg <- startup_warning_message()
   inform_startup(warn_msg)
 

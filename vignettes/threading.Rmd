@@ -43,6 +43,28 @@ and sometimes for small problems, it can even be slower
 than serial processing.
 So be sure to benchmark your code and see if threading actually helps.
 
+## BLAS threads
+
+`rwig` calls the BLAS library that R is linked against for its matrix
+products. Some BLAS libraries (OpenBLAS, MKL) run multi-threaded by default.
+Because `rwig` already parallelizes the expensive log-domain kernels through
+`n_threads`, and because most of its BLAS calls are small, letting the BLAS
+spawn its own threads on top usually oversubscribes the cores and slows
+things down. We therefore recommend a single BLAS thread while using `rwig`.
+
+`rwig` does not change this setting for you (it is a session-wide setting that
+also affects every other package). If the optional package `RhpcBLASctl` is
+installed, the startup message reports the current BLAS thread count, and you
+can set it for the session with
+
+```{r, eval = FALSE}
+RhpcBLASctl::blas_set_num_threads(1)
+```
+
+The exception is `wdl()`/`wig()` on the CPU with an optimized BLAS: their cost
+is dominated by large matrix products, so a multi-threaded BLAS can help
+there. Benchmark both settings on your own problem sizes.
+
 ## See Also
 
 See also `vignette("sinkhorn")`, `vignette("barycenter")`.

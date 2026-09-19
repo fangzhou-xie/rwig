@@ -16,13 +16,13 @@ Imports:
     stats, 
     rlang, 
     cli, 
-    RhpcBLASctl, 
     word2vec, 
     tokenizers, 
     stopwords
 Roxygen: list(markdown = TRUE)
 SystemRequirements: autoconf, CUDA (> 13.0, only for Linux, optional)
 Suggests: 
+    RhpcBLASctl,
     knitr,
     rmarkdown,
     tinytest
