@@ -1,6 +1,7 @@
 # Truncated SVD
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -19,6 +20,7 @@ entry (in absolute value) should always be positive, and Bro et
 al. (2008) entails a specific algorithm for resolving the signs.
 
 ``` r
+
 A <- rbind(c(1,3), c(2,-4))
 
 tsvd(A, 1, "auto")

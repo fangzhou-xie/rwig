@@ -21,3 +21,7 @@ Useful links:
 
 **Maintainer**: Fangzhou Xie <fangzhou.xie@rutgers.edu> \[copyright
 holder\]
+
+Authors:
+
+- Fangzhou Xie <fangzhou.xie@rutgers.edu> \[copyright holder\]

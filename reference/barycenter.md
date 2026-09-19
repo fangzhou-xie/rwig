@@ -122,19 +122,8 @@ reg <- .1
 
 # simple barycenter example
 sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
-#> `method` is automatically switched to "log"
-#> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.000, avg speed: 0.000
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.000
-#> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.000
 
 # you can also supply arguments to control the computation
 # for example, including the loss and gradient w.r.t. `A`
 sol <- barycenter(A, C, w, b, barycenter_control = list(reg = reg, with_grad = TRUE))
-#> `method` is automatically switched to "log"
-#> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.000, avg speed: 0.000
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.000
-#> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.000
-#> Backward pass:
 ```

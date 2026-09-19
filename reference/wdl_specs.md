@@ -6,8 +6,8 @@ Control the parameters of WDL and WIG models
 
 ``` r
 wdl_specs(
-  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE,
-    rng_seed = 42),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, seed =
+    42L),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 3),
   barycenter_control = list(reg = 0.1, with_grad = TRUE, use_cuda = TRUE, n_threads = 0,
@@ -18,12 +18,12 @@ wdl_specs(
 
 wig_specs(
   wig_control = list(group_unit = "month", svd_method = "topics", standardize = TRUE),
-  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE,
-    rng_seed = 42),
+  wdl_control = list(num_topics = 4, batch_size = 64, epochs = 2, shuffle = TRUE, seed =
+    42L),
   tokenizer_control = list(stopwords = stopwords::stopwords()),
   word2vec_control = list(type = "cbow", dim = 10, min_count = 1),
-  barycenter_control = list(reg = 0.1, with_grad = TRUE, use_cuda = TRUE, method =
-    "auto", threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
+  barycenter_control = list(reg = 0.1, with_grad = TRUE, use_cuda = TRUE, n_threads = 0,
+    method = "auto", threshold = 0.1, max_iter = 20, zero_tol = 1e-06),
   optimizer_control = list(optimizer = "adamw", lr = 0.005, decay = 0.01, beta1 = 0.9,
     beta2 = 0.999, eps = 1e-08)
 )
@@ -66,7 +66,12 @@ list of the control lists
 
 See
 [`vignette("specs")`](https://fangzhou-xie.github.io/rwig/articles/specs.md)
-for details on the parameters.
+for details on the parameters. Entries left out of a control list take
+the defaults shown in the usage section. In `barycenter_control`,
+`with_grad` is always `TRUE` (the gradients are what WDL trains on) and
+`max_iter` is the fixed number of barycenter iterations per training
+step, so keep it small: the batched training keeps a history of
+`max_iter` iterations for every document in a batch.
 
 ## References
 

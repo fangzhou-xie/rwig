@@ -1,6 +1,7 @@
 # Multi-threading Support
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -12,8 +13,8 @@ both require row-by-row and column-by-column *soft-minimum* operations
 for each iteration of the algorithm, and therefore suffer from slow
 computation time compared to the vanilla/parallel version.
 
-If the dimensions of $M$ and $N$ are large (recall that cost matrix
-**C** is of size $M \times N$), we can use multi-threading to process
+If the dimensions of $`M`$ and $`N`$ are large (recall that cost matrix
+**C** is of size $`M \times N`$), we can use multi-threading to process
 the rows and columns simultaneously.
 
 This can be done by setting `n_threads` to an integer bigger than 0. By
@@ -26,6 +27,32 @@ threading as the default? This is because threading comes with an
 overhead, and sometimes for small problems, it can even be slower than
 serial processing. So be sure to benchmark your code and see if
 threading actually helps.
+
+## BLAS threads
+
+`rwig` calls the BLAS library that R is linked against for its matrix
+products. Some BLAS libraries (OpenBLAS, MKL) run multi-threaded by
+default. Because `rwig` already parallelizes the expensive log-domain
+kernels through `n_threads`, and because most of its BLAS calls are
+small, letting the BLAS spawn its own threads on top usually
+oversubscribes the cores and slows things down. We therefore recommend a
+single BLAS thread while using `rwig`.
+
+`rwig` does not change this setting for you (it is a session-wide
+setting that also affects every other package). If the optional package
+`RhpcBLASctl` is installed, the startup message reports the current BLAS
+thread count, and you can set it for the session with
+
+``` r
+
+RhpcBLASctl::blas_set_num_threads(1)
+```
+
+The exception is
+[`wdl()`](https://fangzhou-xie.github.io/rwig/reference/wdl.md)/[`wig()`](https://fangzhou-xie.github.io/rwig/reference/wig.md)
+on the CPU with an optimized BLAS: their cost is dominated by large
+matrix products, so a multi-threaded BLAS can help there. Benchmark both
+settings on your own problem sizes.
 
 ## See Also
 

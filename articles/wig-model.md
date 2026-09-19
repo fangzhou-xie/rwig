@@ -1,6 +1,7 @@
 # WIG Model
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -10,6 +11,7 @@ docs are associated with timestamps. This was used to automatically
 reconstruct the Economic Policy Uncertain (EPU) index.
 
 ``` r
+
 # create a small dataset
 wigdf <- data.frame(
   ref_date = as.Date(c("2012-01-01", "2012-02-01")),
@@ -39,8 +41,8 @@ wigfit
 #> WDL model topics:
 #> 
 #> Topic 1:
-#> sentenc    </s>   anoth 
-#>   0.796   0.130   0.074
+#>    </s> sentenc   anoth 
+#>    0.52    0.29    0.18
 ```
 
 ## See Also

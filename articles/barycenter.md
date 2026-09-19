@@ -1,14 +1,16 @@
 # Barycenter Algorithms
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
-Suppose we have a matrix **A** of size $M \times S$, the cost matrix
-**C** of size $M \times N$, and we are aiming to compute the barycenter
-vector of size $N$. For example,
+Suppose we have a matrix **A** of size $`M \times S`$, the cost matrix
+**C** of size $`M \times N`$, and we are aiming to compute the
+barycenter vector of size $`N`$. For example,
 
 ``` r
+
 A <- rbind(
   c(.3, .2),
   c(.2, .1),
@@ -27,11 +29,6 @@ w <- c(.4, .6)
 reg <- .1
 
 sol <- barycenter(A, C, w, barycenter_control = list(reg = reg))
-#> `method` is automatically switched to "log"
-#> Forward pass:
-#> iter: 1, err: 0.3207, last speed: 0.000, avg speed: 0.000
-#> iter: 11, err: 0.0020, last speed: 0.000, avg speed: 0.000
-#> iter: 21, err: 0.0000, last speed: 0.000, avg speed: 0.000
 ```
 
 ## Difference from `sinkhorn()`
@@ -56,6 +53,7 @@ but you will also need to supply an external vector for `b_ext` to
 compute the quadratic loss between the output barycenter and `b_ext`.
 
 ``` r
+
 b <- c(.2, .2, .2, .2, .2)
 sol <- barycenter(A, C, w, b_ext = b, barycenter_control = list(reg = reg, with_grad = TRUE))
 ```

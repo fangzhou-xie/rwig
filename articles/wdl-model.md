@@ -1,6 +1,7 @@
 # WDL Model
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -11,6 +12,7 @@ of topic models. Here, we consider the Wasserstein Dicionary Learning
 (WDL) model.
 
 ``` r
+
 # a very simple example
 sentences <- c("this is a sentence", "this is another one", "yet another sentence")
 wdl_fit <- wdl(sentences, specs = wdl_specs(
@@ -36,12 +38,12 @@ wdl_fit
 #> WDL model topics:
 #> 
 #> Topic 1:
-#>     one   anoth    </s> sentenc     yet 
-#>   0.861   0.064   0.040   0.018   0.018 
+#>     yet   anoth     one sentenc    </s> 
+#>   0.346   0.281   0.173   0.112   0.088 
 #> 
 #> Topic 2:
-#>   anoth    </s>     one     yet sentenc 
-#>   0.472   0.272   0.121   0.103   0.032
+#>   anoth    </s>     one sentenc     yet 
+#>    0.32    0.21    0.19    0.16    0.12
 ```
 
 We can see from the topics that they are vectors of the tokens (words)
@@ -49,23 +51,25 @@ with associated probabilities. If you want to access the topics, you can
 do this:
 
 ``` r
+
 wdl_fit$topics
-#>             topic1     topic2
-#> one     0.86095053 0.12081874
-#> yet     0.01765965 0.10340129
-#> anoth   0.06374897 0.47177225
-#> sentenc 0.01766044 0.03191506
-#> </s>    0.03998041 0.27209266
+#>             topic1    topic2
+#> one     0.17323975 0.1902754
+#> yet     0.34558828 0.1191494
+#> anoth   0.28110783 0.3235259
+#> sentenc 0.11233815 0.1616852
+#> </s>    0.08772599 0.2053640
 ```
 
 Alternatively, you can also obtain the weights of the topics used to
 re-construct the input data:
 
 ``` r
+
 wdl_fit$weights
-#>              [,1]      [,2]      [,3]
-#> topic1 0.06483132 0.4800256 0.2159625
-#> topic2 0.93516868 0.5199744 0.7840375
+#>             [,1]     [,2]      [,3]
+#> topic1 0.8751024 0.604339 0.6874352
+#> topic2 0.1248976 0.395661 0.3125648
 ```
 
 ## See Also

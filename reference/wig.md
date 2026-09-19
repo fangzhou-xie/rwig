@@ -26,7 +26,12 @@ summary(object, topic = 1, token_per_topic = 10, ...)
 
 - date_col:
 
-  name of the column for dates/datetimes
+  name of the column for dates (`Date`) or datetimes (`POSIXct`);
+  documents are grouped by the `group_unit` of `wig_control` (see
+  [`wig_specs()`](https://fangzhou-xie.github.io/rwig/reference/wdl_specs.md)),
+  any `breaks` accepted by
+  [`cut.Date()`](https://rdrr.io/r/base/cut.POSIXt.html) such as "day",
+  "week", "month", "quarter", "year" or "2 months"
 
 - docs_col:
 

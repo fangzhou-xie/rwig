@@ -1,6 +1,7 @@
 # WDL and WIG Model Specs
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -26,6 +27,7 @@ This is the options only needed for
 By default, it is
 
 ``` r
+
 wig_control = list(
   group_unit = "month",
   svd_method = "docs",
@@ -34,12 +36,12 @@ wig_control = list(
 ```
 
 1.  `group_unit` dictates at which level of time to group the documents,
-    and it will be passed to
-    [`lubridate::floor_date()`](https://lubridate.tidyverse.org/reference/round_date.html)
-    as the `unit` argument. The default option is “month” to obtain
-    monthly time series index, and other options can be specified
-    following the `unit` argument in
-    [`lubridate::floor_date()`](https://lubridate.tidyverse.org/reference/round_date.html).
+    and it is passed to [`cut()`](https://rdrr.io/r/base/cut.html) as
+    the `breaks` argument (see
+    [`?cut.Date`](https://rdrr.io/r/base/cut.POSIXt.html)). The default
+    option is “month” to obtain a monthly time series index; other
+    options include “day”, “week” (starting on Monday), “quarter”,
+    “year”, or multiples such as “2 months”.
 2.  `svd_method` can be either “docs” or “topics”. The “doc” method
     means the Truncated SVD will be applied on the reconstructed
     documents to get the index directly; whereas “topics” means TSVD
@@ -74,6 +76,7 @@ Arguments for
 but with the following default parameters:
 
 ``` r
+
 type = "cbow"
 dim = 10
 min_count = 1
@@ -86,6 +89,7 @@ Identical to `barycenter_control` in
 function, but with default
 
 ``` r
+
 with_grad = TRUE
 ```
 
@@ -94,6 +98,7 @@ with_grad = TRUE
 Parameters to control the optimizer (SGD, Adam, AdamW).
 
 ``` r
+
 optimizer_control = list(
   optimizer = "adamw",
   lr = .005,

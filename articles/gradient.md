@@ -1,6 +1,7 @@
 # Computation of the Gradients
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 

@@ -1,6 +1,7 @@
 # CUDA Acceleration
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
@@ -15,6 +16,7 @@ To see if the `rwig` package on your machine is built with CUDA, you can
 use the following function to check
 
 ``` r
+
 check_cuda()
 #> [1] FALSE
 ```

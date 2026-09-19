@@ -3,12 +3,14 @@
 ## Get Started with Sinkhorn Algorithm
 
 ``` r
+
 library(rwig) |> suppressPackageStartupMessages()
 ```
 
 Suppose we have two probability vectors **a** and **b**, for example,
 
 ``` r
+
 a <- c(.3, .4, .1, .1, .1)
 b <- c(.4, .5, .1)
 ```
@@ -16,6 +18,7 @@ b <- c(.4, .5, .1)
 and the cost matrix **C** between them
 
 ``` r
+
 C <- rbind(
   c(.1, .2, .3),
   c(.2, .3, .4),
@@ -32,6 +35,7 @@ optimal transport plan by the
 algorithm:
 
 ``` r
+
 sinkhorn(
   a,
   b,
@@ -93,6 +97,7 @@ as it requires column-by-column and row-by-row soft-minimums.
 For example, we can have
 
 ``` r
+
 sol_vanilla <- sinkhorn(
   a,
   b,
@@ -119,6 +124,7 @@ To speed up the log algorithm, I used multi-threading to speed up the
 computation.
 
 ``` r
+
 sol_thread <- sinkhorn(
   a,
   b,
@@ -143,6 +149,7 @@ more likely to use “log” method. If you know which algorithm to use, you
 should directly set `method` argument instead of doing this.
 
 ``` r
+
 sol_auto <- sinkhorn(
   a,
   b,
@@ -165,6 +172,7 @@ algorithm w.r.t. to the source density **a**. The default for gradient
 calculation is `FALSE`, but you can turn it on by the following:
 
 ``` r
+
 sol_grad <- sinkhorn(
   a,
   b,
@@ -190,6 +198,7 @@ This is the default `sinkhorn_control` argument, and we have discussed
 `reg`, `with_grad`, `threshold` already.
 
 ``` r
+
 sinkhorn_control = list(
   reg = .1,
   with_grad = FALSE,
@@ -211,6 +220,7 @@ not verbose), and the algorithm will update info for every `verbose`
 steps. For example,
 
 ``` r
+
 sol_verbose <- sinkhorn(
   a,
   b,

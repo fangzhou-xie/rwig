@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Multi-threading Support • rwig</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Multi-threading Support">
 <meta name="description" content="Advanced setting to set up the threads for faster processing in Sinkhorn, Barycenter, WDL, and WIG models.
@@ -24,7 +24,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rwig</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,6 +104,29 @@ overhead, and sometimes for small problems, it can even be slower than
 serial processing. So be sure to benchmark your code and see if
 threading actually helps.</p>
 <div class="section level2">
+<h2 id="blas-threads">BLAS threads<a class="anchor" aria-label="anchor" href="#blas-threads"></a>
+</h2>
+<p><code>rwig</code> calls the BLAS library that R is linked against for
+its matrix products. Some BLAS libraries (OpenBLAS, MKL) run
+multi-threaded by default. Because <code>rwig</code> already
+parallelizes the expensive log-domain kernels through
+<code>n_threads</code>, and because most of its BLAS calls are small,
+letting the BLAS spawn its own threads on top usually oversubscribes the
+cores and slows things down. We therefore recommend a single BLAS thread
+while using <code>rwig</code>.</p>
+<p><code>rwig</code> does not change this setting for you (it is a
+session-wide setting that also affects every other package). If the
+optional package <code>RhpcBLASctl</code> is installed, the startup
+message reports the current BLAS thread count, and you can set it for
+the session with</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">RhpcBLASctl</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RhpcBLASctl/man/RhpcBLASctl-package.html" class="external-link">blas_set_num_threads</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p>The exception is <code><a href="../reference/wdl.html">wdl()</a></code>/<code><a href="../reference/wig.html">wig()</a></code> on the CPU
+with an optimized BLAS: their cost is dominated by large matrix
+products, so a multi-threaded BLAS can help there. Benchmark both
+settings on your own problem sizes.</p>
+</div>
+<div class="section level2">
 <h2 id="see-also">See Also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <p>See also <code><a href="../articles/sinkhorn.html">vignette("sinkhorn")</a></code>,
@@ -129,7 +152,7 @@ Transport Algorithms (No. arXiv:2504.08722). <em>arXiv</em>. <a href="https://d
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
