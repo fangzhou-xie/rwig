@@ -1,6 +1,7 @@
 // implementation of the WDL class (CPU)
 
 #include <cmath>
+#include <stdexcept>
 
 #include "wdl_impl.hpp"        // wdl class
 #include "barycenter_impl.hpp" // barycenter class
@@ -20,7 +21,7 @@
 ///////////////////////////////////////////////////////////////////
 
 void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
-  Rcpp::checkUserInterrupt();
+  rr::check_interrupt();
 
   // number of docs in this batch
   const int D = (batch_id == (int)(_M / _B)) ? (int)(_M % _B) : _B;
@@ -41,7 +42,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
   // ---- FORWARD: fixed _maxiter iterations ----
   _VB.fill(1.0);
   for (int l = 0; l < L; ++l) {
-    Rcpp::checkUserInterrupt();
+    rr::check_interrupt();
 
     // KVB = K * VB  (one big GEMM: N x N * N x SD)
     _Kmul(false, _VB, _KVB, SD);
@@ -85,7 +86,7 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
   std::fill(_wBbar.data(), _wBbar.data() + SD, 0.0);
 
   for (int l = L; l > 0; --l) {
-    Rcpp::checkUserInterrupt();
+    rr::check_interrupt();
 
     const double *KTUBl = KTUB_h(l);
     const double *bBl = bB_h(l);
@@ -210,9 +211,9 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
 void WassersteinDictionaryLearning::_compute_serial() {
   // logging at the beginning
   if (_verbose) {
-    Rcpp::message(Rf_mkString("Running in serial mode..."));
+    rr::message(("Running in serial mode..."));
 
-    Rcpp::message(Rf_mkString(
+    rr::message((
         vformat(
             "Initializing WDL model with %i vocabs, %i docs, and %i topics...",
             (int)_N, (int)_M, (int)_S)
@@ -272,7 +273,7 @@ void WassersteinDictionaryLearning::_compute_serial() {
 
   // logging before the main loop
   if (_verbose) {
-    Rcpp::message(Rf_mkString(
+    rr::message((
         vformat("Training WDL model with %i epochs, %i batches", _E, batches)
             .c_str()));
   }
@@ -280,10 +281,10 @@ void WassersteinDictionaryLearning::_compute_serial() {
   for (int e = 0; e < _E; ++e) { // START: one epoch
 
     for (int batch_id = 0; batch_id < batches; ++batch_id) { // START: one batch
-      Rcpp::checkUserInterrupt();
+      rr::check_interrupt();
 
       if (_verbose) {
-        Rcpp::message(Rf_mkString(vformat("Epoch %i of %i, batch %i of %i:",
+        rr::message((vformat("Epoch %i of %i, batch %i of %i:",
                                           e + 1, _E, batch_id + 1, batches)
                                       .c_str()));
       }
@@ -302,17 +303,15 @@ void WassersteinDictionaryLearning::_compute_serial() {
       _timer.toc();
       // logging for each batch
       if (_verbose) {
-        Rcpp::message(
-            Rf_mkString(vformat("avg speed: %.2f sec, last speed: %.2f sec",
-                                _timer.speed_avg(), _timer.speed_last())
-                            .c_str()));
+        rr::message(vformat("avg speed: %.2f sec, last speed: %.2f sec",
+                            _timer.speed_avg(), _timer.speed_last()));
       }
     } // END: one batch
   } // END: one epoch
 
   // after done with the training, now move on to the inference
   if (_verbose) {
-    Rcpp::message(Rf_mkString("Inference on the dataset"));
+    rr::message(("Inference on the dataset"));
   }
 
   // init a barycenter class for inference (no gradients)
@@ -335,7 +334,7 @@ void WassersteinDictionaryLearning::_compute_serial() {
     } else if (_sinkmode == 2) {
       bc.compute_log(_n_threads);
     } else {
-      Rcpp::stop("barycenter method not supported");
+      throw std::runtime_error("barycenter method not supported");
     }
 
     std::copy(bc.b.data(), bc.b.data() + _N, Yhat.col(m));

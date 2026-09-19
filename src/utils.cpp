@@ -2,20 +2,20 @@
 // definition file for the utility functions
 
 #include <cmath>
+#include <stdexcept>
 #include <string>        // std::string
 #include <unordered_map> // std::unordered_map
 #include <vector>        // std::vector
 
-#include "rcpp_glue.hpp"
+#include "r_glue.hpp"
 
 /////////////////////////////////////////////////////////////////////
 // to be called in utils.R
 /////////////////////////////////////////////////////////////////////
 
 // Euclidean distance matrix between the rows of A (embeddings)
-// [[Rcpp::export]]
-Rcpp::NumericMatrix euclidean_cpp(const SEXP &AR) {
-  la::Mat A = la::mat_from_R(AR);
+static SEXP euclidean_impl(SEXP AR) {
+  la::Mat A = rr::mat_from_R(AR);
   const la::idx n = A.nrow(), d = A.ncol();
 
   // transpose once so that each embedding is contiguous (d x n)
@@ -38,34 +38,44 @@ Rcpp::NumericMatrix euclidean_cpp(const SEXP &AR) {
       euc(j, i) = c;
     }
   }
-  return la::to_R(euc);
+  return rr::to_R(euc);
 }
 
-// [[Rcpp::export]]
-Rcpp::NumericMatrix doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict) {
+extern "C" SEXP rwig_euclidean_cpp(SEXP AR) {
+  return rr::call_guard([&]() -> SEXP { return euclidean_impl(AR); });
+}
+
+static SEXP doc2dist_impl(SEXP docs, SEXP dict) {
   // docs: list of character vectors
   // dict: character vector of the dictionary
+  if (TYPEOF(docs) != VECSXP) throw std::runtime_error("docs must be a list");
+  if (TYPEOF(dict) != STRSXP) throw std::runtime_error("dict must be a character vector");
+  const int n_dict = (int)Rf_xlength(dict);
+  const int n_docs = (int)Rf_xlength(docs);
 
   // token -> index lookup (first occurrence wins, as std::find did)
   std::unordered_map<std::string, int> lookup;
-  lookup.reserve((std::size_t)dict.size());
-  for (int k = 0; k < dict.size(); ++k) {
-    lookup.emplace(std::string(dict[k]), k);
+  lookup.reserve((std::size_t)n_dict);
+  for (int k = 0; k < n_dict; ++k) {
+    lookup.emplace(std::string(CHAR(STRING_ELT(dict, k))), k);
   }
   // tokens missing from the dictionary are counted under the last entry
-  const int last = dict.size() - 1;
+  const int last = n_dict - 1;
 
   // create output matrix
-  la::Mat docmat((la::idx)dict.size(), (la::idx)docs.size());
+  la::Mat docmat((la::idx)n_dict, (la::idx)n_docs);
 
   // loop the documents
-  for (int j = 0; j < docs.size(); ++j) {
-    std::vector<std::string> docs_j = docs[j];
+  for (int j = 0; j < n_docs; ++j) {
+    SEXP doc = VECTOR_ELT(docs, j);
+    if (TYPEOF(doc) != STRSXP)
+      throw std::runtime_error("each document must be a character vector");
     double *col = docmat.col(j);
 
     // loop the tokens inside doc
-    for (const std::string &s : docs_j) {
-      auto it = lookup.find(s);
+    const R_xlen_t n_tok = Rf_xlength(doc);
+    for (R_xlen_t k = 0; k < n_tok; ++k) {
+      auto it = lookup.find(std::string(CHAR(STRING_ELT(doc, k))));
       const int idx = (it == lookup.end()) ? last : it->second;
       col[idx] += 1;
     } // END of loop tokens
@@ -76,5 +86,9 @@ Rcpp::NumericMatrix doc2dist_cpp(Rcpp::List docs, Rcpp::CharacterVector dict) {
     for (la::idx i = 0; i < docmat.nrow(); ++i) col[i] /= total;
   } // END of loop documents
 
-  return la::to_R(docmat);
+  return rr::to_R(docmat);
+}
+
+extern "C" SEXP rwig_doc2dist_cpp(SEXP docs, SEXP dict) {
+  return rr::call_guard([&]() -> SEXP { return doc2dist_impl(docs, dict); });
 }

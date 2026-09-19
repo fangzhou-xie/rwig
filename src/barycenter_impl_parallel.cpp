@@ -11,12 +11,12 @@
 
 void Barycenter::_log_iter(const char *stage, int it) {
   if (stage[0] == 'f') {
-    Rcpp::message(Rf_mkString(
+    rr::message((
         vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f", it,
                 this->err, _timer.speed_last(), _timer.speed_avg())
             .c_str()));
   } else {
-    Rcpp::message(Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
+    rr::message((vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
                                       it, _timer.speed_last(), _timer.speed_avg())
                                   .c_str()));
   }
@@ -96,11 +96,11 @@ void Barycenter::_fwd_parallel() {
 
   // logging for forward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Forward pass:"));
+    rr::message(("Forward pass:"));
   }
 
   while ((this->iter < _maxiter) && (this->err >= _zerotol)) {
-    Rcpp::checkUserInterrupt();
+    rr::check_interrupt();
     this->iter++;
     if (_verbose != 0) {
       _timer.tic();
@@ -164,7 +164,7 @@ void Barycenter::_bwd_parallel() {
 
   // logging for backward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Backward pass:"));
+    rr::message(("Backward pass:"));
   }
 
   // start the backward loop

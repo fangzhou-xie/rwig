@@ -85,7 +85,6 @@
 #' \code{vignette("gradient")},
 #' \code{vignette("threading")}
 #'
-#' @importFrom Rcpp evalCpp
 #' @export
 barycenter <- function(
   A,

@@ -46,7 +46,6 @@
 #' @seealso
 #' \code{vignette("wdl-model")}
 #'
-#' @importFrom Rcpp evalCpp
 #' @export
 wdl <- function(docs, ...) {
   if (!is.character(docs)) {
@@ -56,7 +55,6 @@ wdl <- function(docs, ...) {
 }
 
 #' @rdname wdl
-#' @importFrom Rcpp evalCpp
 #' @export
 wdl.character <- function(docs, specs = wdl_specs(), verbose = TRUE, ...) {
   # unpack the arguments for the model

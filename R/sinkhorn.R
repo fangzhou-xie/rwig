@@ -80,7 +80,6 @@
 #' \code{vignette("gradient")},
 #' \code{vignette("threading")}
 #'
-#' @importFrom Rcpp evalCpp
 #' @export
 sinkhorn <- function(
   a,

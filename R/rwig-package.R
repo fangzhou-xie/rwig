@@ -1,6 +1,5 @@
 #' @keywords internal
-#' @importFrom Rcpp evalCpp
-#' @useDynLib rwig, .registration = TRUE
+#' @useDynLib rwig, .registration = TRUE, .fixes = "C_"
 "_PACKAGE"
 
 ## usethis namespace: start

@@ -1,35 +1,28 @@
 
-// this is the file defining the functions exporting to R side
-// sinkhorn algos
+// .Call entry points for the Sinkhorn algorithms
 
-#include "rcpp_glue.hpp"
 #include "sinkhorn_impl.hpp"
 
-static Rcpp::List sinkhorn_result(const Sinkhorn &s, bool withgrad,
-                                  const char *uname, const char *vname) {
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = la::to_R(s.P), Rcpp::Named("grad_a") = la::to_R(s.grad_a),
-        Rcpp::Named(uname) = la::to_R(s.u), Rcpp::Named(vname) = la::to_R(s.v),
-        Rcpp::Named("loss") = s.loss, Rcpp::Named("iter") = s.iter,
-        Rcpp::Named("err") = s.err,
-        Rcpp::Named("return_status") = s.return_code);
-  } else {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = la::to_R(s.P), Rcpp::Named(uname) = la::to_R(s.u),
-        Rcpp::Named(vname) = la::to_R(s.v), Rcpp::Named("loss") = s.loss,
-        Rcpp::Named("iter") = s.iter, Rcpp::Named("err") = s.err,
-        Rcpp::Named("return_status") = s.return_code);
-  }
+static SEXP sinkhorn_result(const Sinkhorn &s, bool withgrad, const char *uname,
+                            const char *vname) {
+  rr::ListBuilder out;
+  out.add("P", rr::to_R(s.P));
+  if (withgrad) out.add("grad_a", rr::to_R(s.grad_a));
+  out.add(uname, rr::to_R(s.u))
+      .add(vname, rr::to_R(s.v))
+      .add("loss", s.loss)
+      .add("iter", s.iter)
+      .add("err", s.err)
+      .add("return_status", s.return_code);
+  return out.build();
 }
 
-Rcpp::List sinkhorn_vanilla_cpu(const SEXP &a, const SEXP &b, const SEXP &C,
-                                double reg, bool withgrad = false,
-                                int maxiter = 1000, double zerotol = 1e-6,
-                                int verbose = 0) {
-  la::Vec a_ = la::vec_from_R(a);
-  la::Vec b_ = la::vec_from_R(b);
-  la::Mat C_ = la::mat_from_R(C);
+static SEXP sinkhorn_vanilla_cpu(SEXP a, SEXP b, SEXP C, double reg,
+                                 bool withgrad, int maxiter, double zerotol,
+                                 int verbose) {
+  la::Vec a_ = rr::vec_from_R(a);
+  la::Vec b_ = rr::vec_from_R(b);
+  la::Mat C_ = rr::mat_from_R(C);
 
   // init the class and start the computation
   Sinkhorn s(withgrad, maxiter, zerotol, verbose);
@@ -43,42 +36,28 @@ Rcpp::List sinkhorn_vanilla_cpu(const SEXP &a, const SEXP &b, const SEXP &C,
 
 #include "cuda_interface.cuh"
 
-Rcpp::List sinkhorn_vanilla_cuda(const SEXP &a, const SEXP &b, const SEXP &C,
-                                 double reg, bool withgrad = false,
-                                 int maxiter = 1000, double zerotol = 1e-6,
-                                 int verbose = 0) {
+static SEXP sinkhorn_vanilla_cuda(SEXP a, SEXP b, SEXP C, double reg,
+                                  bool withgrad, int maxiter, double zerotol,
+                                  int verbose) {
+  rr::Protector p;
+  a = rr::as_real(a, p);
+  b = rr::as_real(b, p);
+  C = rr::as_real(C, p);
+  const int m = Rf_nrows(C);
+  const int n = Rf_ncols(C);
 
-  double *a_ptr = REAL(a);
-  double *b_ptr = REAL(b);
-  double *C_ptr = REAL(C);
-  int m = Rf_nrows(C);
-  int n = Rf_ncols(C);
-
-  SEXP u_ = PROTECT(Rf_allocVector(REALSXP, m));
-  SEXP v_ = PROTECT(Rf_allocVector(REALSXP, n));
-  SEXP P_ = PROTECT(Rf_allocVector(REALSXP, m * n));
-  SEXP grad_a_ = PROTECT(Rf_allocVector(REALSXP, m));
-
-  double *u_ptr = REAL(u_);
-  double *v_ptr = REAL(v_);
-  double *P_ptr = REAL(P_);
-  double *grad_a_ptr = REAL(grad_a_);
+  SEXP u_ = rr::alloc_vector(m, p);
+  SEXP v_ = rr::alloc_vector(n, p);
+  SEXP P_ = rr::alloc_matrix(m, n, p);
+  SEXP grad_a_ = rr::alloc_vector(m, p);
 
   double loss = 0.;
   int iter = 0;
   double err = 0.;
 
-  cuda_sinkhorn_vanilla(P_ptr, grad_a_ptr, u_ptr, v_ptr, &loss, &iter, &err,
-                        a_ptr, b_ptr, C_ptr, m, n, reg, withgrad, maxiter,
-                        zerotol);
-
-  // Set matrix dimensions for P
-  SEXP dims = PROTECT(Rf_allocVector(INTSXP, 2));
-  INTEGER(dims)[0] = m;
-  INTEGER(dims)[1] = n;
-  Rf_setAttrib(P_, R_DimSymbol, dims);
-
-  UNPROTECT(5);
+  cuda_sinkhorn_vanilla(REAL(P_), REAL(grad_a_), REAL(u_), REAL(v_), &loss,
+                        &iter, &err, REAL(a), REAL(b), REAL(C), m, n, reg,
+                        withgrad, maxiter, zerotol);
 
   int return_code;
   if (err <= zerotol) {
@@ -89,18 +68,13 @@ Rcpp::List sinkhorn_vanilla_cuda(const SEXP &a, const SEXP &b, const SEXP &C,
     return_code = 2;
   }
 
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = P_, Rcpp::Named("grad_a") = grad_a_,
-        Rcpp::Named("u") = u_, Rcpp::Named("v") = v_,
-        Rcpp::Named("loss") = loss, Rcpp::Named("iter") = iter,
-        Rcpp::Named("err") = err, Rcpp::Named("return_status") = return_code);
-  } else {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = P_, Rcpp::Named("u") = u_, Rcpp::Named("v") = v_,
-        Rcpp::Named("loss") = loss, Rcpp::Named("iter") = iter,
-        Rcpp::Named("err") = err, Rcpp::Named("return_status") = return_code);
-  }
+  rr::ListBuilder out;
+  out.add("P", P_);
+  if (withgrad) out.add("grad_a", grad_a_);
+  out.add("u", u_).add("v", v_).add("loss", loss).add("iter", iter).add(
+      "err", err);
+  out.add("return_status", return_code);
+  return out.build();
 }
 
 #endif
@@ -109,42 +83,44 @@ Rcpp::List sinkhorn_vanilla_cuda(const SEXP &a, const SEXP &b, const SEXP &C,
 Interfaces for the R side
 */
 
-// [[Rcpp::export]]
-Rcpp::List sinkhorn_vanilla_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
-                                double reg, bool withgrad = false,
-                                bool usecuda = true, int maxiter = 1000,
-                                double zerotol = 1e-6, int verbose = 0) {
-  // NOTE: currently only vanilla algo supports CUDA
-
-  Rcpp::List res;
-
+extern "C" SEXP rwig_sinkhorn_vanilla_cpp(SEXP a, SEXP b, SEXP C, SEXP reg,
+                                          SEXP withgrad, SEXP usecuda,
+                                          SEXP maxiter, SEXP zerotol,
+                                          SEXP verbose) {
+  return rr::call_guard([&]() -> SEXP {
+    // NOTE: currently only vanilla algo supports CUDA
+    const double reg_ = rr::as_double(reg);
+    const bool withgrad_ = rr::as_bool(withgrad);
+    const int maxiter_ = rr::as_int(maxiter);
+    const double zerotol_ = rr::as_double(zerotol);
+    const int verbose_ = rr::as_int(verbose);
 #if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
-  if (usecuda) {
-    res = sinkhorn_vanilla_cuda(a, b, C, reg, withgrad, maxiter, zerotol,
-                                verbose);
-  } else {
-    res =
-        sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
-  }
+    if (rr::as_bool(usecuda)) {
+      return sinkhorn_vanilla_cuda(a, b, C, reg_, withgrad_, maxiter_, zerotol_,
+                                   verbose_);
+    }
 #else
-  res = sinkhorn_vanilla_cpu(a, b, C, reg, withgrad, maxiter, zerotol, verbose);
+    (void)usecuda;
 #endif
-
-  return res;
+    return sinkhorn_vanilla_cpu(a, b, C, reg_, withgrad_, maxiter_, zerotol_,
+                                verbose_);
+  });
 }
 
-// [[Rcpp::export]]
-Rcpp::List sinkhorn_log_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
-                            double reg, bool withgrad = false,
-                            const int &n_threads = 0, int maxiter = 1000,
-                            double zerotol = 1e-6, int verbose = 0) {
-  la::Vec a_ = la::vec_from_R(a);
-  la::Vec b_ = la::vec_from_R(b);
-  la::Mat C_ = la::mat_from_R(C);
+extern "C" SEXP rwig_sinkhorn_log_cpp(SEXP a, SEXP b, SEXP C, SEXP reg,
+                                      SEXP withgrad, SEXP n_threads,
+                                      SEXP maxiter, SEXP zerotol, SEXP verbose) {
+  return rr::call_guard([&]() -> SEXP {
+    la::Vec a_ = rr::vec_from_R(a);
+    la::Vec b_ = rr::vec_from_R(b);
+    la::Mat C_ = rr::mat_from_R(C);
+    const bool withgrad_ = rr::as_bool(withgrad);
 
-  // init the class and start the computation
-  Sinkhorn s(withgrad, maxiter, zerotol, verbose);
-  s.compute_log(a_, b_, C_, reg, n_threads);
+    // init the class and start the computation
+    Sinkhorn s(withgrad_, rr::as_int(maxiter), rr::as_double(zerotol),
+               rr::as_int(verbose));
+    s.compute_log(a_, b_, C_, rr::as_double(reg), rr::as_int(n_threads));
 
-  return sinkhorn_result(s, withgrad, "f", "g");
+    return sinkhorn_result(s, withgrad_, "f", "g");
+  });
 }

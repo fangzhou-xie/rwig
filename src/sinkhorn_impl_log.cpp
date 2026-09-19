@@ -131,14 +131,14 @@ void Sinkhorn::_fwd_log(ThreadPool &pool) {
 
   // logging for forward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Forward pass:"));
+    rr::message(("Forward pass:"));
   }
 
   // update Rminrow
   _minrow(pool, _u.data(), _v.data());
 
   while ((this->iter < _maxiter) && (this->err >= _zerotol)) {
-    Rcpp::checkUserInterrupt();
+    rr::check_interrupt();
     this->iter++;
     if (_verbose != 0) {
       _timer.tic();
@@ -211,7 +211,7 @@ void Sinkhorn::_bwd_log(ThreadPool &pool) {
 
   // logging for backward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Backward pass:"));
+    rr::message(("Backward pass:"));
   }
 
   for (int l = this->iter; l > 0; --l) {

@@ -2,13 +2,14 @@
 // implement the tsvd algorithm in c++ (thin SVD via LAPACK dgesdd)
 
 #include <cmath>
+#include <stdexcept>
 
-#include "rcpp_glue.hpp"
+#include "r_glue.hpp"
+#include "vformat.hpp"
 
 static inline double sgn(double x) { return (x > 0) - (x < 0); }
 
-// [[Rcpp::export]]
-Rcpp::NumericMatrix tsvd_cpp(const SEXP &MR, const int k, const int flip_sign) {
+static SEXP tsvd_impl(SEXP MR, const int k, const int flip_sign) {
   // flip_sign: how to determine the sign of the vectors
   // flip_sign = 0, auto
   // flip_sign = 1, sklearn
@@ -25,7 +26,7 @@ Rcpp::NumericMatrix tsvd_cpp(const SEXP &MR, const int k, const int flip_sign) {
   // https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/decomposition/_truncated_svd.py#L133
   // https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/utils/extmath.py#L433
 
-  la::Mat M = la::mat_from_R(MR);
+  la::Mat M = rr::mat_from_R(MR);
   const int m = (int)M.nrow(), n = (int)M.ncol();
 
   // thin SVD: M = U diag(s) Vt
@@ -33,7 +34,8 @@ Rcpp::NumericMatrix tsvd_cpp(const SEXP &MR, const int k, const int flip_sign) {
   la::Vec s;
   const int info = la::gesdd_thin(M, U, s, Vt);
   if (info != 0) {
-    Rcpp::stop("SVD failed to converge (LAPACK dgesdd info = %d)", info);
+    throw std::runtime_error(
+        vformat("SVD failed to converge (LAPACK dgesdd info = %d)", info));
   }
 
   // clamp k to available singular values
@@ -109,5 +111,11 @@ Rcpp::NumericMatrix tsvd_cpp(const SEXP &MR, const int k, const int flip_sign) {
   } else {
     fill_Msvd();
   }
-  return la::to_R(Msvd);
+  return rr::to_R(Msvd);
+}
+
+extern "C" SEXP rwig_tsvd_cpp(SEXP MR, SEXP k, SEXP flip_sign) {
+  return rr::call_guard([&]() -> SEXP {
+    return tsvd_impl(MR, rr::as_int(k), rr::as_int(flip_sign));
+  });
 }

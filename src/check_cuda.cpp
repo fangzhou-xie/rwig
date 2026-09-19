@@ -1,12 +1,11 @@
-// check cuda availability and versions
+// check cuda availability
 
-#include <Rcpp.h>
+#include "r_glue.hpp"
 
-// [[Rcpp::export]]
-bool cuda_available_cpp() {
+extern "C" SEXP rwig_cuda_available_cpp(void) {
 #if defined(HAVE_CUBLAS) && defined(HAVE_CUDA_RUNTIME)
-  return true;
+  return Rf_ScalarLogical(TRUE);
 #else
-  return false;
+  return Rf_ScalarLogical(FALSE);
 #endif
 }

@@ -49,11 +49,14 @@ case "${host_os}" in
 					elif "$cudapath/bin/nvcc" -arch=native --version >/dev/null 2>&1; then
 						CUDA_ARCH="-arch=native"
 					fi
+					# object list: every .cpp and .cu under src/ (Makevars is
+					# only generated with CUDA rules, so it must list the .cu too)
+					OBJ_LIST=`cd src && ls *.cpp *.cu | sed -e 's/\.cpp$/.o/' -e 's/\.cu$/.o/' | tr '\n' ' '`
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
 NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 ${CUDA_ARCH} -I../inst/include ${R_INCL} -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
-OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_optimizer.o cuda_wdl.o barycenter.o barycenter_impl_log.o barycenter_impl_parallel.o check_cuda.o RcppExports.o sinkhorn.o sinkhorn_impl_log.o sinkhorn_impl_vanilla.o tsvd.o utils.o wdl.o wdl_impl.o
+OBJECTS = ${OBJ_LIST}
 
 .PHONY: all
 

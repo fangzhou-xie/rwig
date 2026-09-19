@@ -45,15 +45,14 @@ void Sinkhorn::_set_return_code() {
 }
 
 void Sinkhorn::_log_iter(const char *stage, int it) {
-  // first format the msg as c-string
-  // convert c-string into SEXP and then print via Rcpp::message
+  // format the message and hand it to R's message()
   if (stage[0] == 'f') {
-    Rcpp::message(Rf_mkString(
+    rr::message((
         vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f", it,
                 this->err, _timer.speed_last(), _timer.speed_avg())
             .c_str()));
   } else {
-    Rcpp::message(Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
+    rr::message((vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
                                       it, _timer.speed_last(), _timer.speed_avg())
                                   .c_str()));
   }
@@ -142,7 +141,7 @@ void Sinkhorn::_fwd_vanilla() {
 
   // logging for forward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Forward pass:"));
+    rr::message(("Forward pass:"));
   }
 
   _Kv.resize(_M);
@@ -150,7 +149,7 @@ void Sinkhorn::_fwd_vanilla() {
   _Kmul(false, _v, _Kv);
 
   while ((this->iter < _maxiter) & (this->err >= _zerotol)) {
-    Rcpp::checkUserInterrupt();
+    rr::check_interrupt();
     this->iter++;
     if (_verbose != 0) {
       _timer.tic();
@@ -201,7 +200,7 @@ void Sinkhorn::_bwd_vanilla() {
 
   // logging for backward pass
   if (_verbose != 0) {
-    Rcpp::message(Rf_mkString("Backward pass:"));
+    rr::message(("Backward pass:"));
   }
 
   for (int l = this->iter; l > 0; --l) {

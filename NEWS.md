@@ -1,8 +1,12 @@
 # rwig 0.2.0
 
-- Dropped the dependency on RcppArmadillo. All C++ code now calls the
+- Dropped the dependencies on Rcpp and RcppArmadillo. The C++ code talks to
+  R through the native C API (`.Call` with registered routines) and calls the
   BLAS/LAPACK libraries shipped with R directly through a small internal
-  matrix layer, which also makes the installed package much smaller.
+  matrix layer, which also makes the installed package much smaller. The
+  package now has no compiled-code dependencies at all.
+- Interrupting a long computation (Ctrl-C) now releases worker threads and
+  buffers before returning to R, and surfaces as an R error.
 - Faster log-stabilized `sinkhorn()` and `barycenter()`: the soft-min
   kernels no longer materialize the M x N matrix `C - f 1' - 1 g'` on every
   iteration, and worker threads (`n_threads`) are created once per call
