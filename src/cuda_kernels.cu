@@ -150,6 +150,19 @@ __global__ void nip_rowprod_shared(int m, int n, double *A, double *result) {
   }
 }
 
+// b[i] = prod_j A[i, j] ^ w[j]   (A is m x n column-major, not modified)
+__global__ void nip_rowprod_pow(int m, int n, double *b, const double *A,
+                                const double *w) {
+  int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int stride = blockDim.x * gridDim.x;
+  for (int i = idx; i < m; i += stride) {
+    double prod = 1.0;
+    for (int j = 0; j < n; j++)
+      prod *= pow(A[i + j * m], w[j]);
+    b[i] = prod;
+  }
+}
+
 __global__ void nip_diag_scale(int m, int n, double *out, const double *u,
                                const double *K, const double *v) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -379,6 +392,14 @@ void nip_row_prod_shared(double *x, double *A, int m, int n,
   size_t sharedMemSize = blockSize * sizeof(double);
 
   nip_rowprod_shared<<<m, blockSize, sharedMemSize, stream>>>(m, n, A, x);
+}
+
+void nip_row_prod_pow(double *b, double *KTU, double *w, int m, int n,
+                      cudaStream_t &stream) {
+  int blockSize = BLOCK_SIZE;
+  int numBlocks = (m + blockSize - 1) / blockSize;
+
+  nip_rowprod_pow<<<numBlocks, blockSize, 0, stream>>>(m, n, b, KTU, w);
 }
 
 void nip_diag_scale(double *P, double *u, double *K, double *v, int m, int n,

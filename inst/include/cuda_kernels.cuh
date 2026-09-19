@@ -13,7 +13,20 @@
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 
+#include <R_ext/Print.h> // REprintf
+
 const int BLOCK_SIZE = 512;
+
+// CUDA error checking macro: reports and jumps to the caller's cleanup label
+#define CUDA_CHECK(call)                                                       \
+  do {                                                                         \
+    cudaError_t err_ = (call);                                                 \
+    if (err_ != cudaSuccess) {                                                 \
+      REprintf("CUDA error at %s:%d: %s\n", __FILE__, __LINE__,               \
+               cudaGetErrorString(err_));                                      \
+      goto cleanup;                                                            \
+    }                                                                          \
+  } while (0)
 
 // For matrices (column-major)
 inline void print_device_matrix(double *d_arr, int nrow, int ncol,
@@ -57,6 +70,9 @@ void nip_row_prod_shared(double *x, double *A, int m, int n,
 void nip_diag_scale(double *P, double *u, double *K, double *v, int m, int n,
                     cudaStream_t &stream);
 void nip_minus_2(double *z, double *x, double *y, int N, cudaStream_t &stream);
+// b[i] = prod_s KTU[i, s] ^ w[s]  (KTU is m x n, left untouched)
+void nip_row_prod_pow(double *b, double *KTU, double *w, int m, int n,
+                      cudaStream_t &stream);
 
 // wrappers for the inplace kernels: last pointer being replaced!
 void ip_add(double *y, double *x, int n, cudaStream_t &stream);
@@ -113,13 +129,15 @@ void optimizer_step(double *d_theta, double *d_g, double *d_m, double *d_v,
 
 // TODO: replace this with the batched version
 // internal barycenter interface (used by WDL)
+// tmp_MS is an M*S scratch buffer used for the convergence check.
+// The history buffers are only touched when withgrad is true.
 void impl_barycenter(int &iter, double &err, double *U, double *V, double *b,
                      double *Ubar, double *Vbar, double *bbar, double *Abar,
                      double *wbar, double *Uhist, double *Vhist, double *bhist,
                      double *KVhist, double *KTUhist, double *A, double *w,
-                     double *b_ext, double *K, double *KV, double *KTU, int M,
-                     int N, int S, const int max_iter, const double zero_tol,
-                     bool withgrad, cudaStream_t &stream,
+                     double *b_ext, double *K, double *KV, double *KTU,
+                     double *tmp_MS, int M, int N, int S, const int max_iter,
+                     const double zero_tol, bool withgrad, cudaStream_t &stream,
                      cublasHandle_t &handle);
 
 // #endif

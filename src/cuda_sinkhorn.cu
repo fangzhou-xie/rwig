@@ -32,35 +32,14 @@ void update_KTu_v(double *v, double *u, double *b, double *K, double *KTu,
 void update_err(double &err, double *u, double *v, double *Kv, double *KTu,
                 double *a, double *b, double *tmp_M, double *tmp_N, int M,
                 int N, cudaStream_t &stream, cublasHandle_t &handle) {
-  auto D2H = cudaMemcpyDeviceToHost;
-  double *d_norm_M = nullptr, *d_norm_N = nullptr;
-  double norm_M, norm_N;
-
-  cudaMallocAsync((void **)&d_norm_M, sizeof(double), stream);
-  cudaMemsetAsync(d_norm_M, 0, sizeof(double), stream);
-
-  cudaMallocAsync((void **)&d_norm_N, sizeof(double), stream);
-  cudaMemsetAsync(d_norm_N, 0, sizeof(double), stream);
-
-  ip_dot_minus_sum(d_norm_M, u, Kv, a, M, stream);
-  ip_dot_minus_sum(d_norm_N, v, KTu, b, N, stream);
-
-  cudaMemcpyAsync(&norm_M, d_norm_M, sizeof(double), D2H, stream);
-  cudaMemcpyAsync(&norm_N, d_norm_N, sizeof(double), D2H, stream);
-  cudaStreamSynchronize(stream);
-
-  cudaFreeAsync(d_norm_M, stream);
-  cudaFreeAsync(d_norm_N, stream);
-
-  // compute the differences
-  // ip_dot_minus(tmp_M, u, Kv, a, M, stream);
-  // ip_dot_minus(tmp_N, v, KTu, b, N, stream);
-  // compute norm
-  // dnrm2(&norm_M, tmp_M, M, handle);
-  // dnrm2(&norm_N, tmp_N, N, handle);
-
-  // sum the two norms
-  err = sqrt(norm_M) + sqrt(norm_N);
+  // err = ||u % Kv - a||_2 + ||v % KTu - b||_2
+  // (dnrm2 in host pointer mode synchronizes the stream; no allocation)
+  double norm_M = 0., norm_N = 0.;
+  nip_dot_minus(tmp_M, u, Kv, a, M, stream);
+  nip_dot_minus(tmp_N, v, KTu, b, N, stream);
+  dnrm2(&norm_M, tmp_M, M, handle);
+  dnrm2(&norm_N, tmp_N, N, handle);
+  err = norm_M + norm_N;
 }
 
 void update_P(double *P, double *u, double *K, double *v, int M, int N,
@@ -219,34 +198,30 @@ void cuda_sinkhorn_vanilla(double *P, double *grad_a, double *u, double *v,
   cublasSetStream(handle, stream);
 
   /* step 2: allocate memory for the variables */
-  // Create a memory pool (once at initialization)
-  cudaMemPool_t pool;
-  cudaDeviceGetDefaultMemPool(&pool, 0); // TODO: check device id?
-
-  cudaMallocAsync((void **)&d_a, sizeof(double) * M, stream);
-  cudaMallocAsync((void **)&d_b, sizeof(double) * N, stream);
-  cudaMallocAsync((void **)&d_K, sizeof(double) * M * N, stream);
-  cudaMallocAsync((void **)&d_C, sizeof(double) * M * N, stream);
-  cudaMallocAsync((void **)&d_u, sizeof(double) * M, stream);
-  cudaMallocAsync((void **)&d_v, sizeof(double) * N, stream);
-  cudaMallocAsync((void **)&d_P, sizeof(double) * M * N, stream);
-  cudaMallocAsync((void **)&d_Kv, sizeof(double) * M, stream);
-  cudaMallocAsync((void **)&d_KTu, sizeof(double) * N, stream);
-  cudaMallocAsync((void **)&d_loss, sizeof(double), stream);
+  CUDA_CHECK(cudaMallocAsync((void **)&d_a, sizeof(double) * M, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_b, sizeof(double) * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_K, sizeof(double) * M * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_C, sizeof(double) * M * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_u, sizeof(double) * M, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_v, sizeof(double) * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_P, sizeof(double) * M * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_Kv, sizeof(double) * M, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_KTu, sizeof(double) * N, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_loss, sizeof(double), stream));
   cudaMemsetAsync(d_loss, 0, sizeof(double), stream);
 
-  cudaMallocAsync((void **)&d_tmp_M, sizeof(double) * M, stream);
-  cudaMallocAsync((void **)&d_tmp_N, sizeof(double) * N, stream);
+  CUDA_CHECK(cudaMallocAsync((void **)&d_tmp_M, sizeof(double) * M, stream));
+  CUDA_CHECK(cudaMallocAsync((void **)&d_tmp_N, sizeof(double) * N, stream));
 
   if (withgrad) {
-    cudaMallocAsync((void **)&d_u_hist, sizeof(double) * M * (max_iter + 1),
-                    stream);
-    cudaMallocAsync((void **)&d_v_hist, sizeof(double) * N * (max_iter + 1),
-                    stream);
-    cudaMallocAsync((void **)&d_PbarK, sizeof(double) * M * N, stream);
-    cudaMallocAsync((void **)&d_ubar, sizeof(double) * M, stream);
-    cudaMallocAsync((void **)&d_vbar, sizeof(double) * N, stream);
-    cudaMallocAsync((void **)&d_abar, sizeof(double) * M, stream);
+    CUDA_CHECK(cudaMallocAsync((void **)&d_u_hist, sizeof(double) * M * (max_iter + 1),
+                    stream));
+    CUDA_CHECK(cudaMallocAsync((void **)&d_v_hist, sizeof(double) * N * (max_iter + 1),
+                    stream));
+    CUDA_CHECK(cudaMallocAsync((void **)&d_PbarK, sizeof(double) * M * N, stream));
+    CUDA_CHECK(cudaMallocAsync((void **)&d_ubar, sizeof(double) * M, stream));
+    CUDA_CHECK(cudaMallocAsync((void **)&d_vbar, sizeof(double) * N, stream));
+    CUDA_CHECK(cudaMallocAsync((void **)&d_abar, sizeof(double) * M, stream));
 
     cudaMemsetAsync(d_ubar, 0, sizeof(double) * M, stream);
     cudaMemsetAsync(d_vbar, 0, sizeof(double) * N, stream);
@@ -303,6 +278,7 @@ void cuda_sinkhorn_vanilla(double *P, double *grad_a, double *u, double *v,
   *iter_out = iter;
   *err_out = err;
 
+cleanup:
   /* step 7: free resources */
   cudaFreeAsync(d_a, stream);
   cudaFreeAsync(d_b, stream);
