@@ -5,10 +5,10 @@
 // #include <iostream> // std::cout
 // #include "R_ext/Print.h"    // for REprintf
 
+#include "rcpp_glue.hpp"
 #include "wdl_impl.hpp" // header for the WDL definition
 // #include "ctrack.hpp"
 
-// using namespace arma;
 // using namespace cpp11;
 // using namespace cpp11::literals; // so we can use ""_nm syntax
 // namespace writable = cpp11::writable;
@@ -28,9 +28,8 @@ Rcpp::List wdl_cpp_cpu(const SEXP &Y, // document matrix N * M
                        const double eta = .001, const double gamma = .01,
                        const double beta1 = .9, const double beta2 = .999,
                        const double eps = 1e-8, const bool verbose = false) {
-  // convert R vectors/matrices into arma ones
-  arma::mat Y_{Rcpp::as<arma::mat>(Y)};
-  arma::mat C_{Rcpp::as<arma::mat>(C)};
+  la::Mat Y_ = la::mat_from_R(Y);
+  la::Mat C_ = la::mat_from_R(C);
 
   // init the WDL class
   WassersteinDictionaryLearning wdl(
@@ -45,8 +44,9 @@ Rcpp::List wdl_cpp_cpu(const SEXP &Y, // document matrix N * M
 
   // ctrack::result_print();
 
-  return Rcpp::List::create(Rcpp::Named("A") = wdl.A, Rcpp::Named("W") = wdl.W,
-                            Rcpp::Named("Yhat") = wdl.Yhat);
+  return Rcpp::List::create(Rcpp::Named("A") = la::to_R(wdl.A),
+                            Rcpp::Named("W") = la::to_R(wdl.W),
+                            Rcpp::Named("Yhat") = la::to_R(wdl.Yhat));
 }
 
 // only have the CUDA version when they are detected

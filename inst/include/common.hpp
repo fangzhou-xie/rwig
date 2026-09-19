@@ -1,22 +1,10 @@
-// common headers (armadillo)
+// common headers: Rcpp (for messages / interrupts) and the linear algebra layer
 
 #ifndef RWIG_COMMON_H
 #define RWIG_COMMON_H
 
-// #ifndef ARMA_DONT_USE_OPENMP
-// #define ARMA_DONT_USE_OPENMP
-// #endif
+#include <Rcpp.h>
 
-// #define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
-
-// #define RCPP_NO_SUGAR
-// #define RCPP_NO_MODULES
-// #include <RcppArmadillo.h>
-
-#define ARMA_DONT_PRINT_FAST_MATH_WARNING
-
-#include <RcppArmadillo/Lighter>
-// [[Rcpp::depends(RcppArmadillo)]]
-
+#include "linalg.hpp"
 
 #endif // RWIG_COMMON_H

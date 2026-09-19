@@ -3,182 +3,159 @@
 // https://arxiv.org/abs/2504.08722
 // Section 7.2 and 7.3
 
-
 #ifndef RWIG_WDL_H
 #define RWIG_WDL_H
 
-
-// #include <iostream>               // std::cout
-// #include "R_ext/Print.h"          // for REprintf used for verbose logging
+#include <cmath>
 
 #include "common.hpp"
 
 // WIG-related headers
-#include "timer.hpp"              // TicToc timer class
-#include "barycenter_impl.hpp"    // using the barycenter algorithms
-#include "optimizer.hpp"          // using the optimizers: SGD, Adam, AdamW
-
-// #include "ctrack.hpp"             // performance profiler (only for testing)
-
-
-using namespace arma;
+#include "barycenter_impl.hpp" // using the barycenter algorithms
+#include "optimizer.hpp"       // using the optimizers: SGD, Adam, AdamW
+#include "timer.hpp"           // TicToc timer class
 
 class WassersteinDictionaryLearning {
 
 private:
-
   // data
-  mat _Y;           // document matrix
-  mat _C;           // distance matrix
-  double _reg;      // regularization
+  la::Mat _Y;  // document matrix (N x M)
+  la::Mat _C;  // distance matrix (N x N)
+  double _reg; // regularization
 
   // model dimensions
-  int _N;           // number of tokens
-  int _M;           // number of docs
-  int _S;           // number of topics
+  la::idx _N; // number of tokens
+  la::idx _M; // number of docs
+  la::idx _S; // number of topics
 
   // model related
-  int _B;           // number of batchs
-  int _E;           // number of epochs
-  int _n_threads;   // number of threads, 0: serial
+  int _B;         // number of docs per batch
+  int _E;         // number of epochs
+  int _n_threads; // number of threads, 0: serial (only used at inference)
 
   // sinkhorn related
-  int _sinkmode;    // sinkhorn mode: vanilla (parallel) or log
-  int _maxiter;     // max iteration of sinkhorn/barycenter algo
-  double _zerotol;  // convergence tolerance
+  int _sinkmode;   // sinkhorn mode: vanilla (parallel) or log
+  int _maxiter;    // max iteration of sinkhorn/barycenter algo
+  double _zerotol; // convergence tolerance
 
   // optimizer related
-  int _opt;         // optimizer mode (SGD, Adam, AdamW)
+  int _opt; // optimizer mode (SGD, Adam, AdamW)
   double _eta, _gamma, _beta1, _beta2, _eps; // AdamW params
 
   // logging
-  bool _verbose;     // logging frequency
-
-  // RNG state for randomness
-  // int _rng_seed;
+  bool _verbose;
 
   // latent vars
-  mat _Alpha;       // N * S
-  mat _Lambda;      // S * M
-  vec _onesM;       // vector of ones
+  la::Mat _Alpha;  // N * S
+  la::Mat _Lambda; // S * M
 
   // precomputed Gibbs kernel
-  mat _K;           // N * N, exp(-C / reg)
+  la::Mat _K; // N * N, exp(-C / reg)
+  bool _C_is_symm;
 
   // TicToc timer class
-  TicToc _timer;    // used for logging each iteration time
+  TicToc _timer; // used for logging each iteration time
 
   // gradients for latent vars: Alpha, Lambda
-  mat _g_Alpha;     // gradient of Alpha (for A)
-  mat _g_Lambda;    // gradient of Lambda (for W)
-  vec _g_lambda;    // used for each doc processing
+  la::Mat _g_Alpha;  // gradient of Alpha (for A)
+  la::Mat _g_Lambda; // gradient of Lambda (for W)
+  la::Vec _g_lambda; // batch-averaged gradient of one column of Lambda
 
   // optimizers for latent vars
   Optimizer _opt_Alpha, _opt_Lambda;
 
+  // batched barycenter scratch, sized once for B docs (N x S*B unless noted)
+  la::Mat _UB, _VB, _KVB, _KTUB, _UBbar, _VBbar, _ABbar, _tmpB;
+  la::Mat _bB, _bBbar; // N x B
+  la::Mat _wBbar;      // S x B
+  // history buffers, flat: slot l occupies [l * N*S*B, (l+1) * N*S*B)
+  la::Vec _KVB_hist;  // L slots
+  la::Vec _KTUB_hist; // L + 1 slots
+  la::Vec _bB_hist;   // L + 1 slots of N*B
+
+  // K * X (or K^T * X) on the first `cols` columns of X / Y
+  void _Kmul(bool trans, const la::Mat &X, la::Mat &Y, la::idx cols) const {
+    const int n = (int)_N, c = (int)cols;
+    if (_C_is_symm) {
+      la::symm(n, c, 1.0, _K.data(), n, X.data(), n, 0.0, Y.data(), n);
+    } else {
+      la::gemm(trans, false, n, c, n, 1.0, _K.data(), n, X.data(), n, 0.0,
+               Y.data(), n);
+    }
+  }
+
+  // column-wise softmax: out[:, j] = softmax(in[:, j])
+  static void _softmax_cols(const la::Mat &in, la::Mat &out) {
+    const la::idx nr = in.nrow(), nc = in.ncol();
+    for (la::idx j = 0; j < nc; ++j) {
+      const double *x = in.col(j);
+      double *y = out.col(j);
+      double m = x[0];
+      for (la::idx i = 1; i < nr; ++i) m = std::max(m, x[i]);
+      double s = 0.0;
+      for (la::idx i = 0; i < nr; ++i) {
+        y[i] = std::exp(x[i] - m);
+        s += y[i];
+      }
+      for (la::idx i = 0; i < nr; ++i) y[i] /= s;
+    }
+  }
+
   // softmax for both latent vars (A and W)
   void _softmax() {
-    // CTRACK;
+    // A = softmax(Alpha), W = softmax(Lambda), column-wise
+    _softmax_cols(_Alpha, this->A);
+    _softmax_cols(_Lambda, this->W);
+  }
 
-    // requires init of alpha, lambda
-
-    // A = softmax(Alpha)
-    rowvec col_maxs_alpha = arma::max(_Alpha, 0);
-    this->A = exp(_Alpha.each_row() - col_maxs_alpha);
-    this->A = this->A.each_row() / sum(this->A, 0);
-
-    // W = softmax(Lambda)
-    rowvec col_maxs_lambda = arma::max(_Lambda, 0);
-    this->W = exp(_Lambda.each_row() - col_maxs_lambda);
-    this->W = this->W.each_row() / sum(this->W, 0);
-
-    // update this->A, this->W
+  // multiply the softmax Jacobian: g <- (diag(a) - a a^T) g = a % g - a (a . g)
+  static void _softmax_jac(const double *a, double *g, la::idx n) {
+    double d = 0.0;
+    for (la::idx i = 0; i < n; ++i) d += a[i] * g[i];
+    for (la::idx i = 0; i < n; ++i) g[i] = a[i] * g[i] - a[i] * d;
   }
 
   ///////////////////////////////////////////
-  // methods for serial
+  // training
   ///////////////////////////////////////////
 
   void _compute_serial();
-  void _train_batch_serial(Barycenter& bc, int batch_id);
   void _train_batch_batched(int batch_id);
-  // void _train_batch_compute(Barycenter& bc, vec& y, vec& w);
   // optimizer step
   void _optimize() {
-    // CTRACK;
-
     // update the params by the optimizer
-    if (_opt == 0) {                  // SGD
+    if (_opt == 0) { // SGD
       _opt_Alpha.sgd(_Alpha, _g_Alpha);
       _opt_Lambda.sgd(_Lambda, _g_Lambda);
-    } else if (_opt == 1) {           // Adam
+    } else if (_opt == 1) { // Adam
       _opt_Alpha.adam(_Alpha, _g_Alpha);
       _opt_Lambda.adam(_Lambda, _g_Lambda);
-    } else if (_opt == 2) {           // AdamW
+    } else if (_opt == 2) { // AdamW
       _opt_Alpha.adamw(_Alpha, _g_Alpha);
       _opt_Lambda.adamw(_Lambda, _g_Lambda);
     }
-
     // update _Alpha, _Lambda in-place
   };
 
-  // accumulate gradient
-  void _accu_grad(mat& g_A, vec& g_w, vec& w) {
-    // CTRACK;
-
-    mat g_Alpha = g_A;
-    vec g_lambda = g_w;
-
-    // multiply the jacobian of softmax
-    for (int s = 0; s < _S; ++s) {
-      g_Alpha.col(s) = (
-        diagmat(A.col(s)) - (A.col(s) * A.col(s).t())
-      ).t() * g_Alpha.col(s);
-    }
-    g_lambda = (diagmat(w) - (w * w.t())) * g_lambda;
-
-    // accumulate the gradients
-    _g_Alpha += g_Alpha;
-    _g_lambda += g_lambda;
-  }
-
-
-  ///////////////////////////////////////////
-  // methods for thread
-  ///////////////////////////////////////////
-
-  // void _compute_thread();
-  // void _train_batch_thread(int batch_id);
-  // void _infer_thread();
-
-
-  // TODO: separate the batch call from the main compute loop
-  // then to have serial/thread calls separately
-  // for each batch => update gradients
-  // void _proc_batch(const int threads);
-  // void _proc_batch_serial();
-
 public:
-
   // output vars
-  mat A;    // topics, N * S
-  mat W;    // weight, S * M
-  mat Yhat; // predicted barycenters, N * M
+  la::Mat A;    // topics, N * S
+  la::Mat W;    // weight, S * M
+  la::Mat Yhat; // predicted barycenters, N * M
 
   // init the class
-  WassersteinDictionaryLearning(
-    const int batch_size,
-    const int epochs,
-    const int n_threads,
-    const int sinkhorn_mode = 2,
-    const int max_iter = 1000, const double zero_tol = 1e-6,
-    const int optimizer = 2,
-    const double eta = .001, const double gamma = .01,
-    const double beta1 = .9, const double beta2 = .999,
-    const double eps = 1e-8,
-    const bool verbose = false
-  ) {
-    // const int rng_seed = 123,
+  WassersteinDictionaryLearning(const int batch_size, const int epochs,
+                                const int n_threads,
+                                const int sinkhorn_mode = 2,
+                                const int max_iter = 1000,
+                                const double zero_tol = 1e-6,
+                                const int optimizer = 2,
+                                const double eta = .001,
+                                const double gamma = .01,
+                                const double beta1 = .9,
+                                const double beta2 = .999,
+                                const double eps = 1e-8,
+                                const bool verbose = false) {
     _B = batch_size;
     _E = epochs;
     _n_threads = n_threads;
@@ -191,41 +168,26 @@ public:
     _beta1 = beta1;
     _beta2 = beta2;
     _eps = eps;
-    // _rng_seed = rng_seed;
     _verbose = verbose;
   }
   // destructor
   ~WassersteinDictionaryLearning() {}
 
   // init the data
-  void init_data(const mat& Y, const mat& C, double reg, int S) {
+  void init_data(const la::Mat &Y, const la::Mat &C, double reg, int S) {
     // load the data
     _Y = Y;
     _C = C;
     _reg = reg;
 
     // dimension
-    _M = _Y.n_cols;
-    _N = _Y.n_rows;
+    _M = _Y.ncol();
+    _N = _Y.nrow();
     _S = S;
-
-    // helper vecs
-    _onesM = vec(_M, fill::ones);
-
   }
 
   // actual compute method for WDL
-  void compute() {
-    _compute_serial();
-    // if (_n_threads == 0) {
-    //   _compute_serial();
-    // } else {
-    //   _compute_thread();
-    // }
-  }
-
-
+  void compute() { _compute_serial(); }
 };
-
 
 #endif // RWIG_WDL_H

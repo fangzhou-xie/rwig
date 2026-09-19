@@ -6,76 +6,35 @@
 #include "sinkhorn_impl.hpp"
 #include "vformat.hpp"
 
-// #include "ctrack.hpp"
-// #include "timer.hpp"
-
-using namespace arma;
-
 ////////////////////////////////////////////////////////////////
-// Algo 4.1/3.1: Vanilla Sinkhorn with/without Gradient wrt a
+// shared helpers (used by both vanilla and log)
 ////////////////////////////////////////////////////////////////
 
-void Sinkhorn::compute_vanilla(const vec &a, const vec &b, const mat &C,
-                               double reg) {
-  // CTRACK;
-  // reset the counter
-  _reset_counter();
+void Sinkhorn::_reduce(const la::Vec &a, const la::Vec &b, const la::Mat &C,
+                       std::vector<la::idx> &a_ind, std::vector<la::idx> &b_ind) {
+  a_ind.clear();
+  b_ind.clear();
+  for (la::idx i = 0; i < a.size(); ++i)
+    if (a[i] != 0) a_ind.push_back(i);
+  for (la::idx j = 0; j < b.size(); ++j)
+    if (b[j] != 0) b_ind.push_back(j);
 
-  int M = C.n_rows;
-  int N = C.n_cols;
-  // indices where a and b are not 0
-  // uvec a_ind{find(a != 0)};
-  // uvec b_ind{find(b != 0)};
-  uvec a_ind = find(a != 0);
-  uvec b_ind = find(b != 0);
-
-  // convert problem to reduced form
-  _a = a.elem(a_ind);
-  _b = b.elem(b_ind);
-  _C = C.submat(a_ind, b_ind);
+  _M = a_ind.size();
+  _N = b_ind.size();
+  _a.resize(_M);
+  _b.resize(_N);
+  for (la::idx i = 0; i < _M; ++i) _a[i] = a[a_ind[i]];
+  for (la::idx j = 0; j < _N; ++j) _b[j] = b[b_ind[j]];
+  _C.resize(_M, _N);
+  for (la::idx j = 0; j < _N; ++j) {
+    const double *Cj = C.col(b_ind[j]);
+    double *out = _C.col(j);
+    for (la::idx i = 0; i < _M; ++i) out[i] = Cj[a_ind[i]];
+  }
   _C_is_symm = _C.is_symmetric();
+}
 
-  _reg = reg;
-  _M = _C.n_rows;
-  _N = _C.n_cols;
-  _K = exp(-_C / reg);
-
-  if (_C_is_symm) {
-    _K = symmatu(_K);
-  }
-
-  // if (_withgrad) {
-  //   // this->_uhist = std::vector<vec>(_maxiter); // FIXME: or plus 1?
-  //   // this->_vhist = std::vector<vec>(_maxiter);
-  //   this->_uhist = mat(_M, _maxiter+1);
-  //   this->_vhist = mat(_N, _maxiter+1);
-  // }
-
-  // start the computation
-  this->_fwd_vanilla();
-
-  // recover original solution
-  this->_P = diagmat(_u) * _K * diagmat(_v);
-  this->u = vec(M, fill::zeros);
-  this->v = vec(N, fill::zeros);
-  this->u.elem(a_ind) = _u;
-  this->v.elem(b_ind) = _v;
-
-  // output P
-  P = mat(M, N, fill::zeros);
-  P.submat(a_ind, b_ind) = _P;
-
-  // record the loss for the reduced problem
-  this->loss = accu(_C % _P) + _reg * accu(_P % (log(_P) - 1));
-
-  // ifgrad -> backward
-  if (this->_withgrad) {
-    this->_bwd_vanilla(); // update `_grad_a`
-    this->grad_a = vec(M, fill::zeros);
-    this->grad_a.elem(a_ind) = _grad_a;
-  }
-
-  // determine return code
+void Sinkhorn::_set_return_code() {
   if (this->err <= _zerotol) {
     this->return_code = 0;
   } else if (this->iter == _maxiter) {
@@ -85,16 +44,91 @@ void Sinkhorn::compute_vanilla(const vec &a, const vec &b, const mat &C,
   }
 }
 
+void Sinkhorn::_log_iter(const char *stage, int it) {
+  // first format the msg as c-string
+  // convert c-string into SEXP and then print via Rcpp::message
+  if (stage[0] == 'f') {
+    Rcpp::message(Rf_mkString(
+        vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f", it,
+                this->err, _timer.speed_last(), _timer.speed_avg())
+            .c_str()));
+  } else {
+    Rcpp::message(Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
+                                      it, _timer.speed_last(), _timer.speed_avg())
+                                  .c_str()));
+  }
+}
+
+////////////////////////////////////////////////////////////////
+// Algo 4.1/3.1: Vanilla Sinkhorn with/without Gradient wrt a
+////////////////////////////////////////////////////////////////
+
+void Sinkhorn::compute_vanilla(const la::Vec &a, const la::Vec &b,
+                               const la::Mat &C, double reg) {
+  // reset the counter
+  _reset_counter();
+
+  const la::idx M = C.nrow();
+  const la::idx N = C.ncol();
+  std::vector<la::idx> a_ind, b_ind;
+
+  // convert problem to reduced form
+  _reduce(a, b, C, a_ind, b_ind);
+  _reg = reg;
+
+  // Gibbs kernel
+  _K.resize(_M, _N);
+  for (la::idx k = 0; k < _K.size(); ++k) _K[k] = std::exp(-_C[k] / reg);
+  if (_C_is_symm) {
+    _K.symmetrize_upper();
+  }
+
+  // start the computation
+  this->_fwd_vanilla();
+
+  // recover original solution: P = diag(u) K diag(v)
+  _P.resize(_M, _N);
+  for (la::idx j = 0; j < _N; ++j) {
+    const double *Kj = _K.col(j);
+    double *Pj = _P.col(j);
+    for (la::idx i = 0; i < _M; ++i) Pj[i] = _u[i] * Kj[i] * _v[j];
+  }
+  this->u.resize(M);
+  this->v.resize(N);
+  for (la::idx i = 0; i < _M; ++i) this->u[a_ind[i]] = _u[i];
+  for (la::idx j = 0; j < _N; ++j) this->v[b_ind[j]] = _v[j];
+
+  // output P
+  P.resize(M, N);
+  for (la::idx j = 0; j < _N; ++j)
+    for (la::idx i = 0; i < _M; ++i) P(a_ind[i], b_ind[j]) = _P(i, j);
+
+  // record the loss for the reduced problem
+  double l1 = 0.0, l2 = 0.0;
+  for (la::idx k = 0; k < _P.size(); ++k) {
+    l1 += _C[k] * _P[k];
+    l2 += _P[k] * (std::log(_P[k]) - 1.0);
+  }
+  this->loss = l1 + _reg * l2;
+
+  // ifgrad -> backward
+  if (this->_withgrad) {
+    this->_bwd_vanilla(); // update `_grad_a`
+    this->grad_a.resize(M);
+    for (la::idx i = 0; i < _M; ++i) this->grad_a[a_ind[i]] = _grad_a[i];
+  }
+
+  _set_return_code();
+}
+
 ////////////////////////////////////////////////////////////////
 // Implementation of the private methods
 ////////////////////////////////////////////////////////////////
 
 // forward of vanilla sinkhorn
 void Sinkhorn::_fwd_vanilla() {
-  // CTRACK;
-
-  _u = vec(_M, fill::ones);
-  _v = vec(_N, fill::ones);
+  _u.resize(_M, 1.0);
+  _v.resize(_N, 1.0);
   if (_withgrad) {
     // reserve space
     _uhist.clear();
@@ -106,73 +140,64 @@ void Sinkhorn::_fwd_vanilla() {
     _vhist.push_back(_v);
   }
 
-  // logging for backward pass
+  // logging for forward pass
   if (_verbose != 0) {
     Rcpp::message(Rf_mkString("Forward pass:"));
   }
 
-  _Kv = vec(_N, fill::none);
-  _KTu = vec(_M, fill::none);
-
-  _Kv = _K * _v;
+  _Kv.resize(_M);
+  _KTu.resize(_N);
+  _Kmul(false, _v, _Kv);
 
   while ((this->iter < _maxiter) & (this->err >= _zerotol)) {
-    // cpp11::check_user_interrupt();
     Rcpp::checkUserInterrupt();
     this->iter++;
     if (_verbose != 0) {
       _timer.tic();
     }
 
-    _u = _a / _Kv;
+    for (la::idx i = 0; i < _M; ++i) _u[i] = _a[i] / _Kv[i];
     if (_withgrad) {
       _uhist.push_back(_u);
     }
 
-    _KTu = _K.t() * _u;
-    _v = _b / _KTu;
+    _Kmul(true, _u, _KTu);
+    for (la::idx j = 0; j < _N; ++j) _v[j] = _b[j] / _KTu[j];
     if (_withgrad) {
       _vhist.push_back(_v);
     }
 
-    _Kv = _K * _v;
-    this->err = norm(_u % _Kv - _a, 2) + norm(_v % _KTu - _b, 2);
+    _Kmul(false, _v, _Kv);
+    // err = ||u % Kv - a||_2 + ||v % KTu - b||_2
+    double e1 = 0.0, e2 = 0.0;
+    for (la::idx i = 0; i < _M; ++i) {
+      const double d = _u[i] * _Kv[i] - _a[i];
+      e1 += d * d;
+    }
+    for (la::idx j = 0; j < _N; ++j) {
+      const double d = _v[j] * _KTu[j] - _b[j];
+      e2 += d * d;
+    }
+    this->err = std::sqrt(e1) + std::sqrt(e2);
     if (_verbose != 0) {
       _timer.toc();
     }
 
     // logging
     if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
-
-      // first format the msg as c-string
-      // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(Rf_mkString(
-          vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f",
-                  this->iter, this->err, _timer.speed_last(),
-                  _timer.speed_avg())
-              .c_str()));
-
-      // convert c-string into SEXP and then print via Rcpp::message
-      // Rcpp::message(Rf_mkString(_msg));
-
-      // using cpp11 is easier
-      // cpp11::message(
-      //   "iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f",
-      //   this->iter, this->err,
-      //   _timer.speed_last(), _timer.speed_avg()
-      // );
+      _log_iter("forward", this->iter);
     }
   }
 }
 
 // backward (reverse) of vanilla sinkhorn
 void Sinkhorn::_bwd_vanilla() {
-  // CTRACK;
-  // backward loop
-  mat PbarK = (_C + _reg * log(_P)) % _K; // adjoint of P dot K
-  vec ubar{vec(_M, fill::zeros)};
-  vec vbar{vec(_N, fill::zeros)};
-  this->_grad_a = vec(_M, fill::zeros);
+  // PbarK = (C + reg * log(P)) % K : adjoint of P dot K
+  la::Mat PbarK(_M, _N);
+  for (la::idx k = 0; k < PbarK.size(); ++k)
+    PbarK[k] = (_C[k] + _reg * std::log(_P[k])) * _K[k];
+  la::Vec ubar(_M), vbar(_N), tmpM(_M), tmpN(_N);
+  this->_grad_a.resize(_M);
 
   // logging for backward pass
   if (_verbose != 0) {
@@ -185,30 +210,38 @@ void Sinkhorn::_bwd_vanilla() {
     }
 
     if (l == this->iter) {
-      vbar = PbarK.t() * _u;
-      ubar = PbarK * _v - _K * ((vbar % _v) / (_K.t() * _u));
+      // vbar = PbarK^T u
+      la::gemv(true, PbarK, _u.data(), vbar.data());
+      // ubar = PbarK v - K ((vbar % v) / (K^T u))
+      _Kmul(true, _u, _KTu);
+      for (la::idx j = 0; j < _N; ++j) tmpN[j] = (vbar[j] * _v[j]) / _KTu[j];
+      la::gemv(false, PbarK, _v.data(), ubar.data());
+      _Kmul(false, tmpN, tmpM);
+      for (la::idx i = 0; i < _M; ++i) ubar[i] -= tmpM[i];
     } else {
-      vbar = -_K.t() * ((ubar % _uhist[l + 1]) / (_K * _vhist[l]));
-      ubar = -_K * ((vbar % _vhist[l]) / (_K.t() * _uhist[l]));
-      // vbar = - _K.t() * diagmat(_uhist.col(l+1) / (_K * _vhist.col(l))) *
-      // ubar; ubar = - _K * diagmat(_vhist.col(l) / (_K.t() * _uhist.col(l))) *
-      // vbar;
+      // vbar = -K^T ((ubar % uhist[l+1]) / (K vhist[l]))
+      _Kmul(false, _vhist[l], _Kv);
+      for (la::idx i = 0; i < _M; ++i)
+        tmpM[i] = (ubar[i] * _uhist[l + 1][i]) / _Kv[i];
+      _Kmul(true, tmpM, vbar);
+      for (la::idx j = 0; j < _N; ++j) vbar[j] = -vbar[j];
+      // ubar = -K ((vbar % vhist[l]) / (K^T uhist[l]))
+      _Kmul(true, _uhist[l], _KTu);
+      for (la::idx j = 0; j < _N; ++j)
+        tmpN[j] = (vbar[j] * _vhist[l][j]) / _KTu[j];
+      _Kmul(false, tmpN, ubar);
+      for (la::idx i = 0; i < _M; ++i) ubar[i] = -ubar[i];
     }
 
     if (_verbose != 0) {
       _timer.toc();
     }
     if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
-
-      // first format the msg as c-string
-      // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(
-          Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f", l,
-                              _timer.speed_last(), _timer.speed_avg())
-                          .c_str()));
+      _log_iter("backward", l);
     }
 
-    // accumulate the adjoint of a
-    this->_grad_a += ubar / (_K * _vhist[l - 1]);
+    // accumulate the adjoint of a: grad_a += ubar / (K vhist[l-1])
+    _Kmul(false, _vhist[l - 1], _Kv);
+    for (la::idx i = 0; i < _M; ++i) this->_grad_a[i] += ubar[i] / _Kv[i];
   }
 }

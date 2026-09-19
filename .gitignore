@@ -9,3 +9,5 @@ config.log
 config.status
 .claude
 README.html
+data-raw/bench/golden/
+data-raw/bench/results.csv

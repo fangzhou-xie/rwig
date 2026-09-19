@@ -2,45 +2,40 @@
 // this is the file defining the functions exporting to R side
 // sinkhorn algos
 
+#include "rcpp_glue.hpp"
 #include "sinkhorn_impl.hpp"
-// #include "ctrack.hpp"
 
-// using namespace arma;
-// using namespace cpp11;
-// using namespace cpp11::literals; // so we can use ""_nm syntax
-// namespace writable = cpp11::writable; // writable list from cpp11
+static Rcpp::List sinkhorn_result(const Sinkhorn &s, bool withgrad,
+                                  const char *uname, const char *vname) {
+  if (withgrad) {
+    return Rcpp::List::create(
+        Rcpp::Named("P") = la::to_R(s.P), Rcpp::Named("grad_a") = la::to_R(s.grad_a),
+        Rcpp::Named(uname) = la::to_R(s.u), Rcpp::Named(vname) = la::to_R(s.v),
+        Rcpp::Named("loss") = s.loss, Rcpp::Named("iter") = s.iter,
+        Rcpp::Named("err") = s.err,
+        Rcpp::Named("return_status") = s.return_code);
+  } else {
+    return Rcpp::List::create(
+        Rcpp::Named("P") = la::to_R(s.P), Rcpp::Named(uname) = la::to_R(s.u),
+        Rcpp::Named(vname) = la::to_R(s.v), Rcpp::Named("loss") = s.loss,
+        Rcpp::Named("iter") = s.iter, Rcpp::Named("err") = s.err,
+        Rcpp::Named("return_status") = s.return_code);
+  }
+}
 
 Rcpp::List sinkhorn_vanilla_cpu(const SEXP &a, const SEXP &b, const SEXP &C,
                                 double reg, bool withgrad = false,
                                 int maxiter = 1000, double zerotol = 1e-6,
                                 int verbose = 0) {
-  // convert the R vectors/matrices into arma ones
-  arma::vec a_{Rcpp::as<arma::vec>(a)};
-  arma::vec b_{Rcpp::as<arma::vec>(b)};
-  arma::mat C_{Rcpp::as<arma::mat>(C)};
+  la::Vec a_ = la::vec_from_R(a);
+  la::Vec b_ = la::vec_from_R(b);
+  la::Mat C_ = la::mat_from_R(C);
 
   // init the class and start the computation
   Sinkhorn s(withgrad, maxiter, zerotol, verbose);
   s.compute_vanilla(a_, b_, C_, reg);
 
-  // ctrack::result_print();
-
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = s.P, Rcpp::Named("grad_a") = s.grad_a,
-        Rcpp::Named("u") = s.u, Rcpp::Named("v") = s.v,
-        Rcpp::Named("loss") = s.loss, Rcpp::Named("iter") = s.iter,
-        Rcpp::Named("err") = s.err,
-        Rcpp::Named("return_status") = s.return_code);
-  } else {
-    return Rcpp::List::create(Rcpp::Named("P") = s.P,
-                              // Rcpp::Named("grad_a") = s.grad_a,
-                              Rcpp::Named("u") = s.u, Rcpp::Named("v") = s.v,
-                              Rcpp::Named("loss") = s.loss,
-                              Rcpp::Named("iter") = s.iter,
-                              Rcpp::Named("err") = s.err,
-                              Rcpp::Named("return_status") = s.return_code);
-  }
+  return sinkhorn_result(s, withgrad, "u", "v");
 }
 
 // only have the CUDA version when they are detected
@@ -139,32 +134,17 @@ Rcpp::List sinkhorn_vanilla_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
 }
 
 // [[Rcpp::export]]
-Rcpp::List sinkhorn_log_cpp(const arma::vec &a, const arma::vec &b,
-                            const arma::mat &C, double reg,
-                            bool withgrad = false, const int &n_threads = 0,
-                            int maxiter = 1000, double zerotol = 1e-6,
-                            int verbose = 0) {
+Rcpp::List sinkhorn_log_cpp(const SEXP &a, const SEXP &b, const SEXP &C,
+                            double reg, bool withgrad = false,
+                            const int &n_threads = 0, int maxiter = 1000,
+                            double zerotol = 1e-6, int verbose = 0) {
+  la::Vec a_ = la::vec_from_R(a);
+  la::Vec b_ = la::vec_from_R(b);
+  la::Mat C_ = la::mat_from_R(C);
 
   // init the class and start the computation
   Sinkhorn s(withgrad, maxiter, zerotol, verbose);
-  s.compute_log(a, b, C, reg, n_threads);
+  s.compute_log(a_, b_, C_, reg, n_threads);
 
-  // ctrack::result_print();
-
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("P") = s.P, Rcpp::Named("grad_a") = s.grad_a,
-        Rcpp::Named("f") = s.u, Rcpp::Named("g") = s.v,
-        Rcpp::Named("loss") = s.loss, Rcpp::Named("iter") = s.iter,
-        Rcpp::Named("err") = s.err,
-        Rcpp::Named("return_status") = s.return_code);
-  } else {
-    return Rcpp::List::create(Rcpp::Named("P") = s.P,
-                              // Rcpp::Named("grad_a") = s.grad_a,
-                              Rcpp::Named("f") = s.u, Rcpp::Named("g") = s.v,
-                              Rcpp::Named("loss") = s.loss,
-                              Rcpp::Named("iter") = s.iter,
-                              Rcpp::Named("err") = s.err,
-                              Rcpp::Named("return_status") = s.return_code);
-  }
+  return sinkhorn_result(s, withgrad, "f", "g");
 }

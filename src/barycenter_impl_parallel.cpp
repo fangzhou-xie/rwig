@@ -2,14 +2,25 @@
 // actual implementation of the Barycenter class
 // the parallel algo
 
+#include <cmath>
+
 #include "common.hpp"
 
 #include "barycenter_impl.hpp"
 #include "vformat.hpp"
 
-// #include "ctrack.hpp"
-
-using namespace arma;
+void Barycenter::_log_iter(const char *stage, int it) {
+  if (stage[0] == 'f') {
+    Rcpp::message(Rf_mkString(
+        vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f", it,
+                this->err, _timer.speed_last(), _timer.speed_avg())
+            .c_str()));
+  } else {
+    Rcpp::message(Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f",
+                                      it, _timer.speed_last(), _timer.speed_avg())
+                                  .c_str()));
+  }
+}
 
 /////////////////////////////////////////////////////////////////////////
 // Algo 6.1/5.1: Parallel Barycenter with/without Gradients wrt A and w
@@ -17,39 +28,31 @@ using namespace arma;
 
 // public method to call for parallel barycenter
 void Barycenter::compute_parallel() {
-  // CTRACK;
-
   // reset the counter
   _reset_counter();
-
-  // set the ones variables
-  _onesM = vec(_M, fill::ones);
-  _onesN = vec(_N, fill::ones);
-  _onesS = vec(_S, fill::ones);
 
   // forward loop for the barycenter computation
   _fwd_parallel();
 
-  // backward loop for the gradients
+  // backward loop for the gradients (uses the un-normalized b)
   if (_withgrad) {
     _bwd_parallel();
   }
 
   // rescale b to 1
-  this->b = this->b / accu(this->b);
+  const double bsum = this->b.sum();
+  for (la::idx i = 0; i < _N; ++i) this->b[i] /= bsum;
   // compute the loss
   if (_withgrad) {
-    this->loss = accu(pow(this->b - this->_b_ext, 2));
+    double l = 0.0;
+    for (la::idx i = 0; i < _N; ++i) {
+      const double d = this->b[i] - _b_ext[i];
+      l += d * d;
+    }
+    this->loss = l;
   }
 
-  // determine return code
-  if (this->err <= _zerotol) {
-    this->return_code = 0;
-  } else if (this->iter == _maxiter) {
-    this->return_code = 1;
-  } else {
-    this->return_code = 2;
-  }
+  _set_return_code();
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -58,14 +61,12 @@ void Barycenter::compute_parallel() {
 
 // forward pass for parallel barycenter
 void Barycenter::_fwd_parallel() {
-  // CTRACK;
-
   // set/reset output b to zero
-  this->b = vec(_N, fill::zeros);
+  this->b.resize(_N);
 
   // set intermediate vars
-  this->U = mat(_M, _S, fill::ones);
-  this->V = mat(_N, _S, fill::ones);
+  this->U.resize(_M, _S, 1.0);
+  this->V.resize(_N, _S, 1.0);
   if (_withgrad) {
     // reserve the space
     _Uhist.clear();
@@ -81,18 +82,17 @@ void Barycenter::_fwd_parallel() {
   }
 
   // compute K
-  _K = exp(-_C / _reg);
-  if (_C.is_symmetric()) {
-    _K = symmatu(_K);
+  _K.resize(_M, _N);
+  for (la::idx k = 0; k < _K.size(); ++k) _K[k] = std::exp(-_C[k] / _reg);
+  if (_C_is_symm) {
+    _K.symmetrize_upper();
   }
 
-  mat onesNwT = _onesN * _w.t();
-
   // set size for _KV, _KTU
-  _KV = mat(_M, _S, fill::none);
-  _KTU = mat(_N, _S, fill::none);
+  _KV.resize(_M, _S);
+  _KTU.resize(_N, _S);
 
-  _KV = _K * this->V;
+  _Kmul(false, this->V, _KV);
 
   // logging for forward pass
   if (_verbose != 0) {
@@ -100,68 +100,67 @@ void Barycenter::_fwd_parallel() {
   }
 
   while ((this->iter < _maxiter) && (this->err >= _zerotol)) {
-    // cpp11::check_user_interrupt();
     Rcpp::checkUserInterrupt();
     this->iter++;
     if (_verbose != 0) {
       _timer.tic();
     }
 
-    // update U
-    // _KV = _K * this->V;
-    this->U = _A / _KV;
+    // update U = A / KV
+    for (la::idx k = 0; k < this->U.size(); ++k) this->U[k] = _A[k] / _KV[k];
     if (_withgrad) {
       _Uhist.push_back(this->U);
     }
 
-    // update b
-    _KTU = _K.t() * this->U;
-    // std::cout << pow(_KTU, onesNwT) << "\n";
-    b = prod(pow(_KTU, onesNwT), 1);
+    // update b: b_i = prod_s KTU_is ^ w_s
+    _Kmul(true, this->U, _KTU);
+    for (la::idx i = 0; i < _N; ++i) {
+      double p = 1.0;
+      for (la::idx s = 0; s < _S; ++s) p *= std::pow(_KTU(i, s), _w[s]);
+      this->b[i] = p;
+    }
     if (_withgrad) {
       _bhist.push_back(this->b);
     }
 
-    // update V
-    this->V = (this->b * _onesS.t()) / _KTU;
+    // update V = (b 1^T) / KTU
+    for (la::idx s = 0; s < _S; ++s) {
+      const double *KTUs = _KTU.col(s);
+      double *Vs = this->V.col(s);
+      for (la::idx i = 0; i < _N; ++i) Vs[i] = this->b[i] / KTUs[i];
+    }
     if (_withgrad) {
       _Vhist.push_back(this->V);
     }
 
-    // term cond
-    _KV = _K * this->V;
-    // this->err = norm((this->U % (_KV)) - _A, 2);
-    this->err = sqrt(accu(pow(this->U % _KV - _A, 2)));
+    // term cond: err = || U % KV - A ||_F
+    _Kmul(false, this->V, _KV);
+    double e = 0.0;
+    for (la::idx k = 0; k < this->U.size(); ++k) {
+      const double d = this->U[k] * _KV[k] - _A[k];
+      e += d * d;
+    }
+    this->err = std::sqrt(e);
     if (_verbose != 0) {
       _timer.toc();
     }
 
     // logging
     if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
-
-      // first format the msg as c-string
-      // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(Rf_mkString(
-          vformat("iter: %d, err: %.4f, last speed: %.3f, avg speed: %.3f",
-                  this->iter, this->err, _timer.speed_last(),
-                  _timer.speed_avg())
-              .c_str()));
+      _log_iter("forward", this->iter);
     }
   }
 }
 
 // backward pass for parallel barycenter
 void Barycenter::_bwd_parallel() {
-  // CTRACK;
-
   // gradients (adjoints) for the variables A and w
-  this->grad_A = mat(_M, _S, fill::zeros);
-  this->grad_w = vec(_S, fill::zeros);
+  this->grad_A.resize(_M, _S);
+  this->grad_w.resize(_S);
   // adjoints for the intermediate vars
-  mat Ubar{mat(_M, _S, fill::zeros)};
-  mat Vbar{mat(_N, _S, fill::zeros)};
-  vec bbar{vec(_N, fill::zeros)};
-  mat KTU{mat(_N, _S, fill::zeros)};
+  la::Mat Ubar(_M, _S), Vbar(_N, _S), KTU(_N, _S), KV(_M, _S), tmpNS(_N, _S),
+      tmpMS(_M, _S);
+  la::Vec bbar(_N), tmpN(_N);
 
   // logging for backward pass
   if (_verbose != 0) {
@@ -174,15 +173,42 @@ void Barycenter::_bwd_parallel() {
       _timer.tic();
     }
 
-    KTU = _K.t() * _Uhist[l];
+    // KTU = K^T Uhist[l]
+    _Kmul(true, _Uhist[l], KTU);
 
     if (l == this->iter) {
-      bbar = 2 * (this->b - this->_b_ext);
-      Ubar = _K * ((bbar * _w.t()) % this->V);
+      for (la::idx i = 0; i < _N; ++i) bbar[i] = 2 * (this->b[i] - _b_ext[i]);
+      // Ubar = K ((bbar w^T) % V)
+      for (la::idx s = 0; s < _S; ++s) {
+        const double *Vs = this->V.col(s);
+        double *ts = tmpNS.col(s);
+        for (la::idx i = 0; i < _N; ++i) ts[i] = bbar[i] * _w[s] * Vs[i];
+      }
+      _Kmul(false, tmpNS, Ubar);
     } else {
-      Vbar = -_K.t() * ((Ubar % _Uhist[l + 1]) / (_K * _Vhist[l]));
-      bbar = sum(Vbar / KTU, 1);
-      Ubar = _K * ((bbar * _w.t() - Vbar / KTU) % _Vhist[l]);
+      // Vbar = -K^T ((Ubar % Uhist[l+1]) / (K Vhist[l]))
+      _Kmul(false, _Vhist[l], KV);
+      for (la::idx k = 0; k < tmpMS.size(); ++k)
+        tmpMS[k] = (Ubar[k] * _Uhist[l + 1][k]) / KV[k];
+      _Kmul(true, tmpMS, Vbar);
+      for (la::idx k = 0; k < Vbar.size(); ++k) Vbar[k] = -Vbar[k];
+      // bbar = rowsum(Vbar / KTU)
+      for (la::idx i = 0; i < _N; ++i) bbar[i] = 0.0;
+      for (la::idx s = 0; s < _S; ++s) {
+        const double *Vbs = Vbar.col(s);
+        const double *KTUs = KTU.col(s);
+        for (la::idx i = 0; i < _N; ++i) bbar[i] += Vbs[i] / KTUs[i];
+      }
+      // Ubar = K ((bbar w^T - Vbar / KTU) % Vhist[l])
+      for (la::idx s = 0; s < _S; ++s) {
+        const double *Vbs = Vbar.col(s);
+        const double *KTUs = KTU.col(s);
+        const double *Vs = _Vhist[l].col(s);
+        double *ts = tmpNS.col(s);
+        for (la::idx i = 0; i < _N; ++i)
+          ts[i] = (bbar[i] * _w[s] - Vbs[i] / KTUs[i]) * Vs[i];
+      }
+      _Kmul(false, tmpNS, Ubar);
     }
 
     if (_verbose != 0) {
@@ -190,18 +216,20 @@ void Barycenter::_bwd_parallel() {
     }
     // logging
     if ((_verbose != 0) && ((this->iter - 1) % _verbose) == 0) {
-
-      // first format the msg as c-string
-      // convert c-string into SEXP and then print via Rcpp::message
-      Rcpp::message(
-          Rf_mkString(vformat("iter: %d, last speed: %.3f, avg speed: %.3f", l,
-                              _timer.speed_last(), _timer.speed_avg())
-                          .c_str()));
+      _log_iter("backward", l);
     }
 
     // accumulate the adjoints of A and w
-    // std::cout << "KV:" << "\n" << _K * _Vhist[l - 1] << "\n";
-    this->grad_A += Ubar / (_K * _Vhist[l - 1]);
-    this->grad_w += log(KTU).t() * (bbar % _bhist[l]);
+    // grad_A += Ubar / (K Vhist[l-1])
+    _Kmul(false, _Vhist[l - 1], KV);
+    for (la::idx k = 0; k < Ubar.size(); ++k) this->grad_A[k] += Ubar[k] / KV[k];
+    // grad_w += log(KTU)^T (bbar % bhist[l])
+    for (la::idx i = 0; i < _N; ++i) tmpN[i] = bbar[i] * _bhist[l][i];
+    for (la::idx s = 0; s < _S; ++s) {
+      const double *KTUs = KTU.col(s);
+      double acc = 0.0;
+      for (la::idx i = 0; i < _N; ++i) acc += std::log(KTUs[i]) * tmpN[i];
+      this->grad_w[s] += acc;
+    }
   }
 }

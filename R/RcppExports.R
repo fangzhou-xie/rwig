@@ -21,12 +21,12 @@ sinkhorn_log_cpp <- function(a, b, C, reg, withgrad = FALSE, n_threads = 0L, max
     .Call(`_rwig_sinkhorn_log_cpp`, a, b, C, reg, withgrad, n_threads, maxiter, zerotol, verbose)
 }
 
-tsvd_cpp <- function(M, k, flip_sign) {
-    .Call(`_rwig_tsvd_cpp`, M, k, flip_sign)
+tsvd_cpp <- function(MR, k, flip_sign) {
+    .Call(`_rwig_tsvd_cpp`, MR, k, flip_sign)
 }
 
-euclidean_cpp <- function(A) {
-    .Call(`_rwig_euclidean_cpp`, A)
+euclidean_cpp <- function(AR) {
+    .Call(`_rwig_euclidean_cpp`, AR)
 }
 
 doc2dist_cpp <- function(docs, dict) {

@@ -1,4 +1,6 @@
-// implementation of the WDL class (serial)
+// implementation of the WDL class (CPU)
+
+#include <cmath>
 
 #include "wdl_impl.hpp"        // wdl class
 #include "barycenter_impl.hpp" // barycenter class
@@ -6,244 +8,198 @@
 #include "timer.hpp"           // TicToc timer
 #include "vformat.hpp"         // vformat formatting the logging message
 
-// #include "ctrack.hpp"          // performance profiler (only for testing)
-
-using namespace arma;
-
-// serially process each batch
-void WassersteinDictionaryLearning::_train_batch_serial(Barycenter &bc,
-                                                        int batch_id) {
-  // CTRACK;
-
-  Rcpp::checkUserInterrupt();
-
-  // get the total number of docs within this current batch
-  int n_docs = (batch_id == (_M / _B)) ? (_M % _B) : _B;
-
-  // temp vecs
-  vec y{vec(_N, fill::zeros)};
-  vec w{vec(_S, fill::zeros)};
-
-  // gradients to be accumulated within the batch
-  mat g_Alpha{mat(_N, _S, fill::zeros)};
-  vec g_lambda{vec(_S, fill::zeros)};
-
-  for (int i = 0; i < n_docs; ++i) {
-
-    // find the index
-    int m = batch_id * _B + i;
-
-    // retrieve the doc and weight
-    y = _Y.col(m);
-    w = this->W.col(m);
-
-    // update y (b) and w in the barycenter class
-    bc.update_b_ext(y);
-    bc.update_w(w);
-
-    if (_sinkmode == 1) {
-      bc.compute_parallel();
-    } else if (_sinkmode == 2) {
-      bc.compute_log(_n_threads);
-    } else {
-      Rcpp::stop("barycenter method not supported");
-    }
-    // _train_batch_compute(bc, y, w);
-
-    // // calculate the gradients
-    // g_Alpha = bc.grad_A;  // N * S
-    // g_lambda = bc.grad_w; // S * 1
-    //
-    // // multiply the jacobian of softmax
-    // for (int s = 0; s < _S; ++s) {
-    //   g_Alpha.col(s) = (
-    //     diagmat(A.col(s)) - (A.col(s) * A.col(s).t())
-    //   ).t() * g_Alpha.col(s);
-    // }
-    // g_lambda = (diagmat(w) - (w * w.t())) * g_lambda;
-    //
-    // // accumulate the gradients
-    // _g_Alpha += g_Alpha;
-    // _g_lambda += g_lambda;
-
-    _accu_grad(bc.grad_A, bc.grad_w, w);
-
-    // Rcpp::Rcout << "grad A: \n" << bc.grad_A << std::endl;
-    // Rcpp::Rcout << "grad w: \n" << bc.grad_w << std::endl;
-  }
-
-  // calculate batch-average
-  _g_Alpha /= n_docs;
-  _g_lambda /= n_docs;
-  // make sure the propagate g_Lambda
-  _g_Lambda = _g_lambda * _onesM.t();
-}
-
 ///////////////////////////////////////////////////////////////////
 // Batched: process all D docs in a batch simultaneously
-// Mirrors cuda wdl_batch — bypasses Barycenter class
+// Mirrors cuda wdl_batch — bypasses Barycenter class.
+//
+// Layout: the D docs of a batch are stacked column-wise, so every N x (S*D)
+// matrix has column d*S+s for (doc d, topic s). Only three history buffers
+// are kept: KVB (L slots), KTUB and bB (L+1 slots). The scaling matrices
+// U and V of the forward pass are recovered elementwise from those:
+//   UB[l+1] = A_tiled / KVB[l],   VB[l+1] = bB[l+1]_tiled / KTUB[l+1]
 ///////////////////////////////////////////////////////////////////
 
 void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
   Rcpp::checkUserInterrupt();
 
   // number of docs in this batch
-  int D = (batch_id == (_M / _B)) ? (_M % _B) : _B;
+  const int D = (batch_id == (int)(_M / _B)) ? (int)(_M % _B) : _B;
+  const la::idx N = _N, S = _S;
+  const la::idx SD = S * (la::idx)D;
+  const la::idx NSD = N * SD, ND = N * (la::idx)D;
+  const int L = _maxiter;
 
   // views into Y and W for this batch (contiguous columns)
-  mat bB_ext = _Y.cols(batch_id * _B, batch_id * _B + D - 1); // N x D
-  mat wB = this->W.cols(batch_id * _B, batch_id * _B + D - 1); // S x D
+  const double *bB_ext = _Y.col((la::idx)batch_id * _B); // N x D
+  const double *wB = this->W.col((la::idx)batch_id * _B); // S x D
 
-  int SD = _S * D;
-
-  // helper: build tiled A division — UB[:,d*S+s] = A[:,s] / KVB[:,d*S+s]
-  // and tiled b division — VB[:,d*S+s] = bB[:,d] / KTUB[:,d*S+s]
-  vec onesS(_S, fill::ones);
-
-  // scaling vectors
-  mat UB(_N, SD, fill::ones);
-  mat VB(_N, SD, fill::ones);
-  mat bB(_N, D, fill::zeros);
-  mat KVB(_N, SD);
-  mat KTUB(_N, SD);
-
-  // history buffers (L+1 entries for U,V,b,KTUB; L entries for KVB)
-  int L = _maxiter;
-  std::vector<mat> UB_hist(L + 1);
-  std::vector<mat> VB_hist(L + 1);
-  std::vector<mat> bB_hist(L + 1);
-  std::vector<mat> KVB_hist(L);
-  std::vector<mat> KTUB_hist(L + 1);
-
-  // save initial state
-  UB_hist[0] = UB;
-  VB_hist[0] = VB;
-  bB_hist[0] = bB;
+  // history slot pointers
+  auto KVB_h = [&](int l) { return _KVB_hist.data() + (la::idx)l * NSD; };
+  auto KTUB_h = [&](int l) { return _KTUB_hist.data() + (la::idx)l * NSD; };
+  auto bB_h = [&](int l) { return _bB_hist.data() + (la::idx)l * ND; };
 
   // ---- FORWARD: fixed _maxiter iterations ----
+  _VB.fill(1.0);
   for (int l = 0; l < L; ++l) {
     Rcpp::checkUserInterrupt();
 
     // KVB = K * VB  (one big GEMM: N x N * N x SD)
-    KVB = _K * VB;
-    KVB_hist[l] = KVB;
+    _Kmul(false, _VB, _KVB, SD);
+    std::copy(_KVB.data(), _KVB.data() + NSD, KVB_h(l));
 
     // UB[:,d*S+s] = A[:,s] / KVB[:,d*S+s]
-    for (int d = 0; d < D; ++d) {
-      UB.cols(d * _S, d * _S + _S - 1) =
-          this->A / KVB.cols(d * _S, d * _S + _S - 1);
+    for (la::idx c = 0; c < SD; ++c) {
+      const double *As = this->A.col(c % S);
+      const double *KVc = _KVB.col(c);
+      double *Uc = _UB.col(c);
+      for (la::idx i = 0; i < N; ++i) Uc[i] = As[i] / KVc[i];
     }
-    UB_hist[l + 1] = UB;
 
     // KTUB = K^T * UB  (one big GEMM)
-    KTUB = _K.t() * UB;
-    KTUB_hist[l + 1] = KTUB;
+    _Kmul(true, _UB, _KTUB, SD);
+    std::copy(_KTUB.data(), _KTUB.data() + NSD, KTUB_h(l + 1));
 
     // bB[:,d] = prod_s( KTUB[:,d*S+s] ^ wB[s,d] )
     for (int d = 0; d < D; ++d) {
-      mat KTU_d = KTUB.cols(d * _S, d * _S + _S - 1); // N x S
-      // element-wise power: each col s raised to wB(s,d)
-      mat powered(_N, _S);
-      for (int s = 0; s < _S; ++s) {
-        powered.col(s) = pow(KTU_d.col(s), wB(s, d));
+      double *bd = _bB.col(d);
+      for (la::idx i = 0; i < N; ++i) bd[i] = 1.0;
+      for (la::idx s = 0; s < S; ++s) {
+        const double *KTUc = _KTUB.col((la::idx)d * S + s);
+        const double w = wB[s + (la::idx)d * S];
+        for (la::idx i = 0; i < N; ++i) bd[i] *= std::pow(KTUc[i], w);
       }
-      bB.col(d) = prod(powered, 1); // row-wise product → N x 1
     }
-    bB_hist[l + 1] = bB;
+    std::copy(_bB.data(), _bB.data() + ND, bB_h(l + 1));
 
-    // VB[:,d*S+s] = bB[:,d] / KTUB[:,d*S+s]  (use pre-power KTUB)
-    for (int d = 0; d < D; ++d) {
-      VB.cols(d * _S, d * _S + _S - 1) =
-          (bB.col(d) * onesS.t()) / KTUB_hist[l + 1].cols(d * _S, d * _S + _S - 1);
+    // VB[:,d*S+s] = bB[:,d] / KTUB[:,d*S+s]
+    for (la::idx c = 0; c < SD; ++c) {
+      const double *bd = _bB.col(c / S);
+      const double *KTUc = _KTUB.col(c);
+      double *Vc = _VB.col(c);
+      for (la::idx i = 0; i < N; ++i) Vc[i] = bd[i] / KTUc[i];
     }
-    VB_hist[l + 1] = VB;
   }
 
   // ---- BACKWARD: l = L down to 1 ----
-  mat UBbar(_N, SD, fill::zeros);
-  mat VBbar(_N, SD, fill::zeros);
-  mat bBbar(_N, D, fill::zeros);
-  mat ABbar(_N, SD, fill::zeros);  // will be reduced to N x S
-  mat wBbar(_S, D, fill::zeros);
+  std::fill(_ABbar.data(), _ABbar.data() + NSD, 0.0);
+  std::fill(_wBbar.data(), _wBbar.data() + SD, 0.0);
 
   for (int l = L; l > 0; --l) {
     Rcpp::checkUserInterrupt();
 
-    mat KTU_l = _K.t() * UB_hist[l]; // N x SD
+    const double *KTUBl = KTUB_h(l);
+    const double *bBl = bB_h(l);
 
     if (l == L) {
       // bBbar = 2 * (bB_hist[L] - bB_ext)
-      bBbar = 2 * (bB_hist[l] - bB_ext);
+      for (la::idx k = 0; k < ND; ++k) _bBbar[k] = 2 * (bBl[k] - bB_ext[k]);
 
-      // UBbar = K * ((bBbar * wB^T tiled) % VB_hist[L])
-      // build the tiled outer product: tmp[:,d*S+s] = bBbar[:,d] * wB[s,d]
-      mat tmp(_N, SD);
-      for (int d = 0; d < D; ++d) {
-        tmp.cols(d * _S, d * _S + _S - 1) = bBbar.col(d) * wB.col(d).t();
+      // UBbar = K * ((bBbar * wB^T tiled) % VB_hist[L]),
+      // VB_hist[L] = bB_hist[L]_tiled / KTUB_hist[L]
+      for (la::idx c = 0; c < SD; ++c) {
+        const la::idx d = c / S, s = c % S;
+        const double *bbd = _bBbar.col(d);
+        const double *bd = bBl + d * N;
+        const double *KTUc = KTUBl + c * N;
+        const double w = wB[s + d * S];
+        double *tc = _tmpB.col(c);
+        for (la::idx i = 0; i < N; ++i) tc[i] = bbd[i] * w * (bd[i] / KTUc[i]);
       }
-      UBbar = _K * (tmp % VB_hist[l]);
+      _Kmul(false, _tmpB, _UBbar, SD);
 
     } else {
-      // VBbar = -K^T * (UBbar % UB_hist[l+1] / KVB_hist[l])
-      VBbar = -_K.t() * ((UBbar % UB_hist[l + 1]) / KVB_hist[l]);
+      // VBbar = -K^T * (UBbar % UB_hist[l+1] / KVB_hist[l]),
+      // UB_hist[l+1] = A_tiled / KVB_hist[l]
+      const double *KVBl = KVB_h(l);
+      for (la::idx c = 0; c < SD; ++c) {
+        const double *As = this->A.col(c % S);
+        const double *KVc = KVBl + c * N;
+        const double *Ubc = _UBbar.col(c);
+        double *tc = _tmpB.col(c);
+        for (la::idx i = 0; i < N; ++i)
+          tc[i] = (Ubc[i] * (As[i] / KVc[i])) / KVc[i];
+      }
+      _Kmul(true, _tmpB, _VBbar, SD);
+      for (la::idx k = 0; k < NSD; ++k) _VBbar[k] = -_VBbar[k];
 
       // bBbar[:,d] = sum_s( VBbar[:,d*S+s] / KTUB_hist[l][:,d*S+s] )
       for (int d = 0; d < D; ++d) {
-        bBbar.col(d) = sum(
-            VBbar.cols(d * _S, d * _S + _S - 1) /
-                KTUB_hist[l].cols(d * _S, d * _S + _S - 1),
-            1);
+        double *bbd = _bBbar.col(d);
+        for (la::idx i = 0; i < N; ++i) bbd[i] = 0.0;
+        for (la::idx s = 0; s < S; ++s) {
+          const la::idx c = (la::idx)d * S + s;
+          const double *Vbc = _VBbar.col(c);
+          const double *KTUc = KTUBl + c * N;
+          for (la::idx i = 0; i < N; ++i) bbd[i] += Vbc[i] / KTUc[i];
+        }
       }
 
-      // UBbar = K * ((bBbar*wB^T - VBbar/KTUB_hist[l]) % VB_hist[l])
-      mat tmp(_N, SD);
-      for (int d = 0; d < D; ++d) {
-        tmp.cols(d * _S, d * _S + _S - 1) =
-            bBbar.col(d) * wB.col(d).t() -
-            VBbar.cols(d * _S, d * _S + _S - 1) /
-                KTUB_hist[l].cols(d * _S, d * _S + _S - 1);
+      // UBbar = K * ((bBbar*wB^T - VBbar/KTUB_hist[l]) % VB_hist[l]),
+      // VB_hist[l] = bB_hist[l]_tiled / KTUB_hist[l]
+      for (la::idx c = 0; c < SD; ++c) {
+        const la::idx d = c / S, s = c % S;
+        const double *bbd = _bBbar.col(d);
+        const double *bd = bBl + d * N;
+        const double *KTUc = KTUBl + c * N;
+        const double *Vbc = _VBbar.col(c);
+        const double w = wB[s + d * S];
+        double *tc = _tmpB.col(c);
+        for (la::idx i = 0; i < N; ++i)
+          tc[i] = (bbd[i] * w - Vbc[i] / KTUc[i]) * (bd[i] / KTUc[i]);
       }
-      UBbar = _K * (tmp % VB_hist[l]);
+      _Kmul(false, _tmpB, _UBbar, SD);
     }
 
     // ABbar += UBbar / KVB_hist[l-1]
-    ABbar += UBbar / KVB_hist[l - 1];
+    {
+      const double *KVBl1 = KVB_h(l - 1);
+      for (la::idx k = 0; k < NSD; ++k) _ABbar[k] += _UBbar[k] / KVBl1[k];
+    }
 
     // wBbar_d += log(KTUB_hist[l])^T * (bBbar_d % bB_hist[l]_d)
     for (int d = 0; d < D; ++d) {
-      wBbar.col(d) +=
-          log(KTUB_hist[l].cols(d * _S, d * _S + _S - 1)).t() *
-          (bBbar.col(d) % bB_hist[l].col(d));
+      const double *bbd = _bBbar.col(d);
+      const double *bd = bBl + (la::idx)d * N;
+      double *wbd = _wBbar.col(d);
+      for (la::idx s = 0; s < S; ++s) {
+        const double *KTUc = KTUBl + ((la::idx)d * S + s) * N;
+        double acc = 0.0;
+        for (la::idx i = 0; i < N; ++i) acc += std::log(KTUc[i]) * (bbd[i] * bd[i]);
+        wbd[s] += acc;
+      }
     }
   }
 
   // ---- GRADIENT FINALIZATION ----
 
   // softmax Jacobian for A: for each column of ABbar
-  for (int j = 0; j < SD; ++j) {
-    int s = j % _S;
-    vec a_s = this->A.col(s);
-    ABbar.col(j) = (diagmat(a_s) - a_s * a_s.t()) * ABbar.col(j);
-  }
+  for (la::idx c = 0; c < SD; ++c) _softmax_jac(this->A.col(c % S), _ABbar.col(c), N);
 
   // softmax Jacobian for w: for each doc
-  for (int d = 0; d < D; ++d) {
-    vec w_d = wB.col(d);
-    wBbar.col(d) = (diagmat(w_d) - w_d * w_d.t()) * wBbar.col(d);
-  }
+  for (int d = 0; d < D; ++d) _softmax_jac(wB + (la::idx)d * S, _wBbar.col(d), S);
 
   // reduce ABbar: sum D blocks of N x S into _g_Alpha
   _g_Alpha.zeros();
-  for (int d = 0; d < D; ++d) {
-    _g_Alpha += ABbar.cols(d * _S, d * _S + _S - 1);
+  for (la::idx c = 0; c < SD; ++c) {
+    const double *src = _ABbar.col(c);
+    double *dst = _g_Alpha.col(c % S);
+    for (la::idx i = 0; i < N; ++i) dst[i] += src[i];
   }
-  _g_Alpha /= D;
+  for (la::idx k = 0; k < _g_Alpha.size(); ++k) _g_Alpha[k] /= D;
 
   // reduce wBbar: sum D columns into _g_lambda
-  _g_lambda = sum(wBbar, 1) / D;
+  _g_lambda.zeros();
+  for (int d = 0; d < D; ++d) {
+    const double *wbd = _wBbar.col(d);
+    for (la::idx s = 0; s < S; ++s) _g_lambda[s] += wbd[s];
+  }
+  for (la::idx s = 0; s < S; ++s) _g_lambda[s] /= D;
 
-  // broadcast g_Lambda
-  _g_Lambda = _g_lambda * _onesM.t();
+  // broadcast g_Lambda = g_lambda * ones^T
+  for (la::idx m = 0; m < _M; ++m) {
+    double *col = _g_Lambda.col(m);
+    for (la::idx s = 0; s < S; ++s) col[s] = _g_lambda[s];
+  }
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -252,8 +208,6 @@ void WassersteinDictionaryLearning::_train_batch_batched(int batch_id) {
 
 // serial computation
 void WassersteinDictionaryLearning::_compute_serial() {
-  // CTRACK;
-
   // logging at the beginning
   if (_verbose) {
     Rcpp::message(Rf_mkString("Running in serial mode..."));
@@ -261,50 +215,60 @@ void WassersteinDictionaryLearning::_compute_serial() {
     Rcpp::message(Rf_mkString(
         vformat(
             "Initializing WDL model with %i vocabs, %i docs, and %i topics...",
-            _N, _M, _S)
+            (int)_N, (int)_M, (int)_S)
             .c_str()));
   }
 
-  // first set up the RNG state
-  // TODO: use static init instead of random init
-  // arma::arma_rng rng_state;
-  // rng_state.set_seed(_rng_seed);
-
-  // init latent vars
-  // 1. random init
-  // _Alpha = abs(mat(_N, _S, fill::randn));
-  // _Lambda = abs(mat(_S, _M, fill::randn));
-  _Alpha = mat(_N, _S, fill::randn);
-  _Lambda = mat(_S, _M, fill::randn);
-  // 2. unit init
-  // _Alpha = mat(_N, _S, fill::ones);
-  // _Lambda = mat(_S, _M, fill::ones);
+  // init latent vars: random normal init from R's RNG (respects set.seed)
+  _Alpha.resize(_N, _S);
+  _Lambda.resize(_S, _M);
+  for (la::idx k = 0; k < _Alpha.size(); ++k) _Alpha[k] = norm_rand();
+  for (la::idx k = 0; k < _Lambda.size(); ++k) _Lambda[k] = norm_rand();
 
   // init A and W as softmax of alpha and lambda
+  this->A.resize(_N, _S);
+  this->W.resize(_S, _M);
   _softmax();
 
-  // Rcpp::Rcout << "A: \n" << this->A.rows(0, 5) << std::endl;
-  // Rcpp::Rcout << "W: \n" << this->W.cols(0, 5) << std::endl;
-  // Rcpp::Rcout << "A sum: \n" << sum(this->A, 0) << std::endl;
-  // Rcpp::Rcout << "W sum: \n" << sum(this->W.cols(0,5), 0) << std::endl;
-
   // init the gradient into proper dimensions
-  _g_Alpha = mat(_N, _S, fill::zeros);
-  _g_lambda = vec(_S, fill::zeros);
-  _g_Lambda = mat(_S, _M, fill::zeros);
+  _g_Alpha.resize(_N, _S);
+  _g_lambda.resize(_S);
+  _g_Lambda.resize(_S, _M);
 
   // precompute Gibbs kernel K = exp(-C / reg)
-  _K = exp(-_C / _reg);
-  if (_C.is_symmetric()) {
-    _K = symmatu(_K);
+  _K.resize(_N, _N);
+  for (la::idx k = 0; k < _K.size(); ++k) _K[k] = std::exp(-_C[k] / _reg);
+  _C_is_symm = _C.is_symmetric();
+  if (_C_is_symm) {
+    _K.symmetrize_upper();
   }
 
   // init the optimizers
   _opt_Alpha.init(_N, _S, _eta, _gamma, _beta1, _beta2, _eps);
   _opt_Lambda.init(_S, _M, _eta, _gamma, _beta1, _beta2, _eps);
 
+  // batched scratch and history, allocated once for B docs
+  {
+    const la::idx B = (la::idx)std::min<int>(_B, (int)_M);
+    const la::idx NSB = _N * _S * B, NB = _N * B;
+    _UB.resize(_N, _S * B);
+    _VB.resize(_N, _S * B);
+    _KVB.resize(_N, _S * B);
+    _KTUB.resize(_N, _S * B);
+    _UBbar.resize(_N, _S * B);
+    _VBbar.resize(_N, _S * B);
+    _ABbar.resize(_N, _S * B);
+    _tmpB.resize(_N, _S * B);
+    _bB.resize(_N, B);
+    _bBbar.resize(_N, B);
+    _wBbar.resize(_S, B);
+    _KVB_hist.resize((la::idx)_maxiter * NSB);
+    _KTUB_hist.resize((la::idx)(_maxiter + 1) * NSB);
+    _bB_hist.resize((la::idx)(_maxiter + 1) * NB);
+  }
+
   // batch indicator: how many batches are there
-  int batches = (_M % _B) ? (_M / _B + 1) : (_M / _B);
+  const int batches = (_M % _B) ? (int)(_M / _B + 1) : (int)(_M / _B);
 
   // logging before the main loop
   if (_verbose) {
@@ -352,16 +316,17 @@ void WassersteinDictionaryLearning::_compute_serial() {
   }
 
   // init a barycenter class for inference (no gradients)
-  Barycenter bc(_S, false, _maxiter, _zerotol, 0);
+  Barycenter bc((int)_S, false, _maxiter, _zerotol, 0);
   bc.update_C(_C);
   bc.update_reg(_reg);
   bc.update_A(this->A);
 
   // output (predicted barycenters)
-  Yhat = mat(_N, _M, fill::zeros);
-  vec what = vec(_S, fill::zeros);
-  for (int m = 0; m < _M; ++m) {
-    what = this->W.col(m);
+  Yhat.resize(_N, _M);
+  la::Vec what(_S);
+  for (la::idx m = 0; m < _M; ++m) {
+    const double *wm = this->W.col(m);
+    for (la::idx s = 0; s < _S; ++s) what[s] = wm[s];
 
     bc.update_w(what);
 
@@ -373,6 +338,6 @@ void WassersteinDictionaryLearning::_compute_serial() {
       Rcpp::stop("barycenter method not supported");
     }
 
-    Yhat.col(m) = bc.b;
+    std::copy(bc.b.data(), bc.b.data() + _N, Yhat.col(m));
   }
 }

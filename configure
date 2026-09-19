@@ -1770,9 +1770,18 @@ printf %s "checking for CUDA in standard locations... " >&6; }
 					CUDA_FLAGS="-I${cudapath}/include"
 					CUDA_LIBS="-L${cudapath}/lib64 -lcudart -lcublas"
 					CUDA_DEFS="-DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME"
+					# GPU architecture: double-precision atomicAdd needs sm_60+,
+					# and recent nvcc defaults to sm_52. Prefer the GPU present at
+					# build time (-arch=native), else a conservative sm_75.
+					CUDA_ARCH="-arch=sm_75"
+					if test -n "$RWIG_CUDA_ARCH"; then
+						CUDA_ARCH="$RWIG_CUDA_ARCH"
+					elif "$cudapath/bin/nvcc" -arch=native --version >/dev/null 2>&1; then
+						CUDA_ARCH="-arch=native"
+					fi
 					# CUDA compile rules
 				CUDA_RULES="NVCC = $cudapath/bin/nvcc
-NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 -I../inst/include ${R_INCL} -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
+NVCC_FLAGS = -x cu -Xcompiler -fPIC -O2 -std=c++17 ${CUDA_ARCH} -I../inst/include ${R_INCL} -DHAVE_CUBLAS -DHAVE_CUDA_RUNTIME
 
 OBJECTS = cuda_kernels.o cuda_sinkhorn.o cuda_barycenter.o cuda_optimizer.o cuda_wdl.o barycenter.o barycenter_impl_log.o barycenter_impl_parallel.o check_cuda.o RcppExports.o sinkhorn.o sinkhorn_impl_log.o sinkhorn_impl_vanilla.o tsvd.o utils.o wdl.o wdl_impl.o
 

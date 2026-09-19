@@ -3,60 +3,49 @@
 // barycenter algos
 
 #include "barycenter_impl.hpp"
-// #include "ctrack.hpp"
+#include "rcpp_glue.hpp"
 
-// using namespace arma;
-// using namespace cpp11;
-// using namespace cpp11::literals; // so we can use ""_nm syntax
-// namespace writable = cpp11::writable; // writable list from cpp11
+static Rcpp::List barycenter_result(const Barycenter &bc, bool withgrad,
+                                    const char *Uname, const char *Vname) {
+  if (withgrad) {
+    return Rcpp::List::create(
+        Rcpp::Named("b") = la::to_R(bc.b), Rcpp::Named("grad_A") = la::to_R(bc.grad_A),
+        Rcpp::Named("grad_w") = la::to_R(bc.grad_w), Rcpp::Named("loss") = bc.loss,
+        Rcpp::Named(Uname) = la::to_R(bc.U), Rcpp::Named(Vname) = la::to_R(bc.V),
+        Rcpp::Named("iter") = bc.iter, Rcpp::Named("err") = bc.err,
+        Rcpp::Named("return_status") = bc.return_code);
+  } else {
+    return Rcpp::List::create(
+        Rcpp::Named("b") = la::to_R(bc.b), Rcpp::Named(Uname) = la::to_R(bc.U),
+        Rcpp::Named(Vname) = la::to_R(bc.V), Rcpp::Named("iter") = bc.iter,
+        Rcpp::Named("err") = bc.err,
+        Rcpp::Named("return_status") = bc.return_code);
+  }
+}
 
 Rcpp::List barycenter_parallel_cpu(const SEXP &A, const SEXP &C, const SEXP &w,
                                    double reg, const SEXP &b_ext,
                                    bool withgrad = false, int maxiter = 1000,
                                    double zerotol = 1e-6, int verbose = 0) {
-
-  // convert R vectors/matrices into arma ones
-  arma::mat A_{Rcpp::as<arma::mat>(A)};
-  arma::mat C_{Rcpp::as<arma::mat>(C)};
-  arma::vec w_{Rcpp::as<arma::vec>(w)};
-  arma::vec b_ext_;
-  if (withgrad) {
-    b_ext_ = Rcpp::as<arma::vec>(b_ext);
-  }
+  la::Mat A_ = la::mat_from_R(A);
+  la::Mat C_ = la::mat_from_R(C);
+  la::Vec w_ = la::vec_from_R(w);
 
   // init the class
-  Barycenter bc(A_.n_cols, withgrad, maxiter, zerotol, verbose);
+  Barycenter bc((int)A_.ncol(), withgrad, maxiter, zerotol, verbose);
   // update/load all the data
   bc.update_C(C_);
   bc.update_reg(reg);
   bc.update_A(A_);
   bc.update_w(w_);
   if (withgrad) {
-    bc.update_b_ext(b_ext_);
+    bc.update_b_ext(la::vec_from_R(b_ext));
   }
 
   // start the computation
   bc.compute_parallel();
 
-  // ctrack::result_print();
-
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("b") = bc.b, Rcpp::Named("grad_A") = bc.grad_A,
-        Rcpp::Named("grad_w") = bc.grad_w, Rcpp::Named("loss") = bc.loss,
-        Rcpp::Named("U") = bc.U, Rcpp::Named("V") = bc.V,
-        Rcpp::Named("iter") = bc.iter, Rcpp::Named("err") = bc.err,
-        Rcpp::Named("return_status") = bc.return_code);
-  } else {
-    return Rcpp::List::create(Rcpp::Named("b") = bc.b,
-                              // Rcpp::Named("grad_A") = bc.grad_A,
-                              // Rcpp::Named("grad_w") = bc.grad_w,
-                              // Rcpp::Named("loss") = bc.loss,
-                              Rcpp::Named("U") = bc.U, Rcpp::Named("V") = bc.V,
-                              Rcpp::Named("iter") = bc.iter,
-                              Rcpp::Named("err") = bc.err,
-                              Rcpp::Named("return_status") = bc.return_code);
-  }
+  return barycenter_result(bc, withgrad, "U", "V");
 }
 
 // only have the CUDA version when they are detected
@@ -119,7 +108,6 @@ Rcpp::List barycenter_parallel_cuda(const SEXP &A, const SEXP &C, const SEXP &w,
     return_code = 2;
   }
 
-  // Rcpp::List res;
   if (withgrad) {
     return Rcpp::List::create(
         Rcpp::Named("b") = b_, Rcpp::Named("grad_A") = grad_A_,
@@ -165,43 +153,28 @@ Rcpp::List barycenter_parallel_cpp(const SEXP &A, const SEXP &C, const SEXP &w,
 }
 
 // [[Rcpp::export]]
-Rcpp::List barycenter_log_cpp(const arma::mat &A, const arma::mat &C,
-                              const arma::vec &w, double reg,
-                              const arma::vec &b_ext, bool withgrad = false,
-                              const int &n_threads = 0, int maxiter = 1000,
-                              double zerotol = 1e-6, int verbose = 0) {
+Rcpp::List barycenter_log_cpp(const SEXP &A, const SEXP &C, const SEXP &w,
+                              double reg, const SEXP &b_ext,
+                              bool withgrad = false, const int &n_threads = 0,
+                              int maxiter = 1000, double zerotol = 1e-6,
+                              int verbose = 0) {
+  la::Mat A_ = la::mat_from_R(A);
+  la::Mat C_ = la::mat_from_R(C);
+  la::Vec w_ = la::vec_from_R(w);
 
   // init the class
-  Barycenter bc(A.n_cols, withgrad, maxiter, zerotol, verbose);
+  Barycenter bc((int)A_.ncol(), withgrad, maxiter, zerotol, verbose);
   // update/load all the data
-  bc.update_C(C);
+  bc.update_C(C_);
   bc.update_reg(reg);
-  bc.update_A(A);
-  bc.update_w(w);
+  bc.update_A(A_);
+  bc.update_w(w_);
   if (withgrad) {
-    bc.update_b_ext(b_ext);
+    bc.update_b_ext(la::vec_from_R(b_ext));
   }
 
   // start the computation
   bc.compute_log(n_threads);
 
-  // ctrack::result_print();
-
-  if (withgrad) {
-    return Rcpp::List::create(
-        Rcpp::Named("b") = bc.b, Rcpp::Named("grad_A") = bc.grad_A,
-        Rcpp::Named("grad_w") = bc.grad_w, Rcpp::Named("loss") = bc.loss,
-        Rcpp::Named("F") = bc.U, Rcpp::Named("G") = bc.V,
-        Rcpp::Named("iter") = bc.iter, Rcpp::Named("err") = bc.err,
-        Rcpp::Named("return_status") = bc.return_code);
-  } else {
-    return Rcpp::List::create(Rcpp::Named("b") = bc.b,
-                              // Rcpp::Named("grad_A") = bc.grad_A,
-                              // Rcpp::Named("grad_w") = bc.grad_w,
-                              // Rcpp::Named("loss") = bc.loss,
-                              Rcpp::Named("F") = bc.U, Rcpp::Named("G") = bc.V,
-                              Rcpp::Named("iter") = bc.iter,
-                              Rcpp::Named("err") = bc.err,
-                              Rcpp::Named("return_status") = bc.return_code);
-  }
+  return barycenter_result(bc, withgrad, "F", "G");
 }
